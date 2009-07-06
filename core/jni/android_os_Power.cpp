@@ -57,6 +57,12 @@ releaseWakeLock(JNIEnv *env, jobject clazz, jstring idObj)
 }
 
 static int
+enableDvfs(JNIEnv *env, jobject clazz, jboolean on)
+{
+    return enable_dvfs(on);
+}
+
+static int
 setLastUserActivityTimeout(JNIEnv *env, jobject clazz, jlong timeMS)
 {
     return set_last_user_activity_timeout(timeMS/1000);
@@ -88,6 +94,7 @@ static void android_os_Power_reboot(JNIEnv *env, jobject clazz, jstring reason)
 static JNINativeMethod method_table[] = {
     { "acquireWakeLock", "(ILjava/lang/String;)V", (void*)acquireWakeLock },
     { "releaseWakeLock", "(Ljava/lang/String;)V", (void*)releaseWakeLock },
+    { "enableDvfs", "(Z)I", (void*)enableDvfs },
     { "setLastUserActivityTimeout", "(J)I", (void*)setLastUserActivityTimeout },
     { "setScreenState", "(Z)I", (void*)setScreenState },
     { "shutdown", "()V", (void*)android_os_Power_shutdown },
