@@ -220,6 +220,7 @@ public class MediaFile {
         //Check FSL_AVI_PARSER property
         if ("1".equals(value)) {
     		addFileType("AVI", FILE_TYPE_AVI, "video/avi");
+            addFileType("DIVX", FILE_TYPE_AVI, "video/avi");
         }
 	//Check FSL_AAC_PARSER property
 	value = SystemProperties.get("ro.FSL_AAC_PARSER");
