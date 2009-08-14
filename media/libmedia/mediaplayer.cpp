@@ -396,7 +396,6 @@ status_t MediaPlayer::getDuration_l(int *msec)
     bool isValidState = (mCurrentState & (MEDIA_PLAYER_PREPARED | MEDIA_PLAYER_STARTED | MEDIA_PLAYER_PAUSED | MEDIA_PLAYER_STOPPED | MEDIA_PLAYER_PLAYBACK_COMPLETE));
     if (mPlayer != 0 && isValidState) {
         status_t ret = NO_ERROR;
-        if (mDuration <= 0)
             ret = mPlayer->getDuration(&mDuration);
         if (msec)
             *msec = mDuration;
