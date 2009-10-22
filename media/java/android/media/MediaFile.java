@@ -228,6 +228,10 @@ public class MediaFile {
 		addFileType("AAC", FILE_TYPE_AAC, "X-AAC-ADIF");
 		addFileType("ADTS", FILE_TYPE_AAC, "X-AAC-ADIF");
 	}
+	value = SystemProperties.get("ro.FSL_ASF_PARSER");
+	if ("1".equals(value)) {
+		addFileType("ASF", FILE_TYPE_WMV, "video/x-ms-wmv");
+	}
 	//Check FSL_FLV_PARSER property
 	value = SystemProperties.get("ro.FSL_FLV_PARSER");
 	if ("1".equals(value)) {
