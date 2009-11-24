@@ -28,7 +28,8 @@ import android.mtp.MtpConstants;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
+import android.os.SystemProperties;
+import android.util.Log;
 /**
  * MediaScanner helper class.
  *
@@ -45,31 +46,33 @@ public class MediaFile {
     public static final int FILE_TYPE_WMA     = 6;
     public static final int FILE_TYPE_OGG     = 7;
     public static final int FILE_TYPE_AAC     = 8;
-    public static final int FILE_TYPE_MKA     = 9;
-    public static final int FILE_TYPE_FLAC    = 10;
+    public static final int FILE_TYPE_RMA     = 9
+    public static final int FILE_TYPE_MKA     = 10;
+    public static final int FILE_TYPE_FLAC    = 11;
     private static final int FIRST_AUDIO_FILE_TYPE = FILE_TYPE_MP3;
     private static final int LAST_AUDIO_FILE_TYPE = FILE_TYPE_FLAC;
 
     // MIDI file types
-    public static final int FILE_TYPE_MID     = 11;
-    public static final int FILE_TYPE_SMF     = 12;
-    public static final int FILE_TYPE_IMY     = 13;
+    public static final int FILE_TYPE_MID     = 21;
+    public static final int FILE_TYPE_SMF     = 22;
+    public static final int FILE_TYPE_IMY     = 23;
     private static final int FIRST_MIDI_FILE_TYPE = FILE_TYPE_MID;
     private static final int LAST_MIDI_FILE_TYPE = FILE_TYPE_IMY;
    
     // Video file types
-    public static final int FILE_TYPE_MP4     = 21;
-    public static final int FILE_TYPE_M4V     = 22;
-    public static final int FILE_TYPE_3GPP    = 23;
-    public static final int FILE_TYPE_3GPP2   = 24;
-    public static final int FILE_TYPE_WMV     = 25;
-    public static final int FILE_TYPE_ASF     = 26;
-    public static final int FILE_TYPE_MKV     = 27;
-    public static final int FILE_TYPE_MP2TS   = 28;
-    public static final int FILE_TYPE_AVI     = 29;
-    public static final int FILE_TYPE_WEBM    = 30;
+    public static final int FILE_TYPE_MP4     = 31;
+    public static final int FILE_TYPE_M4V     = 32;
+    public static final int FILE_TYPE_3GPP    = 33;
+    public static final int FILE_TYPE_3GPP2   = 34;
+    public static final int FILE_TYPE_WMV     = 35;
+    public static final int FILE_TYPE_ASF     = 36;
+    public static final int FILE_TYPE_MP2TS   = 37;
+    public static final int FILE_TYPE_AVI     = 38;
+    public static final int FILE_TYPE_FLV     = 39;
+    public static final int FILE_TYPE_RMV     = 40;
+    public static final int FILE_TYPE_MKV     = 41;
     private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
-    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_WEBM;
+    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MKV;
     
     // More video file types
     public static final int FILE_TYPE_MP2PS   = 200;
@@ -77,26 +80,25 @@ public class MediaFile {
     private static final int LAST_VIDEO_FILE_TYPE2 = FILE_TYPE_MP2PS;
 
     // Image file types
-    public static final int FILE_TYPE_JPEG    = 31;
-    public static final int FILE_TYPE_GIF     = 32;
-    public static final int FILE_TYPE_PNG     = 33;
-    public static final int FILE_TYPE_BMP     = 34;
-    public static final int FILE_TYPE_WBMP    = 35;
-    public static final int FILE_TYPE_WEBP    = 36;
+    public static final int FILE_TYPE_JPEG    = 51;
+    public static final int FILE_TYPE_GIF     = 52;
+    public static final int FILE_TYPE_PNG     = 53;
+    public static final int FILE_TYPE_BMP     = 54;
+    public static final int FILE_TYPE_WBMP    = 55;
     private static final int FIRST_IMAGE_FILE_TYPE = FILE_TYPE_JPEG;
     private static final int LAST_IMAGE_FILE_TYPE = FILE_TYPE_WEBP;
    
     // Playlist file types
-    public static final int FILE_TYPE_M3U      = 41;
-    public static final int FILE_TYPE_PLS      = 42;
-    public static final int FILE_TYPE_WPL      = 43;
-    public static final int FILE_TYPE_HTTPLIVE = 44;
+    public static final int FILE_TYPE_M3U      = 61;
+    public static final int FILE_TYPE_PLS      = 62;
+    public static final int FILE_TYPE_WPL      = 63;
+    public static final int FILE_TYPE_HTTPLIVE = 64;
 
     private static final int FIRST_PLAYLIST_FILE_TYPE = FILE_TYPE_M3U;
     private static final int LAST_PLAYLIST_FILE_TYPE = FILE_TYPE_HTTPLIVE;
 
     // Drm file types
-    public static final int FILE_TYPE_FL      = 51;
+    public static final int FILE_TYPE_FL      = 71;
     private static final int FIRST_DRM_FILE_TYPE = FILE_TYPE_FL;
     private static final int LAST_DRM_FILE_TYPE = FILE_TYPE_FL;
 
@@ -211,6 +213,39 @@ public class MediaFile {
         if (isWMVEnabled()) {
             addFileType("WMV", FILE_TYPE_WMV, "video/x-ms-wmv", MtpConstants.FORMAT_WMV);
             addFileType("ASF", FILE_TYPE_ASF, "video/x-ms-asf");
+        }
+        addFileType("AVI", FILE_TYPE_AVI, "x-pvmf/mux/avi");
+
+        String value= SystemProperties.get("ro.FSL_AVI_PARSER");	
+        //Check FSL_AVI_PARSER property
+        if ("1".equals(value)) {
+    		addFileType("AVI", FILE_TYPE_AVI, "video/avi");
+        }
+	//Check FSL_AAC_PARSER property
+	value = SystemProperties.get("ro.FSL_AAC_PARSER");
+	if ("1".equals(value)) {
+		addFileType("AAC", FILE_TYPE_AAC, "X-AAC-ADIF");
+		addFileType("ADTS", FILE_TYPE_AAC, "X-AAC-ADIF");
+	}
+	//Check FSL_FLV_PARSER property
+	value = SystemProperties.get("ro.FSL_FLV_PARSER");
+	if ("1".equals(value)) {
+		addFileType("FLV", FILE_TYPE_FLV, "video/flv");
+	}
+
+       //Check FSL_RMVB_PARSER property
+        value = SystemProperties.get("ro.FSL_RMVB_PARSER");
+        if ("1".equals(value)) {
+            addFileType("RA", FILE_TYPE_RMA, "audio/rmff");
+            addFileType("RM", FILE_TYPE_RMV, "video/rmff");
+            addFileType("RMVB", FILE_TYPE_RMV, "video/rmff");
+        }
+        
+        //Check FSL_MKV_PARSER property
+        value = SystemProperties.get("ro.FSL_MKV_PARSER");
+        if ("1".equals(value)) {
+            addFileType("MKA", FILE_TYPE_MKA, "audio/matroska");
+            addFileType("MKV", FILE_TYPE_MKV, "video/matroska");
         }
 
         addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg", MtpConstants.FORMAT_EXIF_JPEG);
