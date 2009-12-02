@@ -93,6 +93,7 @@ SurfaceFlinger::SurfaceFlinger()
         mDebugDDMS(0),
         mDebugDisableHWC(0),
         mDebugDisableTransformHint(0),
+	mDebugFps(0),
         mDebugInSwapBuffers(0),
         mLastSwapBufferTime(0),
         mDebugInTransaction(0),
@@ -116,6 +117,8 @@ void SurfaceFlinger::init()
 
     property_get("debug.sf.showbackground", value, "0");
     mDebugBackground = atoi(value);
+    property_get("debug.sf.showfps", value, "0");
+    mDebugFps = atoi(value);
 
     property_get("debug.sf.ddms", value, "0");
     mDebugDDMS = atoi(value);
@@ -126,6 +129,7 @@ void SurfaceFlinger::init()
     LOGI_IF(mDebugRegion,       "showupdates enabled");
     LOGI_IF(mDebugBackground,   "showbackground enabled");
     LOGI_IF(mDebugDDMS,         "DDMS debugging enabled");
+    LOGI_IF(mDebugFps,		    "showfps enabled");
 }
 
 SurfaceFlinger::~SurfaceFlinger()
@@ -452,16 +456,23 @@ bool SurfaceFlinger::threadLoop()
 
 void SurfaceFlinger::postFramebuffer()
 {
-    // this should never happen. we do the flip anyways so we don't
-    // risk to cause a deadlock with hwc
-    LOGW_IF(mSwapRegion.isEmpty(), "mSwapRegion is empty");
-    const DisplayHardware& hw(graphicPlane(0).displayHardware());
-    const nsecs_t now = systemTime();
-    mDebugInSwapBuffers = now;
-    hw.flip(mSwapRegion);
-    mLastSwapBufferTime = systemTime() - now;
-    mDebugInSwapBuffers = 0;
-    mSwapRegion.clear();
+    if (!mInvalidRegion.isEmpty()) {
+
+        if (UNLIKELY(mDebugFps)) {
+            debugShowFPS();
+        }
+
+        // this should never happen. we do the flip anyways so we don't
+        // risk to cause a deadlock with hwc
+        LOGW_IF(mSwapRegion.isEmpty(), "mSwapRegion is empty");
+        const DisplayHardware& hw(graphicPlane(0).displayHardware());
+        const nsecs_t now = systemTime();
+        mDebugInSwapBuffers = now;
+        hw.flip(mInvalidRegion);
+        mLastSwapBufferTime = systemTime() - now;
+        mDebugInSwapBuffers = 0;
+        mInvalidRegion.clear();
+    }
 }
 
 void SurfaceFlinger::handleConsoleEvents()
@@ -1108,6 +1119,7 @@ void SurfaceFlinger::debugShowFPS() const
         mLastFrameCount = mFrameCount;
     }
     // XXX: mFPS has the value we want
+    LOGI("fps - %.2f",mFps);
  }
 
 status_t SurfaceFlinger::addLayer(const sp<LayerBase>& layer)

@@ -382,6 +382,7 @@ private:
                 int                         mDebugDDMS;
                 int                         mDebugDisableHWC;
                 int                         mDebugDisableTransformHint;
+                int                         mDebugFps;
                 volatile nsecs_t            mDebugInSwapBuffers;
                 nsecs_t                     mLastSwapBufferTime;
                 volatile nsecs_t            mDebugInTransaction;
