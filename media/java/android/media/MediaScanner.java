@@ -526,6 +526,32 @@ public class MediaScanner
             doScanFile(path, null, lastModified, fileSize, isDirectory, false, noMedia);
         }
 
+
+        private boolean isMetadataSupported(int fileType) {
+            if (mFileType == MediaFile.FILE_TYPE_MP3 ||
+                    mFileType == MediaFile.FILE_TYPE_MP4 ||
+                    mFileType == MediaFile.FILE_TYPE_M4A ||
+                    mFileType == MediaFile.FILE_TYPE_3GPP ||
+                    mFileType == MediaFile.FILE_TYPE_3GPP2 ||
+                    mFileType == MediaFile.FILE_TYPE_OGG ||
+                    mFileType == MediaFile.FILE_TYPE_AAC ||
+                    mFileType == MediaFile.FILE_TYPE_MID ||
+                    mFileType == MediaFile.FILE_TYPE_WMA ||
+                    mFileType == MediaFile.FILE_TYPE_AVI ||
+                    mFileType == MediaFile.FILE_TYPE_MKA ||
+                    mFileType == MediaFile.FILE_TYPE_MKV ||
+                    mFileType == MediaFile.FILE_TYPE_FLV ||
+                    mFileType == MediaFile.FILE_TYPE_RMV ||
+                    mFileType == MediaFile.FILE_TYPE_RMA ||
+                    mFileType == MediaFile.FILE_TYPE_ASF ||
+                    mFileType == MediaFile.FILE_TYPE_WMV ) {
+                // we only extract metadata from MP3, M4A, OGG, MID, AAC and WMA files.
+                // check MP4 files, to determine if they contain only audio.
+                return true;
+            }
+            return false;
+        }
+
         public Uri doScanFile(String path, String mimeType, long lastModified,
                 long fileSize, boolean isDirectory, boolean scanAlways, boolean noMedia) {
             Uri result = null;
@@ -546,10 +572,10 @@ public class MediaScanner
                         boolean music = (lowpath.indexOf(MUSIC_DIR) > 0) ||
                             (!ringtones && !notifications && !alarms && !podcasts);
 
-                        // we only extract metadata for audio and video files
-                        if (MediaFile.isAudioFileType(mFileType)
-                                || MediaFile.isVideoFileType(mFileType)) {
+                        if( isMetadataSupported(mFileType) ) {
                             processFile(path, mimeType, this);
+                        } else if (MediaFile.isImageFileType(mFileType)) {
+                            // we used to compute the width and height but it's not worth it
                         }
 
                         if (MediaFile.isImageFileType(mFileType)) {
