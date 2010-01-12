@@ -1501,8 +1501,8 @@ sp<AudioFlinger::PlaybackThread::Track>  AudioFlinger::PlaybackThread::createTra
             }
         }
     } else {
-        // Resampler implementation limits input sampling rate to 2 x output sampling rate.
-        if (sampleRate > mSampleRate*2) {
+        // Resampler implementation limits input sampling rate to 8 x output sampling rate.
+        if (sampleRate > mSampleRate*8) {
             LOGE("Sample rate out of range: %d mSampleRate %d", sampleRate, mSampleRate);
             lStatus = BAD_VALUE;
             goto Exit;
