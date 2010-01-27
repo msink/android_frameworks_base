@@ -220,6 +220,10 @@ public class MediaRecorder
 
         /** @hide H.264/AAC data encapsulated in MPEG2/TS */
         public static final int OUTPUT_FORMAT_MPEG2TS = 8;
+       /** mp3 file format */
+        public static final int MP3 = 9;
+        /** pcm16 file format*/
+        public static final int PCM16 = 10;
     };
 
     /**
@@ -242,6 +246,10 @@ public class MediaRecorder
         public static final int AAC_PLUS = 4;
         /** @hide enhanced AAC plus audio codec */
         public static final int EAAC_PLUS = 5;
+       //public static final AAC = 2;  currently unsupported
+        public static final int MP3 = 6;
+        //public static final PCM16
+        public static final int PCM16 = 7;
     }
 
     /**

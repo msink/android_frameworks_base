@@ -67,6 +67,8 @@ enum output_format {
     /* H.264/AAC data encapsulated in MPEG2/TS */
     OUTPUT_FORMAT_MPEG2TS = 8,
 
+    OUTPUT_FORMAT_MP3 = 9,
+    OUTPUT_FORMAT_PCM16 = 10,
     OUTPUT_FORMAT_LIST_END // must be last - used to validate format type
 };
 
@@ -77,7 +79,8 @@ enum audio_encoder {
     AUDIO_ENCODER_AAC = 3,
     AUDIO_ENCODER_AAC_PLUS = 4,
     AUDIO_ENCODER_EAAC_PLUS = 5,
-
+    AUDIO_ENCODER_MP3 = 6,
+    AUDIO_ENCODER_PCM16 = 7,
     AUDIO_ENCODER_LIST_END // must be the last - used to validate the audio encoder type
 };
 
