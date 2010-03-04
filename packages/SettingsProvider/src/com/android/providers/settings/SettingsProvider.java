@@ -184,6 +184,15 @@ public class SettingsProvider extends ContentProvider {
         if (backedUpDataChanged) {
             mBackupManager.dataChanged();
         }
+
+	try {
+	    // Sleep a while so that system property can be set before notification is sent out
+	    // It is found a race condition exist between above system property is set and
+	    // the notified client check the system property
+            Thread.sleep(50);
+	} catch (InterruptedException e) {
+	}
+
         // Now send the notification through the content framework.
 
         String notify = uri.getQueryParameter("notify");
