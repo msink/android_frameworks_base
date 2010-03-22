@@ -1064,6 +1064,26 @@ public class MediaPlayer
     public native int getDuration();
 
     /**
+    * Call this method when playback or pause. This method finds the
+    * current frame if successful and returns it as a bitmap. This is
+    * useful for generating a thumbnail for an input media source.
+    * 
+    * @return A Bitmap containing a representative video frame, which 
+    *  can be null, if such a frame cannot be retrieved.
+    */
+    public native Bitmap captureCurrentFrame();
+ 
+    /**
+     * Set the crop area of the video.
+     *
+     * @param  Top     the top position for crop area
+     * @param  Left    the left position for crop area
+     * @param  Bottom  the bottom position for crop area 
+     * @param  Right   the right position for crop area  
+     */
+    public native void setVideoCrop(int Top,int Left, int Bottom, int Right);    
+           
+    /**
      * Gets the media metadata.
      *
      * @param update_only controls whether the full set of available

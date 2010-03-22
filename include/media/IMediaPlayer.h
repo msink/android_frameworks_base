@@ -21,6 +21,7 @@
 #include <binder/IInterface.h>
 #include <binder/Parcel.h>
 #include <utils/KeyedVector.h>
+#include <binder/IMemory.h>
 
 namespace android {
 
@@ -88,6 +89,8 @@ public:
     virtual status_t        getMetadata(bool update_only,
                                         bool apply_filter,
                                         Parcel *metadata) = 0;
+    virtual sp<IMemory>     captureCurrentFrame() = 0;
+    virtual status_t    setVideoCrop(int top,int left, int bottom, int right) = 0;
 };
 
 // ----------------------------------------------------------------------------

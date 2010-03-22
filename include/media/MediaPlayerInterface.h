@@ -34,6 +34,7 @@ namespace android {
 class Parcel;
 class Surface;
 class ISurfaceTexture;
+class VideoFrame;
 
 template<typename T> class SortedVector;
 
@@ -156,6 +157,8 @@ public:
                                     Parcel *records) {
         return INVALID_OPERATION;
     };
+    virtual status_t    captureCurrentFrame(VideoFrame** pvframe) = 0;
+    virtual status_t    setVideoCrop(int top,int left, int bottom, int right) = 0;
 
     void        setNotifyCallback(
             void* cookie, notify_callback_f notifyFunc) {
@@ -188,6 +191,8 @@ public:
     virtual             ~MediaPlayerInterface() { }
     virtual bool        hardwareOutput() { return false; }
     virtual void        setAudioSink(const sp<AudioSink>& audioSink) { mAudioSink = audioSink; }
+    virtual status_t    captureCurrentFrame(VideoFrame** pvframe){return 0;}
+    virtual status_t    setVideoCrop(int top,int left, int bottom, int right){return 0;}
 protected:
     sp<AudioSink>       mAudioSink;
 };

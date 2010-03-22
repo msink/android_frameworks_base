@@ -55,6 +55,8 @@ enum {
     SET_VIDEO_SURFACETEXTURE,
     SET_PARAMETER,
     GET_PARAMETER,
+    CAPTURE_CURRENT_FRAME,
+    SET_VIDEO_CROP,
 };
 
 class BpMediaPlayer: public BpInterface<IMediaPlayer>
@@ -178,6 +180,30 @@ public:
         data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
         remote()->transact(GET_CURRENT_POSITION, data, &reply);
         *msec = reply.readInt32();
+        return reply.readInt32();
+    }
+
+    sp<IMemory> captureCurrentFrame()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(CAPTURE_CURRENT_FRAME, data, &reply);
+        status_t ret = reply.readInt32();
+        if (ret != NO_ERROR) {
+            return NULL;
+        }
+        return interface_cast<IMemory>(reply.readStrongBinder());
+    }
+
+    status_t setVideoCrop(int top, int left, int bottom, int right)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+    	data.writeInt32(top);
+    	data.writeInt32(left);
+    	data.writeInt32(bottom);
+        data.writeInt32(right);
+        remote()->transact(SET_VIDEO_CROP, data, &reply);
         return reply.readInt32();
     }
 
@@ -458,6 +484,22 @@ status_t BnMediaPlayer::onTransact(
         case GET_PARAMETER: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             return getParameter(data.readInt32(), reply);
+        case CAPTURE_CURRENT_FRAME: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            sp<IMemory> bitmap = captureCurrentFrame();
+            if (bitmap != 0) {  // Don't send NULL across the binder interface
+                reply->writeInt32(NO_ERROR);
+                reply->writeStrongBinder(bitmap->asBinder());
+            } else {
+                reply->writeInt32(UNKNOWN_ERROR);
+            }
+            return NO_ERROR;
+        } break;
+        case SET_VIDEO_CROP: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            status_t ret = setVideoCrop(data.readInt32(),data.readInt32(),data.readInt32(),data.readInt32());
+            reply->writeInt32(ret);
+            return NO_ERROR;
         } break;
         default:
             return BBinder::onTransact(code, data, reply, flags);

@@ -29,6 +29,7 @@
 #include <media/IMediaPlayerService.h>
 #include <media/MediaPlayerInterface.h>
 #include <media/Metadata.h>
+#include <binder/MemoryDealer.h>
 
 #include <system/audio.h>
 
@@ -270,6 +271,8 @@ private:
         virtual status_t        attachAuxEffect(int effectId);
         virtual status_t        setParameter(int key, const Parcel &request);
         virtual status_t        getParameter(int key, Parcel *reply);
+        virtual sp<IMemory> captureCurrentFrame();
+        virtual status_t    setVideoCrop(int iTop, int iRight, int iBottom, int iLeft);
 
         sp<MediaPlayerBase>     createPlayer(player_type playerType);
 
@@ -346,6 +349,8 @@ private:
 #if CALLBACK_ANTAGONIZER
                     Antagonizer*                mAntagonizer;
 #endif
+        sp<MemoryDealer>                       mVideoFrameDealer;
+        sp<IMemory>                            mVideoFrame;
     };
 
 // ----------------------------------------------------------------------------

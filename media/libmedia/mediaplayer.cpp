@@ -598,6 +598,26 @@ status_t MediaPlayer::getParameter(int key, Parcel *reply)
     return INVALID_OPERATION;
 }
 
+sp<IMemory> MediaPlayer::captureCurrentFrame()
+{
+    LOGV("captureCurrentFrame");
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+         return mPlayer->captureCurrentFrame();
+    }
+    LOGV("captureCurrentFrame: no active player");
+    return NULL;
+}
+
+status_t MediaPlayer::setVideoCrop(int top, int left, int bottom, int right)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+        return mPlayer->setVideoCrop(top, left, bottom, right);
+    }
+    return INVALID_OPERATION;
+}
+
 void MediaPlayer::notify(int msg, int ext1, int ext2, const Parcel *obj)
 {
     LOGV("message received msg=%d, ext1=%d, ext2=%d", msg, ext1, ext2);

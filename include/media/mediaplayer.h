@@ -201,7 +201,8 @@ public:
             status_t        attachAuxEffect(int effectId);
             status_t        setParameter(int key, const Parcel& request);
             status_t        getParameter(int key, Parcel* reply);
-
+            sp<IMemory>     captureCurrentFrame();
+            status_t        setVideoCrop(int top,int left, int bottom, int right);
 private:
             void            clear_l();
             status_t        seekTo_l(int msec);

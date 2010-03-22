@@ -27,7 +27,7 @@
 using android::INVALID_OPERATION;
 using android::Surface;
 using android::ISurfaceTexture;
-using android::MediaPlayerBase;
+using android::MediaPlayerInterface;
 using android::OK;
 using android::Parcel;
 using android::SortedVector;
@@ -46,7 +46,7 @@ using android::KeyedVector;
 namespace {
 const char *kPing = "ping";
 
-class Player: public MediaPlayerBase
+class Player: public MediaPlayerInterface
 {
   public:
     enum TestType {TEST_UNKNOWN, PING};
