@@ -403,6 +403,7 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
                     doKeyguardLocked();
                 } else {
                     // Lock in the future
+                    /*
                     long when = SystemClock.elapsedRealtime() + timeout;
                     Intent intent = new Intent(DELAYED_KEYGUARD_ACTION);
                     intent.putExtra("seq", mDelayedShowingSequence);
@@ -411,6 +412,8 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
                     mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, when, sender);
                     if (DEBUG) Log.d(TAG, "setting alarm to turn off keyguard, seq = "
                                      + mDelayedShowingSequence);
+                    */
+                    doKeyguard();
                 }
             } else if (why == WindowManagerPolicy.OFF_BECAUSE_OF_PROX_SENSOR) {
                 // Do not enable the keyguard if the prox sensor forced the screen off.
