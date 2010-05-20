@@ -562,7 +562,18 @@ static jobject android_media_MediaPlayer_captureCurrentFrame(JNIEnv *env, jobjec
         LOGE("failed to allocate pixel buffer");
         return NULL;
     }
-    memcpy((uint8_t*)bitmap->getPixels(), (uint8_t*)videoFrame + sizeof(VideoFrame), videoFrame->mSize);
+    {
+       uint8_t *dst = (uint8_t*)bitmap->getPixels();
+       uint8_t *src = (uint8_t*)videoFrame + sizeof(VideoFrame);
+       
+       for(int i=0; i<videoFrame->mDisplayHeight; i++)
+       {
+           memcpy(dst, src, videoFrame->mDisplayWidth*2);//RGB565
+           
+           src += (videoFrame->mWidth*2);
+           dst += (videoFrame->mWidth*2);
+       }
+    }
 
     // Since internally SkBitmap uses reference count to manage the reference to
     // its pixels, it is important that the pixels (along with SkBitmap) be
