@@ -538,6 +538,7 @@ public class MediaScanner
                     mFileType == MediaFile.FILE_TYPE_MID ||
                     mFileType == MediaFile.FILE_TYPE_WMA ||
                     mFileType == MediaFile.FILE_TYPE_AVI ||
+                    mFileType == MediaFile.FILE_TYPE_FLAC ||
                     mFileType == MediaFile.FILE_TYPE_MKA ||
                     mFileType == MediaFile.FILE_TYPE_MKV ||
                     mFileType == MediaFile.FILE_TYPE_FLV ||

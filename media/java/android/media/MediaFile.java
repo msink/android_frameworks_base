@@ -184,6 +184,8 @@ public class MediaFile {
         addFileType("AAC", FILE_TYPE_AAC, "audio/aac-adts", MtpConstants.FORMAT_AAC);
         addFileType("MKA", FILE_TYPE_MKA, "audio/x-matroska");
  
+        addFileType("FLAC", FILE_TYPE_FLAC, "audio/flac");
+         
         addFileType("MID", FILE_TYPE_MID, "audio/midi");
         addFileType("MIDI", FILE_TYPE_MID, "audio/midi");
         addFileType("XMF", FILE_TYPE_MID, "audio/midi");
