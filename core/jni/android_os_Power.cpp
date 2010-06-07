@@ -59,7 +59,7 @@ releaseWakeLock(JNIEnv *env, jobject clazz, jstring idObj)
 static int
 enableDvfs(JNIEnv *env, jobject clazz, jboolean on)
 {
-    return enable_dvfs(on);
+    //return enable_dvfs(on);
 }
 
 static int
