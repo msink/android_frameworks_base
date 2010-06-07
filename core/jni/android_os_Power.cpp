@@ -60,6 +60,7 @@ static int
 enableDvfs(JNIEnv *env, jobject clazz, jboolean on)
 {
     //return enable_dvfs(on);
+    return 0;
 }
 
 static int
