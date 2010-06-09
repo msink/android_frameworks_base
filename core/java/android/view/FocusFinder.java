@@ -280,7 +280,7 @@ public class FocusFinder {
      * run all focus tests if you dare tweak it.
      */
     int getWeightedDistanceFor(int majorAxisDistance, int minorAxisDistance) {
-        return 13 * majorAxisDistance * majorAxisDistance
+        return 56 * majorAxisDistance * majorAxisDistance
                 + minorAxisDistance * minorAxisDistance;
     }
 
