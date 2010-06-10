@@ -133,7 +133,7 @@ public final class GsmSMSDispatcher extends SMSDispatcher {
             int messageRef = sms.messageRef;
             for (int i = 0, count = deliveryPendingList.size(); i < count; i++) {
                 SmsTracker tracker = deliveryPendingList.get(i);
-                if (tracker.mMessageRef == messageRef) {
+//                if (tracker.mMessageRef == messageRef) {
                     // Found it.  Remove from list and broadcast.
                     if(tpStatus >= Sms.STATUS_FAILED || tpStatus < Sms.STATUS_PENDING ) {
                        deliveryPendingList.remove(i);
@@ -148,7 +148,7 @@ public final class GsmSMSDispatcher extends SMSDispatcher {
 
                     // Only expect to see one tracker matching this messageref
                     break;
-                }
+//                }
             }
         }
         acknowledgeLastIncomingSms(true, Intents.RESULT_SMS_HANDLED, null);
