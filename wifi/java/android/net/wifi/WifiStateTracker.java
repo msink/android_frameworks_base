@@ -77,6 +77,22 @@ public class WifiStateTracker implements NetworkStateTracker {
     }
 
     /**
+     * Ensure that a network route exists to deliver traffic to the specified
+     * host via the mobile data network.
+     * @param hostAddress the IP address of the host to which the route is desired,
+     * in network byte order.
+     * @return {@code true} on success, {@code false} on failure
+     */
+    @Override
+    public boolean requestRouteToHost(int hostAddress) {
+        if (mInterfaceName != null && hostAddress != -1) {
+            return NetworkUtils.addHostRoute(mInterfaceName, hostAddress) == 0;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Begin monitoring wifi connectivity
      */
     public void startMonitoring(Context context, Handler target) {
