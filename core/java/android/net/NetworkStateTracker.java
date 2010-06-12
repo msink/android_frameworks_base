@@ -163,6 +163,14 @@ public interface NetworkStateTracker {
      */
     public boolean isPrivateDnsRouteSet();
 
+    public boolean requestRouteToHost(int hostAddress) {
+      if (mInterfaceName != null && hostAddress != -1) {
+            return NetworkUtils.addHostRoute(mInterfaceName, hostAddress) == 0;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Set a flag indicating private DNS route is set
      */
