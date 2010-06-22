@@ -906,6 +906,13 @@ public abstract class Animation implements Cloneable {
     }
 
     /**
+     * @hide <p>Cancel the animation when view clear it.</p>
+     */
+    public void cancelAnimation() {
+        mEnded = true;
+    }
+
+    /**
      * Helper for getTransformation. Subclasses should implement this to apply
      * their transforms given an interpolation value.  Implementations of this
      * method should always replace the specified Transformation or document
