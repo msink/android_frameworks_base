@@ -59,6 +59,57 @@ DisplayHardwareBase::DisplayEventThread::DisplayEventThread(
         const sp<SurfaceFlinger>& flinger)
     : DisplayEventThreadBase(flinger)
 {
+	// if the fbcon is enabled in kernel, we should switch tty0 to use console 7, and
+	// set it in graphics mode
+	if(access(kFbconSysDir, F_OK) == 0)
+	{
+        char const * const ttydev = "/dev/tty0";
+        int fd = open(ttydev, O_RDWR | O_SYNC);
+        if (fd<0) {
+            LOGE("Can't open %s", ttydev);
+            return;
+        }
+
+        // to make sure that we are in text mode
+        int res = ioctl(fd, KDSETMODE, (void*) KD_TEXT);
+        if (res<0) {
+            LOGE("ioctl(%d, KDSETMODE, ...) failed, res %d (%s)",
+                    fd, res, strerror(errno));
+        }
+
+        // switch to console 7 (which is what X normaly uses)
+        int vtnum = 7;
+        do {
+            res = ioctl(fd, VT_ACTIVATE, (void*)vtnum);
+        } while(res < 0 && errno == EINTR);
+        if (res<0) {
+            LOGE("ioctl(%d, VT_ACTIVATE, ...) failed, %d (%s) for %d",
+                    fd, errno, strerror(errno), vtnum);
+            return;
+        }
+
+        do {
+            res = ioctl(fd, VT_WAITACTIVE, (void*)vtnum);
+        } while(res < 0 && errno == EINTR);
+        if (res<0) {
+            LOGE("ioctl(%d, VT_WAITACTIVE, ...) failed, %d %d %s for %d",
+                    fd, res, errno, strerror(errno), vtnum);
+            return;
+        }
+
+        // open the new console
+        close(fd);
+        fd = open(ttydev, O_RDWR | O_SYNC);
+        if (fd<0) {
+            LOGE("Can't open new console %s", ttydev);
+            return;
+        }
+
+        // switch to graphic mode
+        res = ioctl(fd, KDSETMODE, (void*)KD_GRAPHICS);
+        LOGW_IF(res<0,
+                "ioctl(%d, KDSETMODE, KD_GRAPHICS) failed, res %d", fd, res);
+	}
 }
 
 DisplayHardwareBase::DisplayEventThread::~DisplayEventThread()
