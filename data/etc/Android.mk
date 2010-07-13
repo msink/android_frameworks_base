@@ -49,7 +49,6 @@ include $(BUILD_PREBUILT)
 #LOCAL_SRC_FILES := $(LOCAL_MODULE)
 
 #include $(BUILD_PREBUILT)
-include $(BUILD_PREBUILT)
 
 ########################
 include $(CLEAR_VARS)
