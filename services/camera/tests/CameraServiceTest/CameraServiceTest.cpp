@@ -312,6 +312,10 @@ public:
     virtual void unregisterBuffers();
     virtual sp<GraphicBuffer> requestBuffer(int bufferIdx, int usage);
     virtual status_t setBufferCount(int bufferCount);
+    virtual status_t getDestRect(int *left,int *right,int *top,int *bottom,int *rot) {
+       return NO_ERROR;
+    };
+
 
     // new functions
     void clearStat();
