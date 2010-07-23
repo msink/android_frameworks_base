@@ -44,11 +44,13 @@ const MediaProfiles::NameToTagMap MediaProfiles::sAudioEncoderNameMap[] = {
     {"amrnb", AUDIO_ENCODER_AMR_NB},
     {"amrwb", AUDIO_ENCODER_AMR_WB},
     {"aac",   AUDIO_ENCODER_AAC},
+    {"mp3",   AUDIO_ENCODER_MP3}
 };
 
 const MediaProfiles::NameToTagMap MediaProfiles::sFileFormatMap[] = {
     {"3gp", OUTPUT_FORMAT_THREE_GPP},
-    {"mp4", OUTPUT_FORMAT_MPEG_4}
+    {"mp4", OUTPUT_FORMAT_MPEG_4},
+    {"mp3", OUTPUT_FORMAT_MP3}
 };
 
 const MediaProfiles::NameToTagMap MediaProfiles::sVideoDecoderNameMap[] = {

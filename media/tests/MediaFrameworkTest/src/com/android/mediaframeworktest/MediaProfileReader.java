@@ -130,5 +130,6 @@ public class MediaProfileReader
         audioEncoderMap.put(MediaRecorder.AudioEncoder.AAC, "aac");
         audioEncoderMap.put(MediaRecorder.AudioEncoder.AAC_PLUS, "aacplus");
         audioEncoderMap.put(MediaRecorder.AudioEncoder.EAAC_PLUS, "eaacplus");
+		audioEncoderMap.put(MediaRecorder.AudioEncoder.MP3, "mp3");
     }
 }
