@@ -91,6 +91,10 @@ public:
                                         Parcel *metadata) = 0;
     virtual sp<IMemory>     captureCurrentFrame() = 0;
     virtual status_t    setVideoCrop(int top,int left, int bottom, int right) = 0;
+    virtual status_t    getTrackCount(int *count) = 0;
+    virtual status_t    getDefaultTrack(int *number) = 0;
+    virtual char*       getTrackName(int index) = 0;
+    virtual status_t    selectTrack(int index) = 0;
 };
 
 // ----------------------------------------------------------------------------

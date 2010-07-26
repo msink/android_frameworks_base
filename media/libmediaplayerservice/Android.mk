@@ -30,6 +30,10 @@ LOCAL_SHARED_LIBRARIES :=     		\
 	libstagefright_foundation       \
 	libgui                          \
 	libdl
+	libstagefright_foundation               \
+	libsurfaceflinger_client                \
+	libgui                                  \
+	lib_omx_player_arm11_elinux
 
 LOCAL_STATIC_LIBRARIES := \
         libstagefright_nuplayer                 \

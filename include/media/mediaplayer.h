@@ -202,7 +202,11 @@ public:
             status_t        setParameter(int key, const Parcel& request);
             status_t        getParameter(int key, Parcel* reply);
             sp<IMemory>     captureCurrentFrame();
-            status_t        setVideoCrop(int top,int left, int bottom, int right);
+            status_t    setVideoCrop(int top,int left, int bottom, int right);
+            status_t    getTrackCount(int *count);
+            status_t    getDefaultTrack(int *number);
+            char*       getTrackName(int index);
+            status_t    selectTrack(int index);
 private:
             void            clear_l();
             status_t        seekTo_l(int msec);

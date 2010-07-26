@@ -1082,7 +1082,36 @@ public class MediaPlayer
      * @param  Right   the right position for crop area  
      */
     public native void setVideoCrop(int Top,int Left, int Bottom, int Right);    
-           
+
+    /**
+     * Get amount of Audio tracks.
+     *
+     * @return Amount of Audio tracks
+     */
+    public native int getTrackCount();    
+
+    /**
+     * Get amount of Audio tracks.
+     *
+     * @param Index   the audio track index want to get 
+     * @return Track name
+     */
+    public native String getTrackName(int Index);
+
+    /**
+     * Get default selected Audio tracks.
+     *
+     * @return Default selected audio track index
+     */
+    public native int getDefaultTrack();
+
+    /**
+     * Selecte Audio tracks.
+     *
+     * @param Index   the audio track index want to select
+     */
+    public native void selectTrack(int Index);
+
     /**
      * Gets the media metadata.
      *

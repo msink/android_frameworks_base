@@ -618,6 +618,42 @@ status_t MediaPlayer::setVideoCrop(int top, int left, int bottom, int right)
     return INVALID_OPERATION;
 }
 
+status_t MediaPlayer::getTrackCount(int *count)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+        return mPlayer->getTrackCount(count);
+    }
+    return INVALID_OPERATION;
+}
+
+status_t MediaPlayer::getDefaultTrack(int *number)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+        return mPlayer->getDefaultTrack(number);
+    }
+    return INVALID_OPERATION;
+}
+
+char* MediaPlayer::getTrackName(int index)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+        return mPlayer->getTrackName(index);
+    }
+    return NULL;
+}
+
+status_t MediaPlayer::selectTrack(int index)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) {
+        return mPlayer->selectTrack(index);
+    }
+    return INVALID_OPERATION;
+}
+
 void MediaPlayer::notify(int msg, int ext1, int ext2, const Parcel *obj)
 {
     LOGV("message received msg=%d, ext1=%d, ext2=%d", msg, ext1, ext2);

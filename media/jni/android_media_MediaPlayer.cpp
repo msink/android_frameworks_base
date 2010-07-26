@@ -593,6 +593,66 @@ android_media_MediaPlayer_setVideoCrop(JNIEnv *env, jobject thiz, int Top, int L
     return ;
 }
 
+static int
+android_media_MediaPlayer_getTrackCount(JNIEnv *env, jobject thiz)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return 0;
+    }
+
+    int count = 0;
+    process_media_player_call( env, thiz, mp->getTrackCount(&count), NULL, NULL );
+    LOGV("getTrackCount: %d", count);
+    return count;
+}
+
+static int
+android_media_MediaPlayer_getDefaultTrack(JNIEnv *env, jobject thiz)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return 0;
+    }
+
+    int num = 0;
+    process_media_player_call( env, thiz, mp->getDefaultTrack(&num), NULL, NULL );
+    LOGV("getDefaultTrack: %d", num);
+    return num;
+}
+
+static jobject
+android_media_MediaPlayer_getTrackName(JNIEnv *env, jobject thiz, int index)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return NULL;
+    }
+
+    char *name = mp->getTrackName(index);
+    if(name == NULL)
+        return NULL;
+
+    LOGV("getTrackName: %s", name);
+    return env->NewStringUTF(name);
+}
+
+static void
+android_media_MediaPlayer_selectTrack(JNIEnv *env, jobject thiz, int index)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return ;
+    }
+
+    process_media_player_call( env, thiz, mp->selectTrack(index), NULL, NULL );
+    return ;
+}
+
 // Sends the request and reply parcels to the media player via the
 // binder interface.
 static jint
@@ -914,7 +974,11 @@ static JNINativeMethod gMethods[] = {
     {"setParameter",        "(ILandroid/os/Parcel;)Z",          (void *)android_media_MediaPlayer_setParameter},
     {"getParameter",        "(ILandroid/os/Parcel;)V",          (void *)android_media_MediaPlayer_getParameter},
     {"captureCurrentFrame", "()Landroid/graphics/Bitmap;",      (void *)android_media_MediaPlayer_captureCurrentFrame},
-    {"setVideoCrop",      "(IIII)V",                           (void *)android_media_MediaPlayer_setVideoCrop},
+    {"setVideoCrop",        "(IIII)V",                          (void *)android_media_MediaPlayer_setVideoCrop},
+    {"getTrackCount",       "()I",                              (void *)android_media_MediaPlayer_getTrackCount},
+    {"getTrackName",        "(I)Ljava/lang/String;",            (void *)android_media_MediaPlayer_getTrackName},
+    {"getDefaultTrack",     "()I",                              (void *)android_media_MediaPlayer_getDefaultTrack},
+    {"selectTrack",         "(I)V",                             (void *)android_media_MediaPlayer_selectTrack},
 };
 
 static const char* const kClassPathName = "android/media/MediaPlayer";

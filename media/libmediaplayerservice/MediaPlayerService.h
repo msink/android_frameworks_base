@@ -273,6 +273,10 @@ private:
         virtual status_t        getParameter(int key, Parcel *reply);
         virtual sp<IMemory> captureCurrentFrame();
         virtual status_t    setVideoCrop(int iTop, int iRight, int iBottom, int iLeft);
+        virtual status_t    getTrackCount(int *count);
+        virtual status_t    getDefaultTrack(int *number);
+        virtual char*       getTrackName(int index);
+        virtual status_t    selectTrack(int index);
 
         sp<MediaPlayerBase>     createPlayer(player_type playerType);
 
