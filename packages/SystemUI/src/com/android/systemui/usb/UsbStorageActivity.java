@@ -196,8 +196,15 @@ public class UsbStorageActivity extends Activity
     private void handleUsbStateChanged(Intent intent) {
         boolean connected = intent.getExtras().getBoolean(UsbManager.USB_CONNECTED);
         if (!connected) {
+        }
+    }
+
+    private void handleBatteryChanged(Intent intent) {
+        int pluggedType = intent.getIntExtra("plugged", 0);
+        if (pluggedType == 0) {
+            Log.i(TAG, "Warning!handleBatteryChanged******");
             // It was disconnected from the plug, so finish
-            finish();
+            //finish();
         }
     }
 
