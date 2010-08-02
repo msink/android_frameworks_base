@@ -584,14 +584,17 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         EAS_Shutdown(easdata);
     }
 
-    char url[128];
-    bool ret = false;
-    OMXPlayerType *pType = new OMXPlayerType();
-    sprintf(url, "sharedfd://%d:%lld:%lld",  fd, offset, length);
-    ret = pType->IsSupportedContent(url);
-    delete pType;
-    if(ret == true)
-        return OMX_PLAYER;
+    char value[PROPERTY_VALUE_MAX];
+    if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
+        char url[128];
+        bool ret = false;
+        OMXPlayerType *pType = new OMXPlayerType();
+        sprintf(url, "sharedfd://%d:%lld:%lld",  fd, offset, length);
+        ret = pType->IsSupportedContent(url);
+        delete pType;
+        if(ret == true)
+            return OMX_PLAYER;
+    }
 
     return getDefaultPlayerType();
 }
@@ -630,6 +633,7 @@ player_type getPlayerType(const char* url)
         }
     }
 
+    if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
         for (int i = 0; i < NELEM(OMX_PLAYER_FILE_EXTS); ++i) {
             int len = strlen(OMX_PLAYER_FILE_EXTS[i].extension);
             int start = lenURL - len;
@@ -639,6 +643,7 @@ player_type getPlayerType(const char* url)
                 }
             }
         }
+    }
 
     return getDefaultPlayerType();
 }

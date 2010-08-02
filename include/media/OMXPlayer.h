@@ -64,16 +64,17 @@ public:
     status_t            SetTvOut();
 
 private:
-    void                        *player;
-    status_t                    mInit;
-    sp<ISurface>                mSurface;
-    int                         mSharedFd;
-    bool                        bLoop;
-    char                        contentURI[128];
-    bool                        bTvOut;
-    bool                        bDualDisplay;
-    void                        *pThread;
-    bool                        bStopThread;
+    void                *player;
+    status_t            mInit;
+    sp<ISurface>        mSurface;
+    int                 mSharedFd;
+    bool                bLoop;
+    char                contentURI[128];
+    bool                bTvOut;
+    bool                bDualDisplay;
+    void                *pThread;
+    bool                bStopThread;
+    status_t            setVideoDispRect(int top,int left, int bottom, int right);
 };
 
 class OMXPlayerType
