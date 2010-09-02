@@ -299,6 +299,29 @@ public class WallpaperManager {
                         } catch (IOException e) {
                             // Ignore
                         }
+                       if (bm != null) {
+                            bm.setDensity(DisplayMetrics.DENSITY_DEVICE);
+                        }
+                        return bm;
+                    }
+                    
+                    // Load the bitmap with full color depth, to preserve
+                    // quality for later processing.
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inDither = false;
+                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                    Bitmap bm = BitmapFactory.decodeStream(is, null, options);
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                    }
+                    
+                    try {
+                        return generateBitmap(context, bm, width, height);
+                    } catch (OutOfMemoryError e) {
+                        Log.w(TAG, "Can't generate default bitmap", e);
+                        bm.recycle();
+                        return null;
                     }
                 }
             } catch (RemoteException e) {
