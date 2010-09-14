@@ -530,6 +530,7 @@ public class MediaScanner
         private boolean isMetadataSupported(int fileType) {
             if (mFileType == MediaFile.FILE_TYPE_MP3 ||
                     mFileType == MediaFile.FILE_TYPE_MP4 ||
+                    mFileType == MediaFile.FILE_TYPE_MOV ||
                     mFileType == MediaFile.FILE_TYPE_M4A ||
                     mFileType == MediaFile.FILE_TYPE_3GPP ||
                     mFileType == MediaFile.FILE_TYPE_3GPP2 ||
