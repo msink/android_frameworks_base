@@ -45,6 +45,8 @@ public:
     virtual status_t    reset();
     virtual status_t    setLooping(int loop);
     virtual player_type playerType() { return OMX_PLAYER; }
+    virtual status_t    suspend();
+    virtual status_t    resume();
     virtual status_t    invoke(const Parcel& request, Parcel *reply);
     virtual status_t    getMetadata(const SortedVector<media::Metadata::Type>& ids, Parcel *records);
 
@@ -60,6 +62,7 @@ public:
     void                sendEvent(int msg, int ext1=0, int ext2=0) { MediaPlayerBase::sendEvent(msg, ext1, ext2); }
     bool                getLooping() {return bLoop;}
     bool                StopPropertyCheckThread() {return bStopThread;}
+    status_t            CheckSurfaceRegion();
     status_t            SetDualDisplay();
     status_t            SetTvOut();
 
@@ -74,6 +77,11 @@ private:
     bool                bDualDisplay;
     void                *pThread;
     bool                bStopThread;
+    int                 sLeft;
+    int                 sRight;
+    int                 sTop;
+    int                 sBottom;
+    int                 sRot;
     status_t            setVideoDispRect(int top,int left, int bottom, int right);
 };
 
