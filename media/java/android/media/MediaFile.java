@@ -72,8 +72,9 @@ public class MediaFile {
     public static final int FILE_TYPE_FLV     = 40;
     public static final int FILE_TYPE_RMV     = 41;
     public static final int FILE_TYPE_MKV     = 42;
+    public static final int FILE_TYPE_MPG2    = 43;
     private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
-    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MKV;
+    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MPG2;
     
     // More video file types
     public static final int FILE_TYPE_MP2PS   = 200;
@@ -255,12 +256,19 @@ public class MediaFile {
             addFileType("MKA", FILE_TYPE_MKA, "audio/matroska");
             addFileType("MKV", FILE_TYPE_MKV, "video/matroska");
         }
+        //Check FSL_MPG2_PARSER property
+        value = SystemProperties.get("ro.FSL_MPG2_PARSER");
+        if ("1".equals(value)) {
+            addFileType("MPG", FILE_TYPE_MPG2, "video/mpg2");
+            addFileType("VOB", FILE_TYPE_MPG2, "video/mpg2");
+        }
 
-        addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg", MtpConstants.FORMAT_EXIF_JPEG);
-        addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg", MtpConstants.FORMAT_EXIF_JPEG);
-        addFileType("GIF", FILE_TYPE_GIF, "image/gif", MtpConstants.FORMAT_GIF);
-        addFileType("PNG", FILE_TYPE_PNG, "image/png", MtpConstants.FORMAT_PNG);
-        addFileType("BMP", FILE_TYPE_BMP, "image/x-ms-bmp", MtpConstants.FORMAT_BMP);
+        addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg");
+        addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg");
+        addFileType("GIF", FILE_TYPE_GIF, "image/gif");
+        addFileType("PNG", FILE_TYPE_PNG, "image/png");
+        addFileType("BMP", FILE_TYPE_BMP, "image/x-ms-bmp");
+
         addFileType("WBMP", FILE_TYPE_WBMP, "image/vnd.wap.wbmp");
         addFileType("WEBP", FILE_TYPE_WEBP, "image/webp");
  
