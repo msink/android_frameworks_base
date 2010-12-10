@@ -62,6 +62,7 @@ public:
     void                sendEvent(int msg, int ext1=0, int ext2=0) { MediaPlayerBase::sendEvent(msg, ext1, ext2); }
     bool                getLooping() {return bLoop;}
     bool                StopPropertyCheckThread() {return bStopThread;}
+    bool                IsSuspend() {return bSuspend;}
     status_t            CheckSurfaceRegion();
     status_t            SetDualDisplay();
     status_t            SetTvOut();
@@ -77,6 +78,7 @@ private:
     bool                bDualDisplay;
     void                *pThread;
     bool                bStopThread;
+    bool                bSuspend;
     int                 sLeft;
     int                 sRight;
     int                 sTop;
