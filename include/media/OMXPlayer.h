@@ -60,24 +60,33 @@ public:
     virtual status_t    selectTrack(int index);
 
     void                sendEvent(int msg, int ext1=0, int ext2=0) { MediaPlayerBase::sendEvent(msg, ext1, ext2); }
-    bool                getLooping() {return bLoop;}
-    bool                StopPropertyCheckThread() {return bStopThread;}
-    bool                IsSuspend() {return bSuspend;}
-    status_t            CheckSurfaceRegion();
-    status_t            SetDualDisplay();
-    status_t            SetTvOut();
+
+    status_t            ProcessEvent(int eventID, void* Eventpayload);
+    status_t            ProcessAsyncCmd();
+    status_t            PropertyCheck();
 
 private:
+    typedef enum {
+        MSG_NONE,
+        MSG_PREPAREASYNC,
+        MSG_SEEKTO,
+    }MSGTYPE;
+
     void                *player;
     status_t            mInit;
     sp<ISurface>        mSurface;
     int                 mSharedFd;
     bool                bLoop;
-    char                contentURI[128];
+    char                *contentURI;
+    MSGTYPE             msg;
+    int                 msgData;
+    void                *sem;
+    void                *pPCmdThread;
+    bool                bStopPCmdThread;
+    void                *pPCheckThread;
+    bool                bStopPCheckThread;
     bool                bTvOut;
     bool                bDualDisplay;
-    void                *pThread;
-    bool                bStopThread;
     bool                bSuspend;
     int                 sLeft;
     int                 sRight;
@@ -85,6 +94,10 @@ private:
     int                 sBottom;
     int                 sRot;
     status_t            setVideoDispRect(int top,int left, int bottom, int right);
+    status_t            CheckSurfaceRegion();
+    status_t            CheckDualDisplaySetting();
+    status_t            CheckTvOutSetting();
+    status_t            DoSeekTo(int msec);
 };
 
 class OMXPlayerType
