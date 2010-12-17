@@ -29,7 +29,14 @@ LOCAL_SHARED_LIBRARIES := \
     libsqlite \
     libmtp \
     libusbhost \
-    libexif
+    libexif    \
+	lib_omx_player_arm11_elinux \
+	lib_omx_osal_v2_arm11_elinux \
+	lib_omx_client_arm11_elinux \
+	lib_omx_utils_v2_arm11_elinux \
+	lib_omx_core_mgr_v2_arm11_elinux \
+	lib_omx_res_mgr_v2_arm11_elinux \
+	lib_id3_parser_arm11_elinux
 
 LOCAL_C_INCLUDES += \
     external/jhead \

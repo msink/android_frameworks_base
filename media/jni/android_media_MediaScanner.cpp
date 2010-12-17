@@ -28,6 +28,8 @@
 
 using namespace android;
 
+#include <media/stagefright/StagefrightMediaScanner.h>
+#include <media/OMXMediaScanner.h>
 
 static const char* const kClassMediaScannerClient =
         "android/media/MediaScannerClient";
@@ -384,6 +386,28 @@ android_media_MediaScanner_native_init(JNIEnv *env)
     if (fields.context == NULL) {
         return;
     }
+}
+
+static MediaScanner *createMediaScanner() {
+
+    char valueOMX[PROPERTY_VALUE_MAX];
+    if (property_get("media.omxgm.enable-scan", valueOMX, NULL)
+        && (!strcmp(valueOMX, "1") || !strcasecmp(valueOMX, "true"))) {
+        return new OMXMediaScanner;
+    }
+
+#if BUILD_WITH_FULL_STAGEFRIGHT
+    char value[PROPERTY_VALUE_MAX];
+    if (property_get("media.stagefright.enable-scan", value, NULL)
+        && (!strcmp(value, "1") || !strcasecmp(value, "true"))) {
+        return new StagefrightMediaScanner;
+    }
+#endif
+#ifndef NO_OPENCORE
+    return new PVMediaScanner();
+#endif
+
+    return NULL;
 }
 
 static void

@@ -18,9 +18,12 @@
 #ifndef ANDROID_OMXMETADATARETRIEVER_H
 #define ANDROID_OMXMETADATARETRIEVER_H
 
-#include <utils/Errors.h>
 #include <media/MediaMetadataRetrieverInterface.h>
-#include <private/media/VideoFrame.h>
+#include <binder/IInterface.h>
+#include <utils/List.h>
+#include <utils/String8.h>
+#include <utils/KeyedVector.h>
+
 
 namespace android {
 
@@ -39,8 +42,11 @@ public:
     virtual const char* extractMetadata(int keyCode);
 
 private:
-    void*               player;
-    void*               data;
+    void*               MetadataExtractor;
+    bool mParsedMetaData;
+	MediaAlbumArt *mAlbumArt;
+    void ExtractMetadata();
+    KeyedVector<int, String8> mMetaData;
     int                 mSharedFd;
     char                contentURI[128];
 };

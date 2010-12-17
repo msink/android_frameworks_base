@@ -210,7 +210,9 @@ extmap OMX_PLAYER_FILE_EXTS [] =  {
         {".avi", OMX_PLAYER},
         {".mkv", OMX_PLAYER},
         {".mp4", OMX_PLAYER},
+        {".m4a", OMX_PLAYER},
         {".3gp", OMX_PLAYER},
+        {".3gpp", OMX_PLAYER},
         {".mov", OMX_PLAYER},
         {".rmvb", OMX_PLAYER},
         {".rm", OMX_PLAYER},
@@ -227,6 +229,7 @@ extmap OMX_PLAYER_FILE_EXTS [] =  {
         {".flv", OMX_PLAYER},
         {".mpg", OMX_PLAYER},
         {".vob", OMX_PLAYER},
+        {".flac", OMX_PLAYER},
 };
 
 // TODO: Find real cause of Audio/Video delay in PV framework and remove this workaround
