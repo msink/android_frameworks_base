@@ -263,8 +263,6 @@ public class PowerManagerService extends IPowerManager.Stub
     private long mTotalTouchDownTime;
     private long mLastTouchDown;
     private int mTouchCycles;
-    private boolean moldLPmode=false;
-    private boolean mnewLPmode=false;
 
     // could be either static or controllable at runtime
     private static final boolean mSpew = false;
@@ -896,6 +894,7 @@ public class PowerManagerService extends IPowerManager.Stub
                 }
                 setPowerState(mWakeLockState | mUserState);
             }
+            setPowerState(mWakeLockState | mUserState);
         }
         else if ((flags & LOCK_MASK) == PowerManager.PARTIAL_WAKE_LOCK) {
             if (newlock) {
@@ -988,6 +987,7 @@ public class PowerManagerService extends IPowerManager.Stub
                 }
                 setPowerState(mWakeLockState | mUserState);
             }
+            setPowerState(mWakeLockState | mUserState);
         }
         else if ((wl.flags & LOCK_MASK) == PowerManager.PARTIAL_WAKE_LOCK) {
             mPartialCount--;
@@ -996,39 +996,10 @@ public class PowerManagerService extends IPowerManager.Stub
                 Power.releaseWakeLock(PARTIAL_NAME);
             }
         }
-        setPowerState(mWakeLockState | mUserState);
         // Unlink the lock from the binder.
         wl.binder.unlinkToDeath(wl, 0);
 
         noteStopWakeLocked(wl, wl.ws);
-    }
-
-    private void lpmodeCheck()
-    {
-        WakeLock wl;
-        int i;
-        mnewLPmode = false;
-        Log.d(TAG, "lpmodeCheck begin");
-        for(i=0;i<mLocks.size();i++){
-            mnewLPmode = true;
-            wl = mLocks.get(i);
-            Log.d(TAG, "No." + i+"="+ wl.tag);
-            if (wl.tag.compareTo("android.media.MediaPlayer")!=0) {
-                mnewLPmode = false;
-                break;
-            }
-        }
-        Log.d(TAG, "old="+moldLPmode+" new="+mnewLPmode+" i="+i);
-        if(moldLPmode != mnewLPmode) {
-            moldLPmode = mnewLPmode;
-            if(mnewLPmode) {
-                Power.enableDvfs(true);
-                Log.d(TAG, "goto lowpower mode");
-            } else {
-                Power.enableDvfs(false);
-                Log.d(TAG, "exit lowpower mode");
-            }
-        }
     }
 
     private class PokeLock implements IBinder.DeathRecipient
@@ -1767,14 +1738,7 @@ public class PowerManagerService extends IPowerManager.Stub
                 Slog.d(TAG, "setPowerState: mPowerState=0x" + Integer.toHexString(mPowerState)
                         + " newState=0x" + Integer.toHexString(newState)
                         + " noChangeLights=" + noChangeLights
-                        + " reason=" + reason
-                        + " mWakeLockState=" + mWakeLockState
-                        + " mUserState=" + mUserState);
-            }
-            if(mUserState==0) {
-                lpmodeCheck();
-            } else {
-                Power.enableDvfs(false);
+                        + " reason=" + reason);
             }
 
             if (noChangeLights) {

@@ -211,8 +211,6 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
         release(false);
         try {
             mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setWakeMode(mContext,
-                                     PowerManager.SCREEN_BRIGHT_WAKE_LOCK);
             mMediaPlayer.setOnPreparedListener(mPreparedListener);
             mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
             mDuration = -1;
@@ -223,6 +221,7 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
             mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
             mMediaPlayer.setDisplay(mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mMediaPlayer.setScreenOnWhilePlaying(true);
             mMediaPlayer.prepareAsync();
             // we don't set the target state here either, but preserve the
             // target state that was there before.
