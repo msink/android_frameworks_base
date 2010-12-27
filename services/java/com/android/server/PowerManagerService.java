@@ -919,11 +919,6 @@ public class PowerManagerService extends IPowerManager.Stub
         if (newlock || diffsource) {
             noteStartWakeLocked(wl, ws);
         setPowerState(mWakeLockState | mUserState);
-        if (newlock) {
-            acquireUid = wl.uid;
-            acquireName = wl.tag;
-            acquireType = wl.monitorType;
-        }
     }
 
     public void updateWakeLockWorkSource(IBinder lock, WorkSource ws) {

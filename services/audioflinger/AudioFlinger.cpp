@@ -4740,7 +4740,7 @@ bool AudioFlinger::RecordThread::checkForNewParameters_l()
                 if (status == BAD_VALUE &&
                     reqFormat == mInput->stream->common.get_format(&mInput->stream->common) &&
                     reqFormat == AUDIO_FORMAT_PCM_16_BIT &&
-                    ((int)mInput->stream->common.get_sample_rate(&mInput->stream->common) <= (2 * reqSamplingRate)) &&
+                    ((int)mInput->stream->common.get_sample_rate(&mInput->stream->common) <= (8 * reqSamplingRate)) &&
                     (popcount(mInput->stream->common.get_channels(&mInput->stream->common)) < 3) &&
                     (reqChannelCount < 3)) {
                     status = NO_ERROR;

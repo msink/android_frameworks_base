@@ -25,6 +25,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.storage.IMountService;
+import android.os.ServiceManager;
+import android.os.Environment;
+import android.os.RemoteException;
 import android.util.Log;
 
 /**

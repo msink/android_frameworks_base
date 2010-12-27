@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright (C) 2010 Freescale Semiconductors Inc. */
 
 #ifndef ANDROID_LAYER_H
 #define ANDROID_LAYER_H

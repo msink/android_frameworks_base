@@ -33,7 +33,6 @@ LOCAL_SHARED_LIBRARIES :=     		\
 	libstagefright_foundation               \
 	libsurfaceflinger_client                \
 	libgui                                  \
-	lib_omx_player_arm11_elinux
 	lib_omx_player_arm11_elinux \
 	lib_omx_osal_v2_arm11_elinux \
 	lib_omx_client_arm11_elinux \
