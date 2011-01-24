@@ -221,6 +221,7 @@ extmap OMX_PLAYER_FILE_EXTS [] =  {
         {".flv", OMX_PLAYER},
         {".mpg", OMX_PLAYER},
         {".vob", OMX_PLAYER},
+        {".ts", OMX_PLAYER},
         {".mp3", OMX_PLAYER},
         {".aac", OMX_PLAYER},
         {".wma", OMX_PLAYER},
