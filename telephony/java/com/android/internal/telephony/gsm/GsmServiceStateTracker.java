@@ -563,6 +563,7 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
                     int regState = -1;
                     int reasonRegStateDenied = -1;
                     int psc = -1;
+                    int Act = 0;
                     if (states.length > 0) {
                         try {
                             regState = Integer.parseInt(states[0]);
@@ -581,6 +582,11 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
                             }
                         } catch (NumberFormatException ex) {
                             loge("error parsing RegistrationState: " + ex);
+                            // Act(type) may reported in +CREG?
+                            // Not only in CGREG.
+                            if (states.length >= 4
+                                && states[3] != null && states[3].length() > 0)
+                                Act = Integer.parseInt(states[3], 16);
                         }
                     }
 
@@ -595,7 +601,9 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
 
                     // LAC and CID are -1 if not avail
                     newCellLoc.setLacAndCid(lac, cid);
-                    newCellLoc.setPsc(psc);
+                    newCellLoc.sqetPsc(psc);
+                    newNetworkType = Act;
+                    newSS.setRadioTechnology(Act);
                 break;
 
                 case EVENT_POLL_STATE_GPRS:
