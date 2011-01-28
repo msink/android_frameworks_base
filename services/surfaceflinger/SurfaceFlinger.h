@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* Copyright (c) 2010 Freescale Semiconductor Inc. */
+
 #ifndef ANDROID_SURFACE_FLINGER_H
 #define ANDROID_SURFACE_FLINGER_H
 
