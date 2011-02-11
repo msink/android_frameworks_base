@@ -87,6 +87,7 @@ private:
     bool                bStopPCheckThread;
     bool                bTvOut;
     bool                bDualDisplay;
+    bool                bFB0Display;
     bool                bSuspend;
     int                 sLeft;
     int                 sRight;
@@ -97,6 +98,7 @@ private:
     status_t            CheckSurfaceRegion();
     status_t            CheckDualDisplaySetting();
     status_t            CheckTvOutSetting();
+    status_t            CheckFB0DisplaySetting();
     status_t            DoSeekTo(int msec);
 };
 
