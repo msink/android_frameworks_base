@@ -1356,7 +1356,7 @@ sp<Layer> SurfaceFlinger::createNormalSurface(
         if((dispHardware.getFormat() == PIXEL_FORMAT_RGBA_8888)||
            (dispHardware.getFormat() == PIXEL_FORMAT_RGBX_8888)||
            (dispHardware.getFormat() == PIXEL_FORMAT_BGRA_8888)) {
-            format = PIXEL_FORMAT_RGBX_8888;
+            format = PIXEL_FORMAT_RGBA_8888;
         }
         else{
             format = PIXEL_FORMAT_RGB_565;
