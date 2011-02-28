@@ -151,6 +151,10 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_AUDIO_G711_MLAW, "OMX.google.g711.mlaw.decoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.DUCATI1.VIDEO.DECODER" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Nvidia.mp4.decode" },
+    { MEDIA_MIMETYPE_AUDIO_AAC, "AACDecoder" },
+    { MEDIA_MIMETYPE_AUDIO_G711_ALAW, "G711Decoder" },
+    { MEDIA_MIMETYPE_AUDIO_G711_MLAW, "G711Decoder" },
+    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_decoder.mpeg4.hw-based" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.7x30.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.Video.Decoder" },
@@ -164,6 +168,15 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.google.h263.decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.DUCATI1.VIDEO.DECODER" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Nvidia.h264.decode" },
+    { MEDIA_MIMETYPE_VIDEO_MPEG4, "M4vH263Decoder" },
+//    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.PV.mpeg4dec" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_decoder.h263.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.7x30.video.decoder.h263" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.video.decoder.h263" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.SEC.H263.Decoder" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "M4vH263Decoder" },
+//    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.PV.h263dec" },
+    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_decoder.avc.hw-based" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.7x30.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.Video.Decoder" },
@@ -376,6 +389,11 @@ uint32_t OMXCodec::getComponentQuirks(
         quirks |= kRequiresAllocateBufferOnInputPorts;
         quirks |= kRequiresAllocateBufferOnOutputPorts;
     }
+    else if (!strncmp(componentName, "OMX.Freescale.std.video_decoder.",32))	{
+        quirks |= kRequiresAllocateBufferOnOutputPorts;
+        quirks |= kDefersOutputBufferAllocation;
+    }
+
     else if (!strncmp(componentName, "OMX.TI.", 7)) {
         // Apparently I must not use OMX_UseBuffer on either input or
         // output ports on any of the TI components or quote:
