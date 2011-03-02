@@ -68,6 +68,14 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_MODULE:= libui
 
+ifeq ($(TARGET_SIMULATOR),true)
+    LOCAL_LDLIBS += -lpthread
+endif
+
+ifeq ($(HAVE_FSL_IMX_IPU),true)
+LOCAL_CFLAGS += -DSECOND_DISPLAY_SUPPORT
+endif
+
 include $(BUILD_SHARED_LIBRARY)
 
 

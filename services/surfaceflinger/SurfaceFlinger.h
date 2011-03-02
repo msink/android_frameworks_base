@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* Copyright (c) 2010 Freescale Semiconductor Inc. */
+/* Copyright 2010-2011 Freescale Semiconductor Inc. */
 
 #ifndef ANDROID_SURFACE_FLINGER_H
 #define ANDROID_SURFACE_FLINGER_H
@@ -408,6 +408,9 @@ private:
 
    // only written in the main thread, only read in other threads
    volatile     int32_t                     mSecureFrameBuffer;
+   #ifdef SECOND_DISPLAY_SUPPORT
+   int                                      mTopOrientation;
+   #endif
 };
 
 // ---------------------------------------------------------------------------

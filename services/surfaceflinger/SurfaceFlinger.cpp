@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* Copyright (c) 2010 Freescale Semiconductor Inc. */
+/* Copyright 2010-2011 Freescale Semiconductor Inc. */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -475,7 +475,31 @@ void SurfaceFlinger::postFramebuffer()
         const DisplayHardware& hw(graphicPlane(0).displayHardware());
         const nsecs_t now = systemTime();
         mDebugInSwapBuffers = now;
+#ifdef SECOND_DISPLAY_SUPPORT
+        //Set orientation to second display flip usage
+        int secRotation = 0;
+        switch(mTopOrientation)
+        {
+         case 0x0:
+             secRotation = 0x0;
+             break;
+         case 0x04:
+             secRotation = 0x7;
+             break;
+         case 0x03:
+             secRotation = 0x3;
+             break;
+         case 0x07:
+             secRotation = 0x4;
+             break;
+         default:
+             secRotation = 0x0;
+             break;
+        }
+        hw.flip(mInvalidRegion,secRotation);
+#else
         hw.flip(mInvalidRegion);
+#endif
         mLastSwapBufferTime = systemTime() - now;
         mDebugInSwapBuffers = 0;
         mInvalidRegion.clear();
@@ -987,7 +1011,9 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
         // draw something...
         drawWormhole();
     }
-
+#ifdef SECOND_DISPLAY_SUPPORT
+    mTopOrientation = 0;
+#endif
     /*
      * and then, render the layers targeted at the framebuffer
      */
@@ -1001,6 +1027,9 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
         const sp<LayerBase>& layer(layers[i]);
         const Region clip(dirty.intersect(layer->visibleRegionScreen));
         if (!clip.isEmpty()) {
+#ifdef SECOND_DISPLAY_SUPPORT
+            mTopOrientation = layer->getOrientation();
+#endif
             layer->draw(clip);
         }
     }

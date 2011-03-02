@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* Copyright (C) 2011 Freescale Semiconductor Inc. */
+
 #ifndef ANDROID_DISPLAY_HARDWARE_H
 #define ANDROID_DISPLAY_HARDWARE_H
 
@@ -62,6 +64,10 @@ public:
     // be instantaneous, might involve copying the frame buffer around.
     void flip(const Region& dirty) const;
 
+#ifdef SECOND_DISPLAY_SUPPORT
+    void flip(const Region& dirty, int secRotation) const;
+#endif    
+    
     float       getDpiX() const;
     float       getDpiY() const;
     float       getRefreshRate() const;

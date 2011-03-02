@@ -15,6 +15,8 @@
 ** limitations under the License.
 */
 
+/* Copyright 2011 Freescale Semiconductor Inc. */
+
 #define LOG_TAG "FramebufferNativeWindow"
 
 #include <stdlib.h>
@@ -160,6 +162,15 @@ status_t FramebufferNativeWindow::setUpdateRectangle(const Rect& r)
     }
     return fbDev->setUpdateRect(fbDev, r.left, r.top, r.width(), r.height());
 }
+#ifdef SECOND_DISPLAY_SUPPORT
+status_t FramebufferNativeWindow::setSecRotation(int secRotation) 
+{
+    if(fbDev->setSecRotation != NULL) {
+        return fbDev->setSecRotation(fbDev, secRotation);
+    }
+    return INVALID_OPERATION;
+}
+#endif
 
 status_t FramebufferNativeWindow::compositionComplete()
 {
