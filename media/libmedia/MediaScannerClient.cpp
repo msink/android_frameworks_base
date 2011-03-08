@@ -155,7 +155,13 @@ void MediaScannerClient::convertValues(uint32_t encoding)
         // for each value string, convert from native encoding to UTF-8
         for (int i = 0; i < mNames->size(); i++) {
             // first we need to untangle the utf8 and convert it back to the original bytes
-            // since we are reducing the length of the string, we can do this in place
+			// since we are reducing the length of the string, we can do this in place
+			uint32_t encoding = kEncodingAll;
+			// compute a bit mask containing all possible encodings
+			encoding &= possibleEncodings(mValues->getEntry(i));
+			if (!(encoding & mLocaleEncoding))
+				continue;
+
             uint8_t* src = (uint8_t *)mValues->getEntry(i);
             int len = strlen((char *)src);
             uint8_t* dest = src;
@@ -200,15 +206,9 @@ void MediaScannerClient::endFile()
 {
     if (mLocaleEncoding != kEncodingNone) {
         int size = mNames->size();
-        uint32_t encoding = kEncodingAll;
-
-        // compute a bit mask containing all possible encodings
-        for (int i = 0; i < mNames->size(); i++)
-            encoding &= possibleEncodings(mValues->getEntry(i));
 
         // if the locale encoding matches, then assume we have a native encoding.
-        if (encoding & mLocaleEncoding)
-            convertValues(mLocaleEncoding);
+		convertValues(mLocaleEncoding);
 
         // finally, push all name/value pairs to the client
         for (int i = 0; i < mNames->size(); i++) {
