@@ -240,6 +240,7 @@ public class MediaFile {
         value = SystemProperties.get("ro.FSL_FLV_PARSER");
         if ("1".equals(value)) {
             addFileType("FLV", FILE_TYPE_FLV, "video/flv");
+            addFileType("F4V", FILE_TYPE_FLV, "video/flv");
     	}
 
        //Check FSL_RMVB_PARSER property
