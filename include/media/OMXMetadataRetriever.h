@@ -38,6 +38,7 @@ public:
     virtual status_t    setMode(int mode);
     virtual status_t    getMode(int* mode) const;
     virtual VideoFrame* captureFrame();
+    virtual VideoFrame* getFrameAtTime(int64_t timeUs, int option);
     virtual MediaAlbumArt* extractAlbumArt();
     virtual const char* extractMetadata(int keyCode);
 
