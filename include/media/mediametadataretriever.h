@@ -55,7 +55,14 @@ enum {
     METADATA_KEY_TIMED_TEXT_LANGUAGES      = 21,
     METADATA_KEY_IS_DRM          = 22,
     METADATA_KEY_LOCATION        = 23,
-
+    METADATA_KEY_IS_DRM_CRIPPLED = 24,
+    METADATA_KEY_CODEC           = 25,
+    METADATA_KEY_RATING          = 26,
+    METADATA_KEY_COMMENT         = 27,
+    METADATA_KEY_COPYRIGHT       = 28,
+    METADATA_KEY_BIT_RATE        = 29,
+    METADATA_KEY_FRAME_RATE      = 30,
+    METADATA_KEY_VIDEO_FORMAT    = 31,
     // Add more here...
 };
 

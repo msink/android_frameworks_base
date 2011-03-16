@@ -405,23 +405,23 @@ public class MediaMetadataRetriever
      * The metadata key to retrieve the information of the writer (such as
      * lyricist) of the data source.
      */
-    public static final int METADATA_KEY_WRITER          = 11;
+	public static final int METADATA_KEY_WRITER          = 11;
     /**
      * The metadata key to retrieve the mime type of the data source. Some
      * example mime types include: "video/mp4", "audio/mp4", "audio/amr-wb",
      * etc.
      */
-    public static final int METADATA_KEY_MIMETYPE        = 12;
+	public static final int METADATA_KEY_MIMETYPE        = 12;
     /**
      * The metadata key to retrieve the information about the performers or
      * artist associated with the data source.
      */
-    public static final int METADATA_KEY_ALBUMARTIST     = 13;
+	public static final int METADATA_KEY_ALBUMARTIST     = 13;
     /**
      * The metadata key to retrieve the numberic string that describes which
      * part of a set the audio data source comes from.
      */
-    public static final int METADATA_KEY_DISC_NUMBER     = 14;
+	public static final int METADATA_KEY_DISC_NUMBER     = 14;
     /**
      * The metadata key to retrieve the music album compilation status.
      */
@@ -465,5 +465,13 @@ public class MediaMetadataRetriever
      * of 180 degrees will be retrieved as "-90.0000+180.0000", for instance.
      */
     public static final int METADATA_KEY_LOCATION        = 23;
+    public static final int METADATA_KEY_IS_DRM_CRIPPLED = 24;
+    public static final int METADATA_KEY_CODEC           = 25;
+    public static final int METADATA_KEY_RATING          = 26;
+    public static final int METADATA_KEY_COMMENT         = 27;
+    public static final int METADATA_KEY_COPYRIGHT       = 28;
+    public static final int METADATA_KEY_BIT_RATE        = 29;
+    public static final int METADATA_KEY_FRAME_RATE      = 30;
+    public static final int METADATA_KEY_VIDEO_FORMAT    = 31;
     // Add more here...
 }
