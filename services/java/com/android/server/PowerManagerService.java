@@ -2522,11 +2522,9 @@ public class PowerManagerService extends IPowerManager.Stub
         if (mLightSensorValue != value) {
             mLightSensorValue = value;
             if ((mPowerState & BATTERY_LOW_BIT) == 0) {
-                // use maximum light sensor value seen since screen went on for LCD to avoid flicker
-                // we only do this if we are undocked, since lighting should be stable when
-                // stationary in a dock.
+                // Use light sensor value no matter it is in a dock or not.
                 int lcdValue = getAutoBrightnessValue(
-                        (mIsDocked ? value : mHighestLightSensorValue),
+                        value,
                         mLcdBacklightValues);
                 int buttonValue = getAutoBrightnessValue(value, mButtonBacklightValues);
                 int keyboardValue;
