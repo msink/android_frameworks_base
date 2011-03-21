@@ -157,6 +157,7 @@
          USB interfaces.  If the device doesn't want to support tething over USB this should
          be empty.  An example would be "usb.*" -->
     <string-array translatable="false" name="config_tether_usb_regexs">
+	<item>usb.*</item>
     </string-array>
 
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
@@ -217,6 +218,11 @@
         <item>com.example.provisioning</item>
         <item>com.example.provisioning.Activity</item>
     -->
+    <!-- Regex array of allowable upstream ifaces for tethering - for example if you want
+         tethering on a new interface called "foo2" add <item>"foo\\d"</item> to the array -->
+    <string-array translatable="false" name="config_tether_upstream_regexs">
+	<item>ppp.*</item>
+	<item>wlan.*</item>
     </string-array>
 
     <!-- Array of ConnectivityManager.TYPE_xxxx values allowable for tethering -->
