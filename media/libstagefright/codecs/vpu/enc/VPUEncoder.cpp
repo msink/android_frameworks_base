@@ -268,13 +268,14 @@ status_t VPUEncoder::initCheck(const sp<MetaData>& meta) {
 
     // XXX: Add more color format support
     CHECK(meta->findInt32(kKeyColorFormat, &mVideoColorFormat));
+	LOGI("initCheck color: %d\n", mVideoColorFormat);
     if (mVideoColorFormat != OMX_COLOR_FormatYUV420Planar) {
         if (mVideoColorFormat != OMX_COLOR_FormatYUV420SemiPlanar) {
             LOGE("Color format %d is not supported", mVideoColorFormat);
             return BAD_VALUE;
         }
     }
-	mVideoColorFormat = OMX_COLOR_FormatYUV420Planar;
+	
     // XXX: Remove this restriction
     if (mVideoWidth % 16 != 0 || mVideoHeight % 16 != 0) {
         LOGE("Video frame size %dx%d must be a multiple of 16",
@@ -366,7 +367,7 @@ status_t VPUEncoder::initCheck(const sp<MetaData>& meta) {
 	}else if (mVideoColorFormat == OMX_COLOR_FormatYUV420SemiPlanar) {
 		mEncOpenParam->chromaInterleave = 1;
 	}
-	
+
 	if ( mEncOpenParam->bitstreamFormat== STD_MPEG4) {
 		mEncOpenParam->EncStdParam.mp4Param.mp4_dataPartitionEnable = 0;
 		mEncOpenParam->EncStdParam.mp4Param.mp4_reversibleVlcEnable = 0;
@@ -750,17 +751,9 @@ status_t VPUEncoder::read(
 		RetCode ret;		
 
 		//Read input data
-		if (mVideoColorFormat != OMX_COLOR_FormatYUV420Planar) {
-            CHECK(mInputFrameData);
-            CHECK(mVideoColorFormat == OMX_COLOR_FormatYUV420SemiPlanar);
-            ConvertYUV420SemiPlanarToYUV420Planar(
-              (uint8_t *) mInputBuffer->data(), mInputFrameData, mVideoWidth, mVideoHeight);
-        }else{
-			memcpy((void *)mInputFrameData,
+		memcpy((void *)mInputFrameData,
 				mInputBuffer->data(),
 				mInputBuffer->range_length());
-
-        }
 
 #ifdef DUMP_BUFFER
 		fwrite((void *)mInputFrameData,1,mInputBuffer->range_length(),mInputFile);

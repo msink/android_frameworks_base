@@ -29,7 +29,7 @@ LOCAL_SHARED_LIBRARIES :=     		\
 	libstagefright_omx    			\
 	libstagefright_foundation       \
 	libgui                          \
-	libdl
+	libdl                                \
 	libstagefright_foundation               \
 	libsurfaceflinger_client                \
 	libgui                                  \
