@@ -1353,6 +1353,12 @@ public final class Settings {
         public static final String WAIT_FOR_DEBUGGER = "wait_for_debugger";
 
         /**
+         * The xec dls configuration.
+        */
+        public static final String XEC_DLS_CONTROL = "xec_dls_control";
+
+
+        /**
          * Whether or not to dim the screen. 0=no  1=yes
          */
         public static final String DIM_SCREEN = "dim_screen";
@@ -1903,6 +1909,7 @@ public final class Settings {
             WIFI_STATIC_DNS2,
             BLUETOOTH_DISCOVERABILITY,
             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
+            XEC_DLS_CONTROL,
             DIM_SCREEN,
             SCREEN_OFF_TIMEOUT,
             SCREEN_BRIGHTNESS,

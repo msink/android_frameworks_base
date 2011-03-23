@@ -1343,6 +1343,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     
             // Set default cdma emergency tone
             loadSetting(stmt, Settings.System.EMERGENCY_TONE, 0);
+
+            // Set xec dls settings
+            loadIntegerSetting(stmt, Settings.System.XEC_DLS_CONTROL, 
+                               R.integer.def_xec_dls_control);
+	
     
             // Set default cdma call auto retry
             loadSetting(stmt, Settings.System.CALL_AUTO_RETRY, 0);

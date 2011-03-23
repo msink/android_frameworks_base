@@ -183,6 +183,7 @@ public class PowerManagerService extends IPowerManager.Stub
     private int mProximityPendingValue = -1; // -1 == nothing, 0 == inactive, 1 == active
     private long mLastProximityEventTime;
     private int mScreenOffTimeoutSetting;
+	private int mXecDlsControl;
     private int mMaximumScreenOffTimeout = Integer.MAX_VALUE;
     private int mKeylightDelay;
     private int mDimDelay;
@@ -457,6 +458,10 @@ public class PowerManagerService extends IPowerManager.Stub
                 // SCREEN_OFF_TIMEOUT, default to 15 seconds
                 mScreenOffTimeoutSetting = getInt(SCREEN_OFF_TIMEOUT, DEFAULT_SCREEN_OFF_TIMEOUT);
 
+                mXecDlsControl = getInt(XEC_DLS_CONTROL, 0x0);
+                //System.setProperty("xec.dls.enabled", String.valueOf(mXecDlsControl));
+                SystemProperties.set("xec.dls.enabled", String.valueOf(mXecDlsControl));
+
                 // DIM_SCREEN
                 //mDimScreen = getInt(DIM_SCREEN) != 0;
 
@@ -624,8 +629,9 @@ public class PowerManagerService extends IPowerManager.Stub
                         + Settings.System.NAME + "=?) or ("
                         + Settings.System.NAME + "=?) or ("
                         + Settings.System.NAME + "=?) or ("
+                        + Settings.System.NAME + "=?) or ("
                         + Settings.System.NAME + "=?)",
-                new String[]{STAY_ON_WHILE_PLUGGED_IN, SCREEN_OFF_TIMEOUT, DIM_SCREEN,
+                new String[]{STAY_ON_WHILE_PLUGGED_IN, SCREEN_OFF_TIMEOUT, DIM_SCREEN, XEC_DLS_CONTROL,
                         SCREEN_BRIGHTNESS_MODE, WINDOW_ANIMATION_SCALE, TRANSITION_ANIMATION_SCALE},
                 null);
         mSettings = new ContentQueryMap(settingsCursor, Settings.System.NAME, true, mHandler);
