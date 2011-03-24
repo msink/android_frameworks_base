@@ -65,6 +65,7 @@ import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
 import static android.provider.Settings.System.STAY_ON_WHILE_PLUGGED_IN;
 import static android.provider.Settings.System.WINDOW_ANIMATION_SCALE;
 import static android.provider.Settings.System.TRANSITION_ANIMATION_SCALE;
+import static android.provider.Settings.System.XEC_DLS_CONTROL;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -183,7 +184,6 @@ public class PowerManagerService extends IPowerManager.Stub
     private int mProximityPendingValue = -1; // -1 == nothing, 0 == inactive, 1 == active
     private long mLastProximityEventTime;
     private int mScreenOffTimeoutSetting;
-	private int mXecDlsControl;
     private int mMaximumScreenOffTimeout = Integer.MAX_VALUE;
     private int mKeylightDelay;
     private int mDimDelay;
@@ -458,8 +458,7 @@ public class PowerManagerService extends IPowerManager.Stub
                 // SCREEN_OFF_TIMEOUT, default to 15 seconds
                 mScreenOffTimeoutSetting = getInt(SCREEN_OFF_TIMEOUT, DEFAULT_SCREEN_OFF_TIMEOUT);
 
-                mXecDlsControl = getInt(XEC_DLS_CONTROL, 0x0);
-                //System.setProperty("xec.dls.enabled", String.valueOf(mXecDlsControl));
+                int mXecDlsControl = getInt(XEC_DLS_CONTROL, 0x0);
                 SystemProperties.set("xec.dls.enabled", String.valueOf(mXecDlsControl));
 
                 // DIM_SCREEN
