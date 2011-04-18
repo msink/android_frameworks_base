@@ -81,7 +81,11 @@ status_t EGLUtils::selectConfigForPixelFormat(
     for (i=0 ; i<n ; i++) {
         EGLint nativeVisualId = 0;
         eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
-        if (nativeVisualId>0 && format == nativeVisualId) {
+        if (!nativeVisualId)
+            continue;
+        if ((format == nativeVisualId) ||
+            ((format == GGL_PIXEL_FORMAT_BGRA_8888) &&
+             (nativeVisualId == GGL_PIXEL_FORMAT_RGBA_8888))) {
             config = configs[i];
             break;
         }
