@@ -85,6 +85,11 @@ static void android_os_Power_reboot(JNIEnv *env, jobject clazz, jstring reason)
     jniThrowIOException(env, errno);
 }
 
+static void enableDvfsCore(JNIEnv *env, jobject clazz, jint on)
+{
+    enable_dvfs_core(on);
+}
+
 static JNINativeMethod method_table[] = {
     { "acquireWakeLock", "(ILjava/lang/String;)V", (void*)acquireWakeLock },
     { "releaseWakeLock", "(Ljava/lang/String;)V", (void*)releaseWakeLock },
@@ -92,6 +97,7 @@ static JNINativeMethod method_table[] = {
     { "setScreenState", "(Z)I", (void*)setScreenState },
     { "shutdown", "()V", (void*)android_os_Power_shutdown },
     { "rebootNative", "(Ljava/lang/String;)V", (void*)android_os_Power_reboot },
+    { "enableDvfsCore", "(I)V", (void*)enableDvfsCore },
 };
 
 int register_android_os_Power(JNIEnv *env)

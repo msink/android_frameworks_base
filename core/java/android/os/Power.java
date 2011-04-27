@@ -104,4 +104,11 @@ public class Power
     }
 
     private static native void rebootNative(String reason) throws IOException ;
+
+    /**
+     * Turn the DVFS core on or off
+     *
+     * @param on Whether you want the DVFS core on or off
+     */
+    public static native void enableDvfsCore(int on);
 }
