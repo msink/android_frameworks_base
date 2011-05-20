@@ -533,7 +533,7 @@ status_t AudioRecord::obtainBuffer(Buffer* audioBuffer, int32_t waitCount)
                 cblk->waitTimeMs += waitTimeMs;
                 if (cblk->waitTimeMs >= cblk->bufferTimeoutMs) {
                     LOGW(   "obtainBuffer timed out (is the CPU pegged?) "
-                            "user=%08x, server=%08x", cblk->user, cblk->server);
+                            "user=%08llx, server=%08llx", cblk->user, cblk->server);
                     cblk->lock.unlock();
                     result = mAudioRecord->start();
                     cblk->lock.lock();
@@ -567,11 +567,11 @@ create_new_record:
         framesReq = framesReady;
     }
 
-    uint32_t u = cblk->user;
-    uint32_t bufferEnd = cblk->userBase + cblk->frameCount;
+    uint64_t u = cblk->user;
+    uint64_t bufferEnd = cblk->userBase + cblk->frameCount;
 
     if (u + framesReq > bufferEnd) {
-        framesReq = bufferEnd - u;
+        framesReq = (uint32_t)(bufferEnd - u);
     }
 
     audioBuffer->flags       = 0;

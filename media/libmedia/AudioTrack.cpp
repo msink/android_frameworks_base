@@ -551,8 +551,8 @@ status_t AudioTrack::setLoop_l(uint32_t loopStart, uint32_t loopEnd, int loopCou
     Mutex::Autolock _l(cblk->lock);
 
     if (loopCount == 0) {
-        cblk->loopStart = UINT_MAX;
-        cblk->loopEnd = UINT_MAX;
+        cblk->loopStart = ULLONG_MAX;
+        cblk->loopEnd = ULLONG_MAX;
         cblk->loopCount = 0;
         mLoopCount = 0;
         return NO_ERROR;
@@ -561,7 +561,7 @@ status_t AudioTrack::setLoop_l(uint32_t loopStart, uint32_t loopEnd, int loopCou
     if (loopStart >= loopEnd ||
         loopEnd - loopStart > cblk->frameCount ||
         cblk->server > loopStart) {
-        LOGE("setLoop invalid value: loopStart %d, loopEnd %d, loopCount %d, framecount %d, user %d", loopStart, loopEnd, loopCount, cblk->frameCount, cblk->user);
+        LOGE("setLoop invalid value: loopStart %d, loopEnd %d, loopCount %d, framecount %d, user %lld", loopStart, loopEnd, loopCount, cblk->frameCount, cblk->user);
         return BAD_VALUE;
     }
 
@@ -878,7 +878,7 @@ status_t AudioTrack::obtainBuffer(Buffer* audioBuffer, int32_t waitCount)
                     // is a normal condition: no need to wake AudioFlinger up.
                     if (cblk->user < cblk->loopEnd) {
                         LOGW(   "obtainBuffer timed out (is the CPU pegged?) %p "
-                                "user=%08x, server=%08x", this, cblk->user, cblk->server);
+                                "user=%08llx, server=%08llx", this, cblk->user, cblk->server);
                         //unlock cblk mutex before calling mAudioTrack->start() (see issue #1617140)
                         cblk->lock.unlock();
                         result = mAudioTrack->start();
@@ -922,11 +922,11 @@ create_new_track:
         framesReq = framesAvail;
     }
 
-    uint32_t u = cblk->user;
-    uint32_t bufferEnd = cblk->userBase + cblk->frameCount;
+    uint64_t u = cblk->user;
+    uint64_t bufferEnd = cblk->userBase + cblk->frameCount;
 
     if (u + framesReq > bufferEnd) {
-        framesReq = bufferEnd - u;
+        framesReq = (uint32_t)(bufferEnd - u);
     }
 
     audioBuffer->flags = mMuted ? Buffer::MUTE : 0;
@@ -1305,14 +1305,14 @@ void AudioTrack::AudioTrackThread::onFirstRef()
 audio_track_cblk_t::audio_track_cblk_t()
     : lock(Mutex::SHARED), cv(Condition::SHARED), user(0), server(0),
     userBase(0), serverBase(0), buffers(0), frameCount(0),
-    loopStart(UINT_MAX), loopEnd(UINT_MAX), loopCount(0), volumeLR(0),
-    sendLevel(0), flags(0)
+    loopStart(ULLONG_MAX), loopEnd(ULLONG_MAX), loopCount(0), volumeLR(0),
+    flags(0), sendLevel(0)
 {
 }
 
-uint32_t audio_track_cblk_t::stepUser(uint32_t frameCount)
+uint64_t audio_track_cblk_t::stepUser(uint32_t frameCount)
 {
-    uint32_t u = this->user;
+    uint64_t u = this->user;
 
     u += frameCount;
     // Ensure that user is never ahead of server for AudioRecord
@@ -1347,7 +1347,7 @@ bool audio_track_cblk_t::stepServer(uint32_t frameCount)
         return false;
     }
 
-    uint32_t s = this->server;
+    uint64_t s = this->server;
 
     s += frameCount;
     if (flags & CBLK_DIRECTION_MSK) {
@@ -1367,11 +1367,11 @@ bool audio_track_cblk_t::stepServer(uint32_t frameCount)
     }
 
     if (s >= loopEnd) {
-        LOGW_IF(s > loopEnd, "stepServer: s %u > loopEnd %u", s, loopEnd);
+        LOGW_IF(s > loopEnd, "stepServer: s %llu > loopEnd %llu", s, loopEnd);
         s = loopStart;
         if (--loopCount == 0) {
-            loopEnd = UINT_MAX;
-            loopStart = UINT_MAX;
+            loopEnd = ULLONG_MAX;
+            loopStart = ULLONG_MAX;
         }
     }
     if (s >= serverBase + this->frameCount) {
@@ -1387,7 +1387,7 @@ bool audio_track_cblk_t::stepServer(uint32_t frameCount)
     return true;
 }
 
-void* audio_track_cblk_t::buffer(uint32_t offset) const
+void* audio_track_cblk_t::buffer(uint64_t offset) const
 {
     return (int8_t *)this->buffers + (offset - userBase) * this->frameSize;
 }
@@ -1400,11 +1400,11 @@ uint32_t audio_track_cblk_t::framesAvailable()
 
 uint32_t audio_track_cblk_t::framesAvailable_l()
 {
-    uint32_t u = this->user;
-    uint32_t s = this->server;
+    uint64_t u = this->user;
+    uint64_t s = this->server;
 
     if (flags & CBLK_DIRECTION_MSK) {
-        uint32_t limit = (s < loopStart) ? s : loopStart;
+        uint64_t limit = (s < loopStart) ? s : loopStart;
         return limit + frameCount - u;
     } else {
         return frameCount + u - s;
@@ -1413,8 +1413,8 @@ uint32_t audio_track_cblk_t::framesAvailable_l()
 
 uint32_t audio_track_cblk_t::framesReady()
 {
-    uint32_t u = this->user;
-    uint32_t s = this->server;
+    uint64_t u = this->user;
+    uint64_t s = this->server;
 
     if (flags & CBLK_DIRECTION_MSK) {
         if (u < loopEnd) {

@@ -61,15 +61,15 @@ struct audio_track_cblk_t
     // are in the same line of data cache.
                 Mutex       lock;
                 Condition   cv;
-    volatile    uint32_t    user;
-    volatile    uint32_t    server;
-                uint32_t    userBase;
-                uint32_t    serverBase;
+    volatile    uint64_t    user;
+    volatile    uint64_t    server;
+                uint64_t    userBase;
+                uint64_t    serverBase;
                 void*       buffers;
                 uint32_t    frameCount;
                 // Cache line boundary
-                uint32_t    loopStart;
-                uint32_t    loopEnd;
+                uint64_t    loopStart;
+                uint64_t    loopEnd;
                 int         loopCount;
     volatile    union {
                     uint16_t    volume[2];
@@ -91,9 +91,9 @@ struct audio_track_cblk_t
                 // Cache line boundary (32 bytes)
 
                             audio_track_cblk_t();
-                uint32_t    stepUser(uint32_t frameCount);
+                uint64_t    stepUser(uint32_t frameCount);
                 bool        stepServer(uint32_t frameCount);
-                void*       buffer(uint32_t offset) const;
+                void*       buffer(uint64_t offset) const;
                 uint32_t    framesAvailable();
                 uint32_t    framesAvailable_l();
                 uint32_t    framesReady();
