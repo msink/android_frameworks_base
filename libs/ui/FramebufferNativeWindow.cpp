@@ -97,57 +97,27 @@ FramebufferNativeWindow::FramebufferNativeWindow()
         mUpdateOnDemand = (fbDev->setUpdateRect != 0);
         
         // initialize the buffer FIFO
-        mNumBuffers = 3;
-        mNumFreeBuffers = 3;
+        mNumBuffers = fbDev->reserved[0];
+        if (mNumBuffers != 3 && mNumBuffers != 2) {
+            LOGE("The framebuffer number got from HAL is not supported(%d)", mNumBuffers);
+            return;
+        }
+        mNumFreeBuffers = mNumBuffers;
+
         mBufferHead = mNumBuffers-1;
-        buffers[0] = new NativeBuffer(
-                fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
-        buffers[1] = new NativeBuffer(
-                fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
-        buffers[2] = new NativeBuffer(
-                fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
-        
-        err = grDev->alloc(grDev,
-                fbDev->width, fbDev->height, fbDev->format, 
-                GRALLOC_USAGE_HW_FB, &buffers[0]->handle, &buffers[0]->stride);
-
-        LOGE_IF(err, "fb buffer 0 allocation failed w=%d, h=%d, err=%s",
-                fbDev->width, fbDev->height, strerror(-err));
-
-        err = grDev->alloc(grDev,
-                fbDev->width, fbDev->height, fbDev->format, 
-                GRALLOC_USAGE_HW_FB, &buffers[1]->handle, &buffers[1]->stride);
 
         for (i = 0; i < mNumBuffers; i++)
-        {
-                buffers[i] = new NativeBuffer(
-                        fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
+            buffers[i] = new NativeBuffer(
+                    fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
+
+        for (i = 0; i < mNumBuffers; i++) {
+            err = grDev->alloc(grDev,
+                    fbDev->width, fbDev->height, fbDev->format,
+                    GRALLOC_USAGE_HW_FB, &buffers[i]->handle, &buffers[i]->stride);
+
+            LOGE_IF(err, "fb buffer %d allocation failed w=%d, h=%d, err=%s",
+                    i, fbDev->width, fbDev->height, strerror(-err));
         }
-
-        for (i = 0; i < mNumBuffers; i++)
-        {
-                err = grDev->alloc(grDev,
-                        fbDev->width, fbDev->height, fbDev->format,
-                        GRALLOC_USAGE_HW_FB, &buffers[i]->handle, &buffers[i]->stride);
-
-                LOGE_IF(err, "fb buffer %d allocation failed w=%d, h=%d, err=%s",
-                        i, fbDev->width, fbDev->height, strerror(-err));
-
-                if (err)
-                {
-                        mNumBuffers = i;
-                        mNumFreeBuffers = i;
-                        mBufferHead = mNumBuffers-1;
-                        break;
-                }
-        }
-
-        err = grDev->alloc(grDev,
-                fbDev->width, fbDev->height, fbDev->format, 
-                GRALLOC_USAGE_HW_FB, &buffers[2]->handle, &buffers[2]->stride);
-
-        LOGE_IF(err, "fb buffer 2 allocation failed w=%d, h=%d, err=%s",
-                fbDev->width, fbDev->height, strerror(-err));
 
         const_cast<uint32_t&>(ANativeWindow::flags) = fbDev->flags; 
         const_cast<float&>(ANativeWindow::xdpi) = fbDev->xdpi;
@@ -171,12 +141,10 @@ FramebufferNativeWindow::FramebufferNativeWindow()
 FramebufferNativeWindow::~FramebufferNativeWindow() 
 {
     if (grDev) {
-        if (buffers[0] != NULL)
-            grDev->free(grDev, buffers[0]->handle);
-        if (buffers[1] != NULL)
-            grDev->free(grDev, buffers[1]->handle);
-        if (buffers[2] != NULL)
-            grDev->free(grDev, buffers[2]->handle);
+        int i;
+        for (i = 0; i < mNumBuffers; i++)
+            if (buffers[i] != NULL)
+                grDev->free(grDev, buffers[i]->handle);
         gralloc_close(grDev);
     }
 
