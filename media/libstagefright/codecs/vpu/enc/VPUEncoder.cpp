@@ -252,11 +252,11 @@ VPUEncoder::~VPUEncoder() {
     if (mStarted) {
         stop();
     }
-
+    delete mBitStreamBuffer;
     delete mEncOpenParam;
     delete mEncParam;
-	delete mEncOutputInfo;
-	vpu_UnInit();
+    delete mEncOutputInfo;
+    vpu_UnInit();
 }
 
 status_t VPUEncoder::initCheck(const sp<MetaData>& meta) {
