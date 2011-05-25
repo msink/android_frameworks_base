@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* Copyright 2010-2011 Freescale Semiconductor Inc. */
+
 package android.provider;
 
 import android.annotation.SdkConstant;
