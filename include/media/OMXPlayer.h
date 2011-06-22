@@ -26,7 +26,7 @@ namespace android {
 class OMXPlayer : public MediaPlayerInterface
 {
 public:
-                        OMXPlayer();
+                        OMXPlayer(int nMediaType);
     virtual             ~OMXPlayer();
 
     virtual status_t    initCheck();
@@ -94,6 +94,7 @@ private:
     int                 sTop;
     int                 sBottom;
     int                 sRot;
+	int                 mMediaType;
     status_t            setVideoDispRect(int top,int left, int bottom, int right);
     status_t            CheckSurfaceRegion();
     status_t            CheckDualDisplaySetting();
@@ -107,7 +108,7 @@ class OMXPlayerType
 public:
                         OMXPlayerType();
     virtual             ~OMXPlayerType();
-    bool                IsSupportedContent(char *url);
+    int                 IsSupportedContent(char *url);
 };
 
 }; // namespace android
