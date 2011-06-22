@@ -30,7 +30,7 @@ namespace android {
 class OMXMetadataRetriever : public MediaMetadataRetrieverInterface
 {
 public:
-                        OMXMetadataRetriever(int nMediaType);
+                        OMXMetadataRetriever(int nMediaType = 0);
     virtual             ~OMXMetadataRetriever();
 
     virtual status_t    setDataSource(const char *url);
