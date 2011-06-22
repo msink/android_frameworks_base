@@ -140,7 +140,7 @@ VPUFrameBuffer::VPUFrameBuffer(int Standard, int ColorFormat,int width, int heig
 
 	memset(&mMemoryDescription, 0, sizeof(mMemoryDescription));
 	mMemoryDescription.size = (width * height + width / divX * height / divY * 2);
-	if (cpu_is_mx37() || cpu_is_mx5x())
+	if (cpu_is_mx5x())
 		mMemoryDescription.size += width / divX * height / divY;
 
 	err = IOGetPhyMem(&mMemoryDescription);
@@ -155,7 +155,7 @@ VPUFrameBuffer::VPUFrameBuffer(int Standard, int ColorFormat,int width, int heig
 	mFrameBuffer.strideY = width;
 	mFrameBuffer.strideC =  width/ divX;
 
-	if (cpu_is_mx37() || cpu_is_mx5x()) {
+	if (cpu_is_mx5x()) {
 		if (Standard==STD_MJPG)
 			mFrameBuffer.bufMvCol = mFrameBuffer.bufCr;
 		else
