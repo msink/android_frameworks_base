@@ -248,6 +248,8 @@ private:
         inline const char* name() const { return "LockCondition"; }
     };
 
+	int32_t computeTail() const;
+
     mutable RWLock mLock;
     int mNumBuffers;
 
