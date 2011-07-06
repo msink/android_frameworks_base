@@ -23,6 +23,8 @@
 
 namespace android {
 
+class ISurfaceTexture;
+
 class OMXPlayer : public MediaPlayerInterface
 {
 public:
@@ -33,8 +35,8 @@ public:
     virtual status_t    setDataSource(const char *url, const KeyedVector<String8, String8> *headers);
     virtual status_t    setDataSource(int fd, int64_t offset, int64_t length);
     virtual status_t    setVideoSurface(const sp<ISurface>& surface);
-	virtual status_t    setVideoSurface(const android::sp<android::Surface>&);
-	virtual status_t    setVideoSurfaceTexture(const android::sp<android::ISurfaceTexture>&);
+    virtual status_t    setVideoSurface(const android::sp<android::Surface>& surface);
+    virtual status_t    setVideoSurfaceTexture(const android::sp<android::ISurfaceTexture>& surfaceTexture);
     virtual status_t    prepare();
     virtual status_t    prepareAsync();
     virtual status_t    start();
@@ -76,7 +78,7 @@ private:
 
     void                *player;
     status_t            mInit;
-    sp<ISurface>        mSurface;
+    sp<ISurface>        mISurface;
     int                 mSharedFd;
     bool                bLoop;
     char                *contentURI;
@@ -96,8 +98,9 @@ private:
     int                 sTop;
     int                 sBottom;
     int                 sRot;
-	int                 mMediaType;
+    int                 mMediaType;
     status_t            setVideoDispRect(int top,int left, int bottom, int right);
+    status_t            getSurfaceRegion(int *top,int *left, int *bottom, int *right, int *rot);
     status_t            CheckSurfaceRegion();
     status_t            CheckDualDisplaySetting();
     status_t            CheckTvOutSetting();

@@ -67,9 +67,9 @@
 #include "TestPlayerStub.h"
 #include "StagefrightPlayer.h"
 #include "nuplayer/NuPlayerDriver.h"
-
+#ifdef FSL_GM_PLAYER
 #include <media/OMXPlayer.h>
-
+#endif
 #include <OMX.h>
 
 namespace {
@@ -573,7 +573,7 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
     lseek(fd, offset, SEEK_SET);
     read(fd, buf, sizeof(buf));
     lseek(fd, offset, SEEK_SET);
-
+#ifdef FSL_GM_PLAYER
     char value[PROPERTY_VALUE_MAX];
     if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
         char url[128];
@@ -585,7 +585,7 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         if(ret)
             return (player_type)(OMX_PLAYER | (ret << 8));
     }
-
+#endif
     long ident = *((long*)buf);
 
     // Ogg vorbis?
@@ -618,18 +618,7 @@ player_type getPlayerType(const char* url)
         return TEST_PLAYER;
     }
 
-    if (!strncasecmp("http://", url, 7)
-            || !strncasecmp("https://", url, 8)) {
-        size_t len = strlen(url);
-        if (len >= 5 && !strcasecmp(".m3u8", &url[len - 5])) {
-            return NU_PLAYER;
-        }
-
-        if (strstr(url,"m3u8")) {
-            return NU_PLAYER;
-        }
-    }
-
+#ifdef FSL_GM_PLAYER
     int lenURL = strlen(url);
     char value[PROPERTY_VALUE_MAX];
     if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
@@ -646,6 +635,19 @@ player_type getPlayerType(const char* url)
                     }
                 }
             }
+        }
+    }
+#endif
+
+    if (!strncasecmp("http://", url, 7)
+            || !strncasecmp("https://", url, 8)) {
+        size_t len = strlen(url);
+        if (len >= 5 && !strcasecmp(".m3u8", &url[len - 5])) {
+            return NU_PLAYER;
+        }
+
+        if (strstr(url,"m3u8")) {
+            return NU_PLAYER;
         }
     }
 
@@ -685,10 +687,13 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
         case NU_PLAYER:
             LOGV(" create NuPlayer");
             p = new NuPlayerDriver;
+            break;
+#ifdef FSL_GM_PLAYER
         case OMX_PLAYER:
             LOGV(" Create OMXPlayer.\n");
             p = new OMXPlayer(playerType >> 8);
             break;
+#endif
         case TEST_PLAYER:
             LOGV("Create Test Player stub");
             p = new TestPlayerStub();

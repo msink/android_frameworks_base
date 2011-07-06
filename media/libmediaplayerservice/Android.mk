@@ -53,6 +53,10 @@ LOCAL_C_INCLUDES :=                                                 \
 	$(TOP)/frameworks/base/media/libstagefright/rtsp                \
         $(TOP)/external/tremolo/Tremolo \
 
+ifeq ($(HAVE_FSL_IMX_CODEC),true)
+LOCAL_CFLAGS += -DFSL_GM_PLAYER
+endif
+
 LOCAL_MODULE:= libmediaplayerservice
 
 include $(BUILD_SHARED_LIBRARY)

@@ -96,10 +96,12 @@ static sp<MediaMetadataRetrieverBase> createRetriever(player_type playerType)
             LOGV("create midi metadata retriever");
             p = new MidiMetadataRetriever();
             break;
+#ifdef FSL_GM_PLAYER
         case OMX_PLAYER:
             LOGV("Create OMXMetadataRetriever.\n");
             p = new OMXMetadataRetriever(playerType >> 8);
             break;
+#endif
         default:
             // TODO:
             // support for TEST_PLAYER

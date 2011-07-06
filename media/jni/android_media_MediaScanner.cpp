@@ -29,7 +29,9 @@
 using namespace android;
 
 #include <media/stagefright/StagefrightMediaScanner.h>
+#ifdef FSL_GM_PLAYER
 #include <media/OMXMediaScanner.h>
+#endif
 
 static const char* const kClassMediaScannerClient =
         "android/media/MediaScannerClient";
@@ -389,13 +391,13 @@ android_media_MediaScanner_native_init(JNIEnv *env)
 }
 
 static MediaScanner *createMediaScanner() {
-
+#ifdef FSL_GM_PLAYER
     char valueOMX[PROPERTY_VALUE_MAX];
     if (property_get("media.omxgm.enable-scan", valueOMX, NULL)
         && (!strcmp(valueOMX, "1") || !strcasecmp(valueOMX, "true"))) {
         return new OMXMediaScanner;
     }
-
+#endif
 #if BUILD_WITH_FULL_STAGEFRIGHT
     char value[PROPERTY_VALUE_MAX];
     if (property_get("media.stagefright.enable-scan", value, NULL)
