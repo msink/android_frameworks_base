@@ -44,7 +44,7 @@ LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
     $(call include-path-for, corecg graphics)
 
-LOCAL_CFLAGS +=
+LOCAL_CFLAGS += -DBUILD_WITH_FULL_STAGEFRIGHT
 
 LOCAL_LDLIBS := -lpthread
 
