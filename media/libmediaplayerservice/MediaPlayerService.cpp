@@ -612,7 +612,7 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
         notify_callback_f notifyFunc)
 {
     sp<MediaPlayerBase> p;
-    switch (playerType) {
+    switch (playerType & 0xff) {
         case SONIVOX_PLAYER:
             LOGV(" create MidiFile");
             p = new MidiFile();
