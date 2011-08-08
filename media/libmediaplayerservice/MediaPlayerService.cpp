@@ -618,6 +618,18 @@ player_type getPlayerType(const char* url)
         return TEST_PLAYER;
     }
 
+    if (!strncasecmp("http://", url, 7)
+            || !strncasecmp("https://", url, 8)) {
+        size_t len = strlen(url);
+        if (len >= 5 && !strcasecmp(".m3u8", &url[len - 5])) {
+            return NU_PLAYER;
+        }
+
+        if (strstr(url,"m3u8")) {
+            return NU_PLAYER;
+        }
+    }
+
 #ifdef FSL_GM_PLAYER
     int lenURL = strlen(url);
     char value[PROPERTY_VALUE_MAX];
@@ -638,18 +650,6 @@ player_type getPlayerType(const char* url)
         }
     }
 #endif
-
-    if (!strncasecmp("http://", url, 7)
-            || !strncasecmp("https://", url, 8)) {
-        size_t len = strlen(url);
-        if (len >= 5 && !strcasecmp(".m3u8", &url[len - 5])) {
-            return NU_PLAYER;
-        }
-
-        if (strstr(url,"m3u8")) {
-            return NU_PLAYER;
-        }
-    }
 
     bool useStagefrightForHTTP = false;
     if (property_get("media.stagefright.enable-http", value, NULL)
