@@ -111,6 +111,9 @@ public class WifiStateMachine extends StateMachine {
 
     /* TODO: This is no more used with the hostapd code. Clean up */
     private static final String SOFTAP_IFACE = "wl0.1";
+    /* TODO: fetch a configurable interface */
+    //private static final String SOFTAP_IFACE = "wl0.1";
+    private String SOFTAP_IFACE = SystemProperties.get("ro.wifi.ap.interface", "wl0.1");
 
     private WifiMonitor mWifiMonitor;
     private INetworkManagementService mNwService;
@@ -1960,6 +1963,18 @@ public class WifiStateMachine extends StateMachine {
 
                     if(WifiNative.loadDriver()) {
                         if (DBG) log("Driver load successful");
+		    boolean ret = false;
+		    // Since Atheros WIFI driver need a different API,
+		    // we call AP driver and WIFI driver in different
+		    // API
+		    if (message.arg1 == WIFI_STATE_ENABLING) {
+			ret = WifiNative.loadDriver();
+		    } else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
+			ret = WifiNative.loadApDriver();
+		    }
+
+                    if(ret) {
+                        Log.d(TAG, "Driver load successful");
                         sendMessage(CMD_LOAD_DRIVER_SUCCESS);
                     } else {
                         loge("Failed to load driver!");
