@@ -24,6 +24,7 @@
 namespace android {
 
 class ISurfaceTexture;
+class Surface;
 
 class OMXPlayer : public MediaPlayerInterface
 {
@@ -79,6 +80,7 @@ private:
     void                *player;
     status_t            mInit;
     sp<ISurface>        mISurface;
+    sp<Surface>         mSurface;
     int                 mSharedFd;
     bool                bLoop;
     char                *contentURI;
