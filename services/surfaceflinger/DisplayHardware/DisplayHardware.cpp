@@ -392,30 +392,8 @@ void DisplayHardware::flip(const Region& dirty) const
 #ifdef SECOND_DISPLAY_SUPPORT
 void DisplayHardware::flip(const Region& dirty, int secRotation) const
 {
-    checkGLErrors();
-    EGLDisplay dpy = mDisplay;
-    EGLSurface surface = mSurface;
-
-#ifdef EGL_ANDROID_swap_rectangle
-    if (mFlags & SWAP_RECTANGLE) {
-        const Region newDirty(dirty.intersect(bounds()));
-        const Rect b(newDirty.getBounds());
-        eglSetSwapRectangleANDROID(dpy, surface,
-                b.left, b.top, b.width(), b.height());
-    }
-#endif
     mNativeWindow->setSecRotation(secRotation);
-    if (mFlags & PARTIAL_UPDATES) {
-        mNativeWindow->setUpdateRectangle(dirty.getBounds());
-    }
-
-    mPageFlipCount++;
-    eglSwapBuffers(dpy, surface);
-    checkEGLErrors("eglSwapBuffers");
-
-    // for debugging
-    //glClearColor(1,0,0,0);
-    //glClear(GL_COLOR_BUFFER_BIT);
+    flip(dirty);
 }
 #endif
 

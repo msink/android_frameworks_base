@@ -274,6 +274,8 @@ protected:
 
                 // atomic
     volatile    int32_t         mInvalidate;
+
+    int             mUsage;
                 
 
 public:

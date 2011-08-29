@@ -341,6 +341,136 @@ bool Layer::isProtected() const
             (activeBuffer->getUsage() & GRALLOC_USAGE_PROTECTED);
 }
 
+status_t Layer::setBufferCount(int bufferCount)
+{
+    ClientRef::Access sharedClient(mUserClientRef);
+    SharedBufferServer* lcblk(sharedClient.get());
+    if (!lcblk) {
+        // oops, the client is already gone
+        return DEAD_OBJECT;
+    }
+
+    // NOTE: lcblk->resize() is protected by an internal lock
+    status_t err = lcblk->resize(bufferCount);
+    if (err == NO_ERROR) {
+        EGLDisplay dpy(mFlinger->graphicPlane(0).getEGLDisplay());
+        mBufferManager.resize(bufferCount, mFlinger, dpy);
+    }
+
+    return err;
+}
+
+sp<GraphicBuffer> Layer::requestBuffer(int index,
+        uint32_t reqWidth, uint32_t reqHeight, uint32_t reqFormat,
+        uint32_t usage)
+{
+    sp<GraphicBuffer> buffer;
+
+    if (int32_t(reqWidth | reqHeight | reqFormat) < 0)
+        return buffer;
+
+    if ((!reqWidth && reqHeight) || (reqWidth && !reqHeight))
+        return buffer;
+
+    // this ensures our client doesn't go away while we're accessing
+    // the shared area.
+    ClientRef::Access sharedClient(mUserClientRef);
+    SharedBufferServer* lcblk(sharedClient.get());
+    if (!lcblk) {
+        // oops, the client is already gone
+        return buffer;
+    }
+
+    /*
+     * This is called from the client's Surface::dequeue(). This can happen
+     * at any time, especially while we're in the middle of using the
+     * buffer 'index' as our front buffer.
+     */
+
+    status_t err = NO_ERROR;
+    uint32_t w, h, f;
+    { // scope for the lock
+        Mutex::Autolock _l(mLock);
+
+        // zero means default
+        const bool fixedSize = reqWidth && reqHeight;
+        if (!reqFormat) reqFormat = mFormat;
+        if (!reqWidth)  reqWidth = mWidth;
+        if (!reqHeight) reqHeight = mHeight;
+
+        w = reqWidth;
+        h = reqHeight;
+        f = reqFormat;
+
+        if ((reqWidth != mReqWidth) || (reqHeight != mReqHeight) ||
+                (reqFormat != mReqFormat)) {
+            mReqWidth  = reqWidth;
+            mReqHeight = reqHeight;
+            mReqFormat = reqFormat;
+            mFixedSize = fixedSize;
+            mNeedsScaling = mWidth != mReqWidth || mHeight != mReqHeight;
+
+            lcblk->reallocateAllExcept(index);
+        }
+    }
+
+    // here we have to reallocate a new buffer because the buffer could be
+    // used as the front buffer, or by a client in our process
+    // (eg: status bar), and we can't release the handle under its feet.
+    const uint32_t effectiveUsage = getEffectiveUsage(usage);
+    buffer = new GraphicBuffer(w, h, f, effectiveUsage);
+    err = buffer->initCheck();
+
+    if (err || buffer->handle == 0) {
+        GraphicBuffer::dumpAllocationsToSystemLog();
+        LOGE_IF(err || buffer->handle == 0,
+                "Layer::requestBuffer(this=%p), index=%d, w=%d, h=%d failed (%s)",
+                this, index, w, h, strerror(-err));
+    } else {
+        LOGD_IF(DEBUG_RESIZE,
+                "Layer::requestBuffer(this=%p), index=%d, w=%d, h=%d, handle=%p",
+                this, index, w, h, buffer->handle);
+    }
+
+    if (err == NO_ERROR && buffer->handle != 0) {
+        Mutex::Autolock _l(mLock);
+        mBufferManager.attachBuffer(index, buffer);
+    }
+    mUsage = usage;
+    return buffer;
+}
+
+uint32_t Layer::getEffectiveUsage(uint32_t usage) const
+{
+    /*
+     *  buffers used for software rendering, but h/w composition
+     *  are allocated with SW_READ_OFTEN | SW_WRITE_OFTEN | HW_TEXTURE
+     *
+     *  buffers used for h/w rendering and h/w composition
+     *  are allocated with  HW_RENDER | HW_TEXTURE
+     *
+     *  buffers used with h/w rendering and either NPOT or no egl_image_ext
+     *  are allocated with SW_READ_RARELY | HW_RENDER
+     *
+     */
+
+    if (mSecure) {
+        // secure buffer, don't store it into the GPU
+        usage = GraphicBuffer::USAGE_SW_READ_OFTEN |
+                GraphicBuffer::USAGE_SW_WRITE_OFTEN;
+    } else {
+        // it's allowed to modify the usage flags here, but generally
+        // the requested flags should be honored.
+        // request EGLImage for all buffers
+        usage |= GraphicBuffer::USAGE_HW_TEXTURE;
+    }
+    if (mProtectedByApp) {
+        // need a hardware-protected path to external video sink
+        usage |= GraphicBuffer::USAGE_PROTECTED;
+    }
+    return usage;
+}
+
 uint32_t Layer::doTransaction(uint32_t flags)
 {
     const Layer::State& front(drawingState());

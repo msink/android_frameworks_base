@@ -697,40 +697,41 @@ void SurfaceFlinger::computeVisibleRegions(
         // subtract the opaque region covered by the layers above us
         visibleRegion.subtractSelf(aboveOpaqueLayers);
 
-        // compute this layer's dirty region
-        if (layer->contentDirty) {
-            // we need to invalidate the whole region
-            dirty = visibleRegion;
-            // as well, as the old visible region
-            dirty.orSelf(layer->visibleRegionScreen);
-            layer->contentDirty = false;
-        } else {
-            /* compute the exposed region:
-             *   the exposed region consists of two components:
-             *   1) what's VISIBLE now and was COVERED before
-             *   2) what's EXPOSED now less what was EXPOSED before
-             *
-             * note that (1) is conservative, we start with the whole
-             * visible region but only keep what used to be covered by
-             * something -- which mean it may have been exposed.
-             *
-             * (2) handles areas that were not covered by anything but got
-             * exposed because of a resize.
-             */
-            const Region newExposed = visibleRegion - coveredRegion;
-            const Region oldVisibleRegion = layer->visibleRegionScreen;
-            const Region oldCoveredRegion = layer->coveredRegionScreen;
-            const Region oldExposed = oldVisibleRegion - oldCoveredRegion;
-            dirty = (visibleRegion&oldCoveredRegion) | (newExposed-oldExposed);
-        }
-        dirty.subtractSelf(aboveOpaqueLayers);
+        if(!(layer->mUsage & GRALLOC_USAGE_HWC_OVERLAY)) {
+		// compute this layer's dirty region
+		if (layer->contentDirty) {
+		    // we need to invalidate the whole region
+		    dirty = visibleRegion;
+		    // as well, as the old visible region
+		    dirty.orSelf(layer->visibleRegionScreen);
+		    layer->contentDirty = false;
+		} else {
+		    /* compute the exposed region:
+		     *   the exposed region consists of two components:
+		     *   1) what's VISIBLE now and was COVERED before
+		     *   2) what's EXPOSED now less what was EXPOSED before
+		     *
+		     * note that (1) is conservative, we start with the whole
+		     * visible region but only keep what used to be covered by
+		     * something -- which mean it may have been exposed.
+		     *
+		     * (2) handles areas that were not covered by anything but got
+		     * exposed because of a resize.
+		     */
+		    const Region newExposed = visibleRegion - coveredRegion;
+		    const Region oldVisibleRegion = layer->visibleRegionScreen;
+		    const Region oldCoveredRegion = layer->coveredRegionScreen;
+		    const Region oldExposed = oldVisibleRegion - oldCoveredRegion;
+		    dirty = (visibleRegion&oldCoveredRegion) | (newExposed-oldExposed);
+		}
+		dirty.subtractSelf(aboveOpaqueLayers);
 
-        // accumulate to the screen dirty region
-        dirtyRegion.orSelf(dirty);
+		// accumulate to the screen dirty region
+		dirtyRegion.orSelf(dirty);
 
-        // Update aboveOpaqueLayers for next (lower) layer
-        aboveOpaqueLayers.orSelf(opaqueRegion);
-
+		// Update aboveOpaqueLayers for next (lower) layer
+		aboveOpaqueLayers.orSelf(opaqueRegion);
+	}
         // Store the visible region is screen space
         layer->setVisibleRegion(visibleRegion);
         layer->setCoveredRegion(coveredRegion);
