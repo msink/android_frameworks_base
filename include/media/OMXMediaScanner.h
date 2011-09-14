@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright (c) 2010 Freescale Semiconductor, Inc. */
+
+/* Copyright (C) 2011 Freescale Semiconductor, Inc. */
 
 #ifndef OMX_MEDIA_SCANNER_H_
 
@@ -36,8 +37,6 @@ struct OMXMediaScanner : public MediaScanner {
     virtual char *extractAlbumArt(int fd);
 
 private:
-
-    MediaMetadataRetriever *mRetriever;
 
     OMXMediaScanner(const OMXMediaScanner &);
     OMXMediaScanner &operator=(const OMXMediaScanner &);
