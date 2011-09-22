@@ -24,6 +24,9 @@
 #include <utils/String8.h>
 #include <utils/KeyedVector.h>
 
+#include <surfaceflinger/Surface.h>
+#include <surfaceflinger/ISurfaceComposer.h>
+#include <surfaceflinger/SurfaceComposerClient.h>
 
 namespace android {
 
@@ -51,6 +54,10 @@ private:
     int                 mSharedFd;
     int                 mMediaType;  
     char                contentURI[128];
+    sp<SurfaceComposerClient>           session;
+    sp<SurfaceControl>                  surfaceControl;
+    sp<Surface>                         surface;
+    bool sessionCreated;
 };
 
 }; // namespace android
