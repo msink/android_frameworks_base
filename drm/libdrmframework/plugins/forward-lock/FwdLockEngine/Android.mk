@@ -63,7 +63,7 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/include \
     external/openssl/include
 
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/drm
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
 
 LOCAL_MODULE_TAGS := optional
 

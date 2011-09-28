@@ -37,6 +37,8 @@ LOCAL_C_INCLUDES += \
 # Set the following flag to enable the decryption passthru flow
 #LOCAL_CFLAGS += -DENABLE_PASSTHRU_DECRYPTION
 
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/drm
+
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
