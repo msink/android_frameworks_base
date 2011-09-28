@@ -622,17 +622,15 @@ player_type getPlayerType(const char* url)
     int lenURL = strlen(url);
     char value[PROPERTY_VALUE_MAX];
     if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
-        if (!strncasecmp(url, "http://", 7))
+        if (!strncasecmp(url, "http://", 7) || !strncasecmp(url, "rtsp://", 7))
             return OMX_PLAYER;
 
-        if (strncasecmp(url, "rtsp://", 7)) {
-            for (int i = 0; i < NELEM(OMX_PLAYER_FILE_EXTS); ++i) {
-                int len = strlen(OMX_PLAYER_FILE_EXTS[i].extension);
-                int start = lenURL - len;
-                if (start > 0) {
-                    if (!strncasecmp(url + start, OMX_PLAYER_FILE_EXTS[i].extension, len)) {
-                        return OMX_PLAYER_FILE_EXTS[i].playertype;
-                    }
+        for (int i = 0; i < NELEM(OMX_PLAYER_FILE_EXTS); ++i) {
+            int len = strlen(OMX_PLAYER_FILE_EXTS[i].extension);
+            int start = lenURL - len;
+            if (start > 0) {
+                if (!strncasecmp(url + start, OMX_PLAYER_FILE_EXTS[i].extension, len)) {
+                    return OMX_PLAYER_FILE_EXTS[i].playertype;
                 }
             }
         }
