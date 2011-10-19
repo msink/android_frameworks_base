@@ -464,7 +464,7 @@ status_t VPUEncoder::start(MetaData *params) {
 	enc_stride = src_stride = ( mEncOpenParam->picWidth + 15 ) & ~15;
 	allocFrameBuffers(initinfo.minFrameBufferCount +1);
 	ret = vpu_EncRegisterFrameBuffer(mEncHandle, 
-		mFrameBufferArray, initinfo.minFrameBufferCount, enc_stride, src_stride, 0, 0);
+		mFrameBufferArray, initinfo.minFrameBufferCount, enc_stride, src_stride, 0, 0, 0);
 	if (ret != RETCODE_SUCCESS) {
 		LOGE("Register frame buffer failed\n");
 
