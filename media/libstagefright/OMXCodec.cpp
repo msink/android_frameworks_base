@@ -26,7 +26,7 @@
 #include "include/MP3Decoder.h"
 #include "include/VorbisDecoder.h"
 #include "include/VPXDecoder.h"
-#include "include/VPUEncoder.h"
+//#include "include/VPUEncoder.h"
 
 #include "include/ESDS.h"
 
@@ -85,7 +85,7 @@ FACTORY_CREATE(G711Decoder)
 FACTORY_CREATE(M4vH263Decoder)
 FACTORY_CREATE(VorbisDecoder)
 FACTORY_CREATE(VPXDecoder)
-FACTORY_CREATE_ENCODER(VPUEncoder)
+//FACTORY_CREATE_ENCODER(VPUEncoder)
 FACTORY_CREATE_ENCODER(AMRNBEncoder)
 FACTORY_CREATE_ENCODER(AMRWBEncoder)
 FACTORY_CREATE_ENCODER(AACEncoder)
@@ -106,7 +106,7 @@ static sp<MediaSource> InstantiateSoftwareEncoder(
         FACTORY_REF(AACEncoder)
         FACTORY_REF(AVCEncoder)
         FACTORY_REF(M4vH263Encoder)
-        FACTORY_REF(VPUEncoder)
+//        FACTORY_REF(VPUEncoder)
     };
     LOGV("InstantiateSoftwareEncoder");
     if(!strcmp(name, "VPUEncoder")){
@@ -197,7 +197,7 @@ static const CodecInfo kEncoderInfo[] = {
     { MEDIA_MIMETYPE_AUDIO_AAC, "AACEncoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.DUCATI1.VIDEO.MPEG4E" },
 //    { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.PV.aacenc" },
-    { MEDIA_MIMETYPE_VIDEO_MPEG4, "VPUEncoder" },
+//    { MEDIA_MIMETYPE_VIDEO_MPEG4, "VPUEncoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.7x30.video.encoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.video.encoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.Video.encoder" },
@@ -206,7 +206,7 @@ static const CodecInfo kEncoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "M4vH263Encoder" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.TI.DUCATI1.VIDEO.MPEG4E" },
 //    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.PV.mpeg4enc" },
-    { MEDIA_MIMETYPE_VIDEO_H263, "VPUEncoder" },
+//    { MEDIA_MIMETYPE_VIDEO_H263, "VPUEncoder" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.7x30.video.encoder.h263" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.video.encoder.h263" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.TI.Video.encoder" },
@@ -215,7 +215,7 @@ static const CodecInfo kEncoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_H263, "M4vH263Encoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.DUCATI1.VIDEO.H264E" },
 //    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.PV.h263enc" },
-    { MEDIA_MIMETYPE_VIDEO_AVC, "VPUEncoder" },
+//    { MEDIA_MIMETYPE_VIDEO_AVC, "VPUEncoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.7x30.video.encoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.video.encoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.Video.encoder" },

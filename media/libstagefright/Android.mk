@@ -101,11 +101,9 @@ ifneq ($(strip $(ARCH_ARM_HAVE_ARMV7A)),true)
   USE_ALT_HTTP := true
 endif
 
-LOCAL_C_INCLUDES += $(TOP)/external/linux-lib/vpu
-LOCAL_STATIC_LIBRARIES += libstagefright_vpuenc
-LOCAL_SHARED_LIBRARIES += libvpu
-LOCAL_LDLIBS += -lvpu
-
+ifneq ($(TARGET_SIMULATOR),true)
+LOCAL_SHARED_LIBRARIES += libdl
+endif
 
 # See if the user has specified a stack they want to use
 HTTP_STACK = $(HTTP)
