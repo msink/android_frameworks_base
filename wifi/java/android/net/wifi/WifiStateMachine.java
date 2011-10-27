@@ -113,7 +113,7 @@ public class WifiStateMachine extends StateMachine {
     private static final String SOFTAP_IFACE = "wl0.1";
     /* TODO: fetch a configurable interface */
     //private static final String SOFTAP_IFACE = "wl0.1";
-    private String SOFTAP_IFACE = SystemProperties.get("ro.wifi.ap.interface", "wl0.1");
+    private String SOFTAP_IFACE = SystemProperties.get("wifi.ap.interface", "wl0.1");
 
     private WifiMonitor mWifiMonitor;
     private INetworkManagementService mNwService;
