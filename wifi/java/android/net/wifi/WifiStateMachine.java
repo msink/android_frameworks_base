@@ -110,9 +110,6 @@ public class WifiStateMachine extends StateMachine {
     private static final boolean DBG = false;
 
     /* TODO: This is no more used with the hostapd code. Clean up */
-    private static final String SOFTAP_IFACE = "wl0.1";
-    /* TODO: fetch a configurable interface */
-    //private static final String SOFTAP_IFACE = "wl0.1";
     private String SOFTAP_IFACE = SystemProperties.get("wifi.ap.interface", "wl0.1");
 
     private WifiMonitor mWifiMonitor;
@@ -1989,6 +1986,7 @@ public class WifiStateMachine extends StateMachine {
                         sendMessage(CMD_LOAD_DRIVER_FAILURE);
                     }
                     mWakeLock.release();
+                    }
                 }
             }).start();
         }
