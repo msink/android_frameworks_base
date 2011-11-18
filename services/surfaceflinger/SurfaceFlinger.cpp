@@ -441,7 +441,7 @@ bool SurfaceFlinger::threadLoop()
         handleRepaint();
 
 	// call glFinish and postfb only when actual repaint is done
-	if (!mInvalidRegion.isEmpty()) {
+	if (!mSwapRegion.isEmpty()) {
             // inform the h/w that we're done compositing
             logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
             hw.compositionComplete();
@@ -463,7 +463,7 @@ bool SurfaceFlinger::threadLoop()
 
 void SurfaceFlinger::postFramebuffer()
 {
-    if (!mInvalidRegion.isEmpty()) {
+    if (!mSwapRegion.isEmpty()) {
 
         if (UNLIKELY(mDebugFps)) {
             debugShowFPS();
@@ -496,13 +496,13 @@ void SurfaceFlinger::postFramebuffer()
              secRotation = 0x0;
              break;
         }
-        hw.flip(mInvalidRegion,secRotation);
+        hw.flip(mSwapRegion,secRotation);
 #else
-        hw.flip(mInvalidRegion);
+        hw.flip(mSwapRegion);
 #endif
         mLastSwapBufferTime = systemTime() - now;
         mDebugInSwapBuffers = 0;
-        mInvalidRegion.clear();
+        mSwapRegion.clear();
     }
 }
 
