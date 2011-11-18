@@ -17624,6 +17624,7 @@ package android.provider {
     field public static final deprecated java.lang.String WIFI_WATCHDOG_PING_DELAY_MS = "wifi_watchdog_ping_delay_ms";
     field public static final deprecated java.lang.String WIFI_WATCHDOG_PING_TIMEOUT_MS = "wifi_watchdog_ping_timeout_ms";
     field public static final java.lang.String WINDOW_ANIMATION_SCALE = "window_animation_scale";
+    field public static final java.lang.String XEC_DLS_CONTROL = "xec_dls_control";
   }
 
   public class SyncStateContract {
