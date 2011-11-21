@@ -759,7 +759,7 @@ android_media_MediaPlayer_native_init(JNIEnv *env)
         return;
     }
 
-    fields.bitmapConstructor = env->GetMethodID(fields.bitmapClazz, "<init>", "(IZ[BI)V");
+    fields.bitmapConstructor = env->GetMethodID(fields.bitmapClazz, "<init>", "(I[BZ[BI)V");
     if (fields.bitmapConstructor == NULL) {
         jniThrowException(env, "java/lang/RuntimeException", "Can't find Bitmap constructor");
         return;
