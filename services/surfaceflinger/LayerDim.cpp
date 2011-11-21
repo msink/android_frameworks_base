@@ -49,7 +49,7 @@ void LayerDim::onDraw(const Region& clip) const
         const DisplayHardware& hw(graphicPlane(0).displayHardware());
         const GLfloat alpha = s.alpha/255.0f;
         const uint32_t fbHeight = hw.getHeight();
-        glDisable(GL_TEXTURE_EXTERNAL_OES);
+     //   glDisable(GL_TEXTURE_EXTERNAL_OES);
         glDisable(GL_TEXTURE_2D);
 
         if (s.alpha == 0xFF) {

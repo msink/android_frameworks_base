@@ -28,7 +28,7 @@ namespace android {
 
 
 SurfaceTextureLayer::SurfaceTextureLayer(GLuint tex, const sp<Layer>& layer)
-    : SurfaceTexture(tex, true, GL_TEXTURE_EXTERNAL_OES, false), mLayer(layer) {
+    : SurfaceTexture(tex, true, GL_TEXTURE_2D, false), mLayer(layer) {
 }
 
 SurfaceTextureLayer::~SurfaceTextureLayer() {

@@ -125,7 +125,7 @@ void LayerScreenshot::onDraw(const Region& clip) const
 
         glColor4f(0, 0, 0, alpha);
 
-        glDisable(GL_TEXTURE_EXTERNAL_OES);
+    //    glDisable(GL_TEXTURE_EXTERNAL_OES);
         glEnable(GL_TEXTURE_2D);
 
         glBindTexture(GL_TEXTURE_2D, mTextureName);
