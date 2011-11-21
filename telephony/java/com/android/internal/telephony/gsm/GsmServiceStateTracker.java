@@ -601,8 +601,6 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
 
                     // LAC and CID are -1 if not avail
                     newCellLoc.setLacAndCid(lac, cid);
-                    newCellLoc.sqetPsc(psc);
-                    newNetworkType = Act;
                     newSS.setRadioTechnology(Act);
                 break;
 

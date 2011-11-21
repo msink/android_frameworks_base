@@ -73,8 +73,9 @@ public class MediaFile {
     public static final int FILE_TYPE_RMV     = 41;
     public static final int FILE_TYPE_MKV     = 42;
     public static final int FILE_TYPE_MPG2    = 43;
+    public static final int FILE_TYPE_WEBM    = 44;
     private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
-    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MPG2;
+    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_WEBM;
     
     // More video file types
     public static final int FILE_TYPE_MP2PS   = 200;
@@ -87,6 +88,7 @@ public class MediaFile {
     public static final int FILE_TYPE_PNG     = 53;
     public static final int FILE_TYPE_BMP     = 54;
     public static final int FILE_TYPE_WBMP    = 55;
+    public static final int FILE_TYPE_WEBP    = 56;
     private static final int FIRST_IMAGE_FILE_TYPE = FILE_TYPE_JPEG;
     private static final int LAST_IMAGE_FILE_TYPE = FILE_TYPE_WEBP;
    

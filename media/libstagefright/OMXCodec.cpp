@@ -76,15 +76,6 @@ static sp<MediaSource> Make##name(const sp<MediaSource> &source, const sp<MetaDa
 
 #define FACTORY_REF(name) { #name, Make##name },
 
-FACTORY_CREATE(MP3Decoder)
-FACTORY_CREATE(AMRNBDecoder)
-FACTORY_CREATE(AMRWBDecoder)
-FACTORY_CREATE(AACDecoder)
-FACTORY_CREATE(AVCDecoder)
-FACTORY_CREATE(G711Decoder)
-FACTORY_CREATE(M4vH263Decoder)
-FACTORY_CREATE(VorbisDecoder)
-FACTORY_CREATE(VPXDecoder)
 //FACTORY_CREATE_ENCODER(VPUEncoder)
 FACTORY_CREATE_ENCODER(AMRNBEncoder)
 FACTORY_CREATE_ENCODER(AMRWBEncoder)

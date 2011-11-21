@@ -900,7 +900,6 @@ public class PowerManagerService extends IPowerManager.Stub
                 }
                 setPowerState(mWakeLockState | mUserState);
             }
-            setPowerState(mWakeLockState | mUserState);
         }
         else if ((flags & LOCK_MASK) == PowerManager.PARTIAL_WAKE_LOCK) {
             if (newlock) {
@@ -919,7 +918,7 @@ public class PowerManagerService extends IPowerManager.Stub
         }
         if (newlock || diffsource) {
             noteStartWakeLocked(wl, ws);
-        setPowerState(mWakeLockState | mUserState);
+        }
     }
 
     public void updateWakeLockWorkSource(IBinder lock, WorkSource ws) {
@@ -988,7 +987,6 @@ public class PowerManagerService extends IPowerManager.Stub
                 }
                 setPowerState(mWakeLockState | mUserState);
             }
-            setPowerState(mWakeLockState | mUserState);
         }
         else if ((wl.flags & LOCK_MASK) == PowerManager.PARTIAL_WAKE_LOCK) {
             mPartialCount--;

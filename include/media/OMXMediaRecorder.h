@@ -23,6 +23,7 @@
 #include <utils/String8.h>
 #include <camera/ICamera.h>
 #include <surfaceflinger/ISurface.h>
+#include <hardware_legacy/AudioSystemLegacy.h>
 
 namespace android {
 
@@ -31,7 +32,7 @@ struct OMXRecorder : public MediaRecorderBase {
     virtual ~OMXRecorder();
 
     virtual status_t init();
-    virtual status_t setAudioSource(audio_source as);
+    virtual status_t setAudioSource(android_audio_legacy::audio_source as);
     virtual status_t setVideoSource(video_source vs);
     virtual status_t setOutputFormat(output_format of);
     virtual status_t setAudioEncoder(audio_encoder ae);

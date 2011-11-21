@@ -524,6 +524,7 @@ status_t BnMediaPlayer::onTransact(
         case GET_PARAMETER: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             return getParameter(data.readInt32(), reply);
+	} break;
         case CAPTURE_CURRENT_FRAME: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             sp<IMemory> bitmap = captureCurrentFrame();

@@ -19,6 +19,7 @@
 #define LOG_TAG "MediaScannerJNI"
 #include <utils/Log.h>
 #include <utils/threads.h>
+#include <cutils/properties.h>
 #include <media/mediascanner.h>
 #include <media/stagefright/StagefrightMediaScanner.h>
 

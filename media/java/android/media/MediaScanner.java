@@ -1157,7 +1157,7 @@ public class MediaScanner
                 int fileType = (mediaFileType == null ? 0 : mediaFileType.fileType);
                
                 if (MediaFile.isPlayListFileType(fileType)) {
-                    ContentValues values = new ContentValues();
+                    values = new ContentValues();
                     values.put(MediaStore.Audio.Playlists.DATA, "");
                     values.put(MediaStore.Audio.Playlists.DATE_MODIFIED, 0);
                     mMediaProvider.update(ContentUris.withAppendedId(mPlaylistsUri, entry.mRowId),

@@ -42,7 +42,6 @@
 
 #include "StagefrightRecorder.h"
 #include <gui/ISurfaceTexture.h>
-#include "media/OMXMediaRecorder.h"
 
 namespace android {
 
@@ -309,13 +308,7 @@ MediaRecorderClient::MediaRecorderClient(const sp<MediaPlayerService>& service, 
     LOGV("Client constructor");
     mPid = pid;
 
-     char value[PROPERTY_VALUE_MAX];
-     if (property_get("media.omxgm.enable-record", value, NULL)
-         && ( !strcmp(value, "1") || !strcasecmp(value, "true"))) {
-         mRecorder = new OMXRecorder;
-     } else {
-         mRecorder = new StagefrightRecorder;
-     }
+    mRecorder = new StagefrightRecorder;
 
     mMediaPlayerService = service;
 }

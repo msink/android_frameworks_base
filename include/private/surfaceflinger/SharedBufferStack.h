@@ -62,7 +62,6 @@ public:
     static const unsigned int NUM_LAYERS_MAX  = 31;
     static const unsigned int NUM_BUFFER_MAX  = 32;
     static const unsigned int NUM_BUFFER_MIN  = 2;
-    static const unsigned int NUM_DISPLAY_MAX = 4;
 
     struct Statistics { // 4 longs
         typedef int32_t usecs_t;

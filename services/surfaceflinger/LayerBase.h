@@ -275,12 +275,10 @@ protected:
                 // atomic
     volatile    int32_t         mInvalidate;
 
-    int             mUsage;
-                
-
 public:
     // called from class SurfaceFlinger
     virtual ~LayerBase();
+    int             mUsage;
 
 private:
     LayerBase(const LayerBase& rhs);

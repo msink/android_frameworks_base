@@ -20,6 +20,7 @@
 #include <utils/Errors.h>
 #include <media/MediaPlayerInterface.h>
 #include <media/Metadata.h>
+#include <surfaceflinger/ISurface.h>
 #include <ui/egl/android_natives.h>
 
 namespace android {
@@ -61,6 +62,8 @@ public:
     virtual char*       getTrackName(int index);
     virtual int         getDefaultTrack();
     virtual status_t    selectTrack(int index);
+    virtual status_t    setParameter(int key, const Parcel &request) { return 0; }
+    virtual status_t    getParameter(int key, Parcel *reply) { return 0; }
 
     void                sendEvent(int msg, int ext1=0, int ext2=0) { MediaPlayerBase::sendEvent(msg, ext1, ext2); }
 

@@ -30,9 +30,8 @@ struct OMXMediaScanner : public MediaScanner {
     OMXMediaScanner();
     virtual ~OMXMediaScanner();
 
-    virtual status_t processFile(
-            const char *path, const char *mimeType,
-            MediaScannerClient &client);
+    virtual MediaScanResult processFile(
+            const char *path, const char *mimeType, MediaScannerClient &client);
 
     virtual char *extractAlbumArt(int fd);
 

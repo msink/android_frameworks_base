@@ -753,36 +753,6 @@ android_media_MediaPlayer_native_init(JNIEnv *env)
         return;
     }
 
-    fields.surface_native = env->GetFieldID(surface, ANDROID_VIEW_SURFACE_JNI_ID, "I");
-    if (fields.surface_native == NULL) {
-        jniThrowException(env, "java/lang/RuntimeException",
-                "Can't find Surface." ANDROID_VIEW_SURFACE_JNI_ID);
-        return;
-    }
-
-    fields.surfaceTexture = env->GetFieldID(clazz, "mSurfaceTexture",
-            "Landroid/graphics/SurfaceTexture;");
-    if (fields.surfaceTexture == NULL) {
-        jniThrowException(env, "java/lang/RuntimeException",
-                "Can't find MediaPlayer.mSurfaceTexture");
-        return;
-    }
-
-    jclass surfaceTexture = env->FindClass("android/graphics/SurfaceTexture");
-    if (surfaceTexture == NULL) {
-        jniThrowException(env, "java/lang/RuntimeException",
-                "Can't find android/graphics/SurfaceTexture");
-        return;
-    }
-
-    fields.surfaceTexture_native = env->GetFieldID(surfaceTexture,
-            ANDROID_GRAPHICS_SURFACETEXTURE_JNI_ID, "I");
-    if (fields.surfaceTexture_native == NULL) {
-        jniThrowException(env, "java/lang/RuntimeException",
-                "Can't find SurfaceTexture." ANDROID_GRAPHICS_SURFACETEXTURE_JNI_ID);
-        return;
-    }
-
     fields.bitmapClazz = env->FindClass("android/graphics/Bitmap");
     if (fields.bitmapClazz == NULL) {
         jniThrowException(env, "java/lang/RuntimeException", "Can't find android/graphics/Bitmap");
