@@ -5000,6 +5000,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         requestLayout();
     }
 
+    public void setLayoutParam(ViewGroup.LayoutParams params) {
+        if (params == null) {
+            throw new NullPointerException("params == null");
+        }
+        mLayoutParams = params;
+    }
+
     /**
      * Set the scrolled position of your view. This will cause a call to
      * {@link #onScrollChanged(int, int, int, int)} and the view will be
@@ -9580,5 +9587,30 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             }
         }
 
+    }
+
+    public void setFrameRec(int left, int top, int right, int bottom) {
+        if (mLeft != left || mRight != right || mTop != top || mBottom != bottom) {
+            int drawn = mPrivateFlags & DRAWN;
+            invalidate();
+            int oldWidth = mRight - mLeft;
+            int oldHeight = mBottom - mTop;
+            mLeft = left;
+            mTop = top;
+            mRight = right;
+            mBottom = bottom;
+            mPrivateFlags |= HAS_BOUNDS;
+            int newWidth = (right - left);
+            int newHeight = (bottom - top);
+            if (newWidth != oldWidth || newHeight != oldHeight) {
+                onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
+            }
+            if ((mViewFlags & (INVISIBLE | GONE)) == 0) {
+                mPrivateFlags |= DRAWN;
+                invalidate();
+            }
+            mPrivateFlags |= drawn;
+            mBackgroundSizeChanged = true;
+        }
     }
 }

@@ -39,6 +39,7 @@ public class OverScroller {
     private static final int DEFAULT_DURATION = 250;
     private static final int SCROLL_MODE = 0;
     private static final int FLING_MODE = 1;
+    private static final int FLING_MODES = 2;
 
     /**
      * Creates an OverScroller with a viscous fluid scroll interpolator.
@@ -284,9 +285,25 @@ public class OverScroller {
                 }
 
                 break;
+
+            case FLING_MODES:
+                if (!mScrollerX.mFinished && !mScrollerX.update()) {
+                    mScrollerX.finish();
+                }
+                if (!mScrollerY.mFinished && !mScrollerY.update()) {
+                    mScrollerY.finish();
+                }
+                break;
         }
 
         return true;
+    }
+
+    public void flings(int startX, int startY, int velocityX, int velocityY,
+                       int minX, int maxX, int minY, int maxY) {
+        mMode = FLING_MODES;
+        mScrollerX.flings(startX, velocityX, minX, maxX);
+        mScrollerY.flings(startY, velocityY, minY, maxY);
     }
 
     /**
@@ -507,6 +524,7 @@ public class OverScroller {
         private static final int TO_EDGE = 0;
         private static final int TO_BOUNDARY = 1;
         private static final int TO_BOUNCE = 2;
+        private static final int TO_AEDGE = 3;
 
         private int mState = TO_EDGE;
 
@@ -530,6 +548,10 @@ public class OverScroller {
 
         private float mBounceCoefficient = DEFAULT_BOUNCE_COEFFICIENT;
 
+        private int mDistance;
+
+        private double mParm;
+
         MagneticOverScroller() {
             mFinished = true;
         }
@@ -543,6 +565,10 @@ public class OverScroller {
          */
         static float getDeceleration(int velocity) {
             return velocity > 0 ? -GRAVITY : GRAVITY;
+        }
+
+        static double getDamping() {
+            return 2.0;
         }
 
         /*
@@ -666,6 +692,24 @@ public class OverScroller {
             mDuration = OVERSCROLL_SPRINGBACK_DURATION;
             mStartTime -= OVERSCROLL_SPRINGBACK_DURATION / 2;
             mVelocity = (int) (Math.abs(end - start) * TIME_COEF * (positive ? 1.0 : -1.0f));
+        }
+
+        void flings(int start, int velocity, int min, int max) {
+            mState = TO_AEDGE;
+            mFinished = false;
+            mStart = start;
+            mStartTime = AnimationUtils.currentAnimationTimeMillis();
+            mParm = MagneticOverScroller.getDamping();
+            mDuration = - Math.round((float)(Math.log(60.0f / (double)Math.abs(velocity)) * 1000.0f / mParm));
+            if (mDuration < 0) {
+                mDuration = 0;
+            }
+            mDistance = Math.round((float)(velocity / mParm));
+            mFinal = mDistance + start - Math.round((float)(mDistance / Math.exp(mParm * mDuration / 1000.0f)));
+            if (mFinal > max)
+                return;
+            if (mFinal < min)
+                return;
         }
 
         void fling(int start, int velocity, int min, int max, int over) {
@@ -833,7 +877,10 @@ public class OverScroller {
 
             double distance;
             final float t = duration / 1000.0f;
-            if (mState == TO_EDGE) {
+            if (mState == TO_AEDGE) {
+                mCurrVelocity = 0;
+                distance = (double)mDistance - Math.round((float)((double)mDistance / Math.exp(mParm * t)));
+            } else if (mState == TO_EDGE) {
                 mCurrVelocity = mVelocity + mDeceleration * t;
                 distance = mVelocity * t + mDeceleration * t * t / 2.0f;
             } else {
@@ -841,7 +888,6 @@ public class OverScroller {
                 mCurrVelocity = mVelocity * (float)Math.cos(d);
                 distance = mVelocity / TIME_COEF * Math.sin(d);
             }
-
             mCurrentPosition = mStart + (int) distance;
             return true;
         }
