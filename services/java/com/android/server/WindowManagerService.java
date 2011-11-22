@@ -5724,6 +5724,31 @@ public class WindowManagerService extends IWindowManager.Stub
             }
         }
 
+        public void updateWindowsLayer() {
+            synchronized(mWindowMap) {
+                requestAnimationLocked(0);
+            }
+        }
+
+        public void hideSurfaceWindow(IWindow window, boolean flag) {
+            long origId = Binder.clearCallingIdentity();
+            synchronized(mWindowMap) {
+                WindowState win = windowForClientLocked(this, window, false);
+                if (win == null)
+                    return;
+                Surface.openTransaction();
+                if (win.mSurface != null) {
+                    if (flag) {
+                        win.mSurface.hide();
+                    } else {
+                        win.mSurface.show();
+                    }
+                }
+                Surface.closeTransaction();
+            }
+            Binder.restoreCallingIdentity(origId);
+        }
+
         public boolean performHapticFeedback(IWindow window, int effectId,
                 boolean always) {
             synchronized(mWindowMap) {
@@ -6157,6 +6182,18 @@ public class WindowManagerService extends IWindowManager.Stub
 
             // Now make sure the window fits in the overall display.
             Gravity.applyDisplay(mAttrs.gravity, df, frame);
+
+            if (SystemProperties.get("sys.compatibility.mode").equals("enter")
+                    && mAttachedWindow == null) {
+
+                int offsetX = (mDisplay.getNormalWidth() - mDisplay.getWidth()) / 2;
+                int offsetY = (mDisplay.getNormalHeight() - mDisplay.getHeight()) / 2;
+                container.offset(offsetX, offsetY);
+                display.offset(offsetX, offsetY);
+                frame.offset(offsetX, offsetY);
+                visible.offset(offsetX, offsetY);
+                content.offset(offsetX, offsetY);
+            }
 
             // Make sure the content and visible frames are inside of the
             // final window frame.
@@ -10651,4 +10688,26 @@ public class WindowManagerService extends IWindowManager.Stub
             return Animation.ZORDER_TOP;
         }
     }
+
+    public void enterCompatibilityMode() {
+        mWindowsFreezingScreen = true;
+        mH.removeMessages(H.WINDOW_FREEZE_TIMEOUT);
+        mH.sendMessageDelayed(mH.obtainMessage(H.WINDOW_FREEZE_TIMEOUT), 4000);
+        mLayoutNeeded = true;
+        startFreezingDisplayLocked();
+    }
+
+    public void exitCompatibilityMode() {
+        if (SystemProperties.get("sys.compatibility.mode").equals("enter")) {
+            mInputManager.setDisplaySize(0, mDisplay.getNormalWidth(), mDisplay.getNormalHeight());
+            mWindowsFreezingScreen = true;
+            mH.removeMessages(H.WINDOW_FREEZE_TIMEOUT);
+            mH.sendMessageDelayed(mH.obtainMessage(H.WINDOW_FREEZE_TIMEOUT), 4000);
+            mLayoutNeeded = true;
+            startFreezingDisplayLocked();
+        }
+    }
+
+    private static native int hwc_HideCursor();
+    private static native int hwc_SetCursor(int a, int b, int c);
 }

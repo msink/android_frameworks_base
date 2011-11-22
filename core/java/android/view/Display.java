@@ -68,6 +68,8 @@ public class Display
      * adjusted for you based on the current rotation of the display.
      */
     native public int getWidth();
+    native public int getNormalWidth();
+
     
     /**
      * Returns the raw height of the display, in pixels.  Note that this
@@ -78,6 +80,8 @@ public class Display
      * adjusted for you based on the current rotation of the display.
      */
     native public int getHeight();
+    native public int getNormalHeight();
+
 
     /**
      * Returns the rotation of the screen from its "natural" orientation.

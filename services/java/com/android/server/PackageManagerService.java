@@ -7337,6 +7337,14 @@ class PackageManagerService extends IPackageManager.Stub {
                 } catch (IOException e) {
                 }
             }
+
+            if (!mSettings.mCompatiblePackages.isEmpty()) {
+                pw.println("Compatible package messages:");
+                for (String c : mSettings.mCompatiblePackages) {
+                    pw.print("      ");
+                    pw.println(c);
+                }
+            }
         }
     }
 
@@ -7753,6 +7761,8 @@ class PackageManagerService extends IPackageManager.Stub {
         /* package name of the app that installed this package */
         String installerPackageName;
 
+        HashSet<String> compatiblePackages = new HashSet<String>(0);
+
         PackageSettingBase(String name, String realName, File codePath, File resourcePath,
                 String nativeLibraryPathString, int pVersionCode, int pkgFlags) {
             super(pkgFlags);
@@ -7803,6 +7813,7 @@ class PackageManagerService extends IPackageManager.Stub {
             haveGids = base.haveGids;
             disabledComponents = base.disabledComponents;
             enabledComponents = base.enabledComponents;
+            compatiblePackages = base.compatiblePackages;
             enabled = base.enabled;
             installStatus = base.installStatus;
         }
@@ -7833,6 +7844,16 @@ class PackageManagerService extends IPackageManager.Stub {
             } else {
                 return COMPONENT_ENABLED_STATE_DEFAULT;
             }
+        }
+
+        boolean addCompatiblePackages(String packageName) {
+            boolean changed = compatiblePackages.add(packageName);
+            return changed;
+        }
+
+        boolean removeCompatiblePackages(String packageName) {
+            boolean changed = compatiblePackages.remove(packageName);
+            return changed;
         }
     }
 
@@ -7952,6 +7973,8 @@ class PackageManagerService extends IPackageManager.Stub {
         // names.  The packages appear everwhere else under their original
         // names.
         final HashMap<String, String> mRenamedPackages = new HashMap<String, String>();
+
+        final ArrayList<String> mCompatiblePackages = new ArrayList<String>();
         
         private final StringBuilder mReadMessages = new StringBuilder();
 
@@ -7971,8 +7994,10 @@ class PackageManagerService extends IPackageManager.Stub {
         Settings() {
             File dataDir = Environment.getDataDirectory();
             File systemDir = new File(dataDir, "system");
+            File configureDir = Environment.getRootDirectory();
             // TODO(oam): This secure dir creation needs to be moved somewhere else (later)
             File systemSecureDir = new File(dataDir, "secure/system");
+            File compatibleInfoDir = new File(configureDir, "etc/compatible_info.xml");
             systemDir.mkdirs();
             systemSecureDir.mkdirs();
             FileUtils.setPermissions(systemDir.toString(),
@@ -7986,6 +8011,36 @@ class PackageManagerService extends IPackageManager.Stub {
             mSettingsFilename = new File(systemDir, "packages.xml");
             mBackupSettingsFilename = new File(systemDir, "packages-backup.xml");
             mPackageListFilename = new File(systemDir, "packages.list");
+
+            boolean needRebuild = mSettingsFilename.exists() ? false : true;
+            if (needRebuild) {
+                try {
+                    FileInputStream stream = new FileInputStream(compatibleInfoDir);
+                    XmlPullParser parser = Xml.newPullParser();
+                    parser.setInput(stream, null);
+                    int type;
+                    do {
+                        type = parser.next();
+                        if (type == XmlPullParser.START_TAG) {
+                            String tag = parser.getName();
+                            if ("app".equals(tag)) {
+                                String pkgName = parser.getAttributeValue(null, "package");
+                                mCompatiblePackages.add(pkgName);
+                            }
+                        }
+                    } while (type != XmlPullParser.END_DOCUMENT);
+                } catch (NullPointerException e) {
+                    Slog.w(TAG, "failed parsing " + compatibleInfoDir, e);
+                } catch (NumberFormatException e) {
+                    Slog.w(TAG, "failed parsing " + compatibleInfoDir, e);
+                } catch (XmlPullParserException e) {
+                    Slog.w(TAG, "failed parsing " + compatibleInfoDir, e);
+                } catch (IOException e) {
+                    Slog.w(TAG, "failed parsing " + compatibleInfoDir, e);
+                } catch (IndexOutOfBoundsException e) {
+                    Slog.w(TAG, "failed parsing " + compatibleInfoDir, e);
+                }
+            }
         }
 
         PackageSetting getPackageLP(PackageParser.Package pkg, PackageSetting origPackage,
@@ -8573,6 +8628,16 @@ class PackageManagerService extends IPackageManager.Stub {
                     }
                 }
                 
+                if (mCompatiblePackages.size() > 0) {
+                    serializer.startTag(null, "compatible-package");
+                    for (int j = 0; j < mCompatiblePackages.size(); j++) {
+                        serializer.startTag(null, "app");
+                        serializer.attribute(null, "package", mCompatiblePackages.get(j));
+                        serializer.endTag(null, "app");
+                    }
+                    serializer.endTag(null, "compatible-package");
+                }
+
                 serializer.endTag(null, "packages");
 
                 serializer.endDocument();
@@ -8921,6 +8986,8 @@ class PackageManagerService extends IPackageManager.Stub {
                         if (nname != null && oname != null) {
                             mRenamedPackages.put(nname, oname);
                         }
+                    } else if (tagName.equals("compatible-package")) {
+                        readCompatiblePackageLP(parser);
                     } else if (tagName.equals("last-platform-version")) {
                         mInternalSdkPlatform = mExternalSdkPlatform = 0;
                         try {
@@ -9547,6 +9614,26 @@ class PackageManagerService extends IPackageManager.Stub {
                             "Unknown element under <preferred-activities>: "
                             + parser.getName());
                     XmlUtils.skipCurrentTag(parser);
+                }
+            }
+        }
+
+        private void readCompatiblePackageLP(XmlPullParser parser)
+                throws XmlPullParserException, IOException {
+            int outerDepth = parser.getDepth();
+            int type;
+            while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+                   && (type != XmlPullParser.END_TAG
+                           || parser.getDepth() > outerDepth)) {
+                if (type == XmlPullParser.END_TAG
+                        || type == XmlPullParser.TEXT) {
+                    continue;
+                }
+
+                String tagName = parser.getName();
+                if (tagName.equals("app")) {
+                    String pkgName = parser.getAttributeValue(null, "package");
+                    if (pkgName != null) mCompatiblePackages.add(pkgName);
                 }
             }
         }
@@ -10183,5 +10270,18 @@ class PackageManagerService extends IPackageManager.Stub {
    public int getInstallLocation() {
        return android.provider.Settings.System.getInt(mContext.getContentResolver(),
                android.provider.Settings.Secure.DEFAULT_INSTALL_LOCATION, PackageHelper.APP_INSTALL_AUTO);
+   }
+
+   public boolean isCompatiblePackage(String pkgName) {
+       return mSettings.mCompatiblePackages.contains(pkgName);
+   }
+
+   public void setCompatiblePackageEnable(String pkgName, boolean enable) {
+       if (enable) {
+           mSettings.mCompatiblePackages.add(pkgName);
+       } else {
+           mSettings.mCompatiblePackages.remove(pkgName);
+       }
+       mSettings.writeLP();
    }
 }

@@ -153,6 +153,7 @@ public class SurfaceView extends View {
     long mLastLockTime = 0;
     
     boolean mVisible = false;
+    boolean draw_able = false;
     int mLeft = -1;
     int mTop = -1;
     int mWidth = -1;
@@ -182,6 +183,166 @@ public class SurfaceView extends View {
 
     private void init() {
         setWillNotDraw(true);
+    }
+
+    public void hideSurfaceView() {
+        if (mSession != null && mWindow != null) {
+            try {
+                mSurfaceLock.lock();
+                mSession.hideSurfaceWindow(mWindow, true);
+                mSurfaceLock.unlock();
+            } catch (RemoteException e) {
+                // Ignore
+            }
+        }
+    }
+
+    public void showSurfaceView() {
+        if (mSession != null && mWindow != null) {
+            try {
+                mSurfaceLock.lock();
+                mSession.hideSurfaceWindow(mWindow, false);
+                mSurfaceLock.unlock();
+            } catch (RemoteException e) {
+                // Ignore
+            }
+        }
+    }
+
+    public void updateView() {
+        if (!mHaveFrame) {
+            return;
+        }
+        if (mWindow == null) {
+            return;
+        }
+
+        ViewRoot viewRoot = (ViewRoot) getRootView().getParent();
+        if (viewRoot != null) {
+            mTranslator = viewRoot.mTranslator;
+        }
+
+        Resources res = getContext().getResources();
+        if (mTranslator != null || !res.getCompatibilityInfo().supportsScreen()) {
+            mSurface.setCompatibleDisplayMetrics(res.getDisplayMetrics(), mTranslator);
+        }
+
+        int myWidth = mRequestedWidth;
+        if (myWidth <= 0) myWidth = getWidth();
+        int myHeight = mRequestedHeight;
+        if (myHeight <= 0) myHeight = getHeight();
+
+        getLocationInWindow(mLocation);
+        final boolean creating = mWindow == null;
+        final boolean formatChanged = mFormat != mRequestedFormat;
+        final boolean sizeChanged = mWidth != myWidth || mHeight != myHeight;
+        final boolean visibleChanged = mVisible != mRequestedVisible
+                || mNewSurfaceNeeded;
+        final boolean typeChanged = mType != mRequestedType;
+
+        try {
+            final boolean visible = mVisible = mRequestedVisible;
+            mLeft = mLocation[0];
+            mTop = mLocation[1];
+            mWidth = myWidth;
+            mHeight = myHeight;
+            mFormat = mRequestedFormat;
+            mType = mRequestedType;
+
+            // Scaling/Translate window's layout here because mLayout is not used elsewhere.
+
+            // Places the window relative
+            mLayout.x = mLeft;
+            mLayout.y = mTop;
+            mLayout.width = getWidth();
+            mLayout.height = getHeight();
+            if (mTranslator != null) {
+                mTranslator.translateLayoutParamsInAppWindowToScreen(mLayout);
+            }
+
+            mLayout.format = mRequestedFormat;
+            mLayout.flags |=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                          | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                          | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                          | WindowManager.LayoutParams.FLAG_SCALED
+                          | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                          | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                          | WindowManager.LayoutParams.FLAG_DIS_LAYOUT
+                          ;
+            if (!getContext().getResources().getCompatibilityInfo().supportsScreen()) {
+                mLayout.flags |= WindowManager.LayoutParams.FLAG_COMPATIBLE_WINDOW;
+            }
+
+            mLayout.memoryType = mRequestedType;
+
+            if (mWindow == null) {
+                mWindow = new MyWindow(this);
+                mLayout.type = mWindowType;
+                mLayout.gravity = Gravity.LEFT|Gravity.TOP;
+                mSession.addWithoutInputChannel(mWindow, mLayout,
+                        mVisible ? VISIBLE : GONE, mContentInsets);
+            }
+
+            if (visibleChanged && (!visible || mNewSurfaceNeeded)) {
+                reportSurfaceDestroyed();
+            }
+
+            mNewSurfaceNeeded = false;
+
+            boolean realSizeChanged;
+
+            mSurfaceLock.lock();
+            try {
+                mUpdateWindowNeeded = false;
+                boolean reportDrawNeeded = mReportDrawNeeded;
+                mReportDrawNeeded = false;
+                mDrawingStopped = !visible;
+
+                final int relayoutResult = mSession.relayout(
+                    mWindow, mLayout, mWidth, mHeight,
+                        visible ? VISIBLE : GONE, false, mWinFrame, mContentInsets,
+                        mVisibleInsets, mConfiguration, mSurface);
+                if ((relayoutResult&WindowManagerImpl.RELAYOUT_FIRST_TIME) != 0) {
+                    mReportDrawNeeded = true;
+                }
+
+                if (localLOGV) Log.i(TAG, "New surface: " + mSurface
+                        + ", vis=" + visible + ", frame=" + mWinFrame);
+
+                mSurfaceFrame.left = 0;
+                mSurfaceFrame.top = 0;
+                if (mTranslator == null) {
+                    mSurfaceFrame.right = mWinFrame.width();
+                    mSurfaceFrame.bottom = mWinFrame.height();
+                } else {
+                    float appInvertedScale = mTranslator.applicationInvertedScale;
+                    mSurfaceFrame.right = (int) (mWinFrame.width() * appInvertedScale + 0.5f);
+                    mSurfaceFrame.bottom = (int) (mWinFrame.height() * appInvertedScale + 0.5f);
+                }
+
+                final int surfaceWidth = mSurfaceFrame.right;
+                final int surfaceHeight = mSurfaceFrame.bottom;
+                mLastSurfaceWidth = surfaceWidth;
+                mLastSurfaceHeight = surfaceHeight;
+
+            } finally {
+                mSurfaceLock.unlock();
+            }
+
+        } catch (RemoteException ex) {
+        }
+    }
+
+    public void updateWindows() {
+        if (mSession != null) {
+            try {
+                mSurfaceLock.lock();
+                mSession.updateWindowsLayer();
+                mSurfaceLock.unlock();
+            } catch (RemoteException e) {
+                // Ignore
+            }
+        }
     }
     
     /**
@@ -401,6 +562,9 @@ public class SurfaceView extends View {
 
     private void updateWindow(boolean force, boolean redrawNeeded) {
         if (!mHaveFrame) {
+            return;
+        }
+        if (draw_able) {
             return;
         }
         ViewRoot viewRoot = (ViewRoot) getRootView().getParent();

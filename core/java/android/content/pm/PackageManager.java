@@ -2284,4 +2284,14 @@ public abstract class PackageManager {
      * @hide
      */
     public abstract void setPackageObbPath(String packageName, String path);
+
+    /**
+     * @hide
+     */
+    public abstract boolean isCompatiblePackage(String pkgName);
+
+    /**
+     * @hide
+     */
+    public abstract void setCompatiblePackageEnable(String pkgName, boolean enable);
 }

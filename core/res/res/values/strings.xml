@@ -2342,6 +2342,9 @@
     <string name="throttled_notification_title">Mobile data limit exceeded</string>
     <string name="throttled_notification_message">Touch to learn more about mobile data use</string>
 
+    <string name="permdesc_fullscreen">Allows an application fullscreen.</string>
+    <string name="permlab_fullscreen">Change to FullScreen</string>
+
     <!-- Strings for ExternalStorageFormatter service. -->
     <!-- Text for progress dialog while unmounting USB storage volume [CHAR LIMIT=NONE] -->
     <string name="progress_unmounting" product="nosdcard">Unmounting USB storage...</string>

@@ -48,12 +48,12 @@ public class CompatibilityInfo {
     /**
      * The default width of the screen in portrait mode. 
      */
-    public static final int DEFAULT_PORTRAIT_WIDTH = 320;
+    public static final int DEFAULT_PORTRAIT_WIDTH = 600;
 
     /**
      * The default height of the screen in portrait mode. 
      */    
-    public static final int DEFAULT_PORTRAIT_HEIGHT = 480;
+    public static final int DEFAULT_PORTRAIT_HEIGHT = 800;
 
     /**
      *  A compatibility flags

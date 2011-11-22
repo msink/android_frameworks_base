@@ -1388,7 +1388,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     pf.bottom = df.bottom = mH;
                     if ((sim & SOFT_INPUT_MASK_ADJUST) != SOFT_INPUT_ADJUST_RESIZE) {
                         cf.left = mDockLeft;
+                      if ("com.google.android.apps.maps".equals(attrs.packageName)) {
+                        cf.top = mDockTop - 1;
+                      } else {
                         cf.top = mDockTop;
+                      }
                         cf.right = mDockRight;
                         cf.bottom = mDockBottom;
                     } else {
@@ -1442,7 +1446,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
         
-        if ((fl & FLAG_LAYOUT_NO_LIMITS) != 0) {
+        if ((fl & FLAG_LAYOUT_NO_LIMITS) != 0 && !win.getAttrs().getTitle().equals("com.gameloft.android.GAND.GloftAsphalt5.asphalt5/com.gameloft.android.GAND.GloftAsphalt5.asphalt5.Asphalt5")) {
             df.left = df.top = cf.left = cf.top = vf.left = vf.top = -10000;
             df.right = df.bottom = cf.right = cf.bottom = vf.right = vf.bottom = 10000;
         }
@@ -1462,6 +1466,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
         
+        if (win.getAttrs().getTitle().equals("com.gameloft.android.GAND.GloftAsphalt5.asphalt5/com.gameloft.android.GAND.GloftAsphalt5.asphalt5.Asphalt5")) {
+            df.top = (pf.bottom - 480) / 2;
+            df.bottom = pf.bottom - df.top;
+            df.left = (pf.right - 800) / 2;
+            df.right = pf.right - df.left;
+        }
         win.computeFrameLw(pf, df, cf, vf);
         
         // Dock windows carve out the bottom of the screen, so normal windows

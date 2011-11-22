@@ -1084,7 +1084,7 @@
     <permission android:name="android.permission.ACCESS_SURFACE_FLINGER"
         android:label="@string/permlab_accessSurfaceFlinger"
         android:description="@string/permdesc_accessSurfaceFlinger"
-        android:protectionLevel="signature" />
+        android:protectionLevel="normal" />
 
     <!-- Allows an application to take screen shots and more generally
          get access to the frame buffer data -->
@@ -1259,6 +1259,12 @@
         android:label="@string/permlab_copyProtectedData"
         android:description="@string/permlab_copyProtectedData"
         android:protectionLevel="signature" />
+
+    <permission android:name="rockchip.permission.FULL_SCREEN"
+        android:label="@string/permlab_fullscreen"
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:description="@string/permdesc_fullscreen"
+        android:protectionLevel="dangerous" />
 
     <!-- C2DM permission. 
          @hide Used internally.

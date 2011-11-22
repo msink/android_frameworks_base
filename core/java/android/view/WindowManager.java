@@ -630,6 +630,9 @@ public interface WindowManager extends ViewManager {
          * {@hide} */
         public static final int FLAG_SYSTEM_ERROR = 0x40000000;
 
+        public static final int FLAG_DIS_LAYOUT = 0x01000000;
+        public static final int FLAG_NEED_CUSTOM_RESIZE = 0x80000000;
+
         /**
          * Given a particular set of window manager flags, determine whether
          * such a window may be a target for an input method when it has
