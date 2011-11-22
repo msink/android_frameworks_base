@@ -56,13 +56,13 @@ public final class SQLiteDebug {
      * Controls the tracking of time spent holding the database lock.
      */
     public static final boolean DEBUG_LOCK_TIME_TRACKING =
-            Log.isLoggable("SQLiteLockTime", Log.VERBOSE);
+            true; //Log.isLoggable("SQLiteLockTime", Log.VERBOSE);
 
     /**
      * Controls the printing of stack traces when tracking the time spent holding the database lock.
      */
     public static final boolean DEBUG_LOCK_TIME_TRACKING_STACK_TRACE =
-            Log.isLoggable("SQLiteLockStackTrace", Log.VERBOSE);
+            true; //Log.isLoggable("SQLiteLockStackTrace", Log.VERBOSE);
 
     /**
      * Contains statistics about the active pagers in the current process.

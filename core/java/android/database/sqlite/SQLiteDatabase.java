@@ -438,7 +438,7 @@ public class SQLiteDatabase extends SQLiteClosable {
         long elapsedTime = SystemClock.elapsedRealtime();
         long lockedTime = elapsedTime - mLockAcquiredWallTime;
         if (lockedTime < LOCK_ACQUIRED_WARNING_TIME_IN_MS_ALWAYS_PRINT &&
-                !Log.isLoggable(TAG, Log.VERBOSE) &&
+                /// !Log.isLoggable(TAG, Log.VERBOSE) &&
                 (elapsedTime - mLastLockMessageTime) < LOCK_WARNING_WINDOW_IN_MS) {
             return;
         }
