@@ -362,6 +362,8 @@ public interface WindowManagerPolicy {
      * modify the rotation.
      */
     public final int USE_LAST_ROTATION = -1000;
+    public final int ROTATE_LEFT = -1;
+    public final int ROTATE_RIGHT = -2;
     
     /**
      * Perform initialization of the policy.

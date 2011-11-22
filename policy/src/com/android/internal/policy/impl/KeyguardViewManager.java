@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.PixelFormat;
 import android.graphics.Canvas;
+import android.os.SystemProperties;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -114,10 +115,11 @@ public class KeyguardViewManager implements KeyguardWindowController {
             lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
             lp.windowAnimations = com.android.internal.R.style.Animation_LockScreen;
             lp.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR;
+            if (SystemProperties.get("ro.sf.hwrotation").equals("270")) {
+                lp.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+            }
             lp.setTitle("Keyguard");
             mWindowLayoutParams = lp;
-
-            mViewManager.addView(mKeyguardHost, lp);
         }
 
         if (mKeyguardView == null) {

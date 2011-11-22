@@ -200,9 +200,9 @@ public abstract class WindowOrientationListener {
         // Thresholds that allow all 4 orientations.
         private static final int[][][] THRESHOLDS_WITH_180 = new int[][][] {
             {{60, 165}, {165, 195}, {195, 300}},
-            {{0, 30}, {165, 195}, {195, 315}, {315, 360}},
-            {{0, 45}, {45, 165}, {165, 195}, {330, 360}},
-            {{0, 45}, {45, 135}, {225, 315}, {315, 360}},
+            {{0, 30}, {165, 280}, {280, 320}, {320, 360}},
+            {{0, 45}, {45, 90}, {95, 195}, {330, 360}},
+            {{0, 45}, {45, 135}, {225, 245}, {245, 360}},
         };
         // See THRESHOLDS_WITH_180
         private static final int[][] ROTATE_TO_WITH_180 = new int[][] {
@@ -259,7 +259,7 @@ public abstract class WindowOrientationListener {
         private static final float ACCELERATING_LOWPASS_ALPHA =
             computeLowpassAlpha(ACCELERATING_TIME_CONSTANT_MS);
 
-        private boolean mAllow180Rotation = false;
+        private boolean mAllow180Rotation = true;
 
         private WindowOrientationListener mOrientationListener;
         private int mRotation = ROTATION_0; // Current orientation state
@@ -296,7 +296,7 @@ public abstract class WindowOrientationListener {
 
         private void calculateNewRotation(float orientation, float tiltAngle) {
             if (localLOGV) Log.i(TAG, orientation + ", " + tiltAngle + ", " + mRotation);
-            final boolean allow180Rotation = mAllow180Rotation;
+            final boolean allow180Rotation = true;
             int thresholdRanges[][] = allow180Rotation
                     ? THRESHOLDS_WITH_180[mRotation] : THRESHOLDS[mRotation];
             int row = -1;

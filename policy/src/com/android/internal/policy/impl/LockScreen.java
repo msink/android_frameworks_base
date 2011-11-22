@@ -49,7 +49,7 @@ import java.io.File;
 class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateMonitor.InfoCallback,
         KeyguardUpdateMonitor.SimStateCallback, SlidingTab.OnTriggerListener {
 
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "LockScreen";
     private static final String ENABLE_MENU_KEY_FILE = "/data/local/enable_menu_key";
 
@@ -190,8 +190,10 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
         final LayoutInflater inflater = LayoutInflater.from(context);
         if (DBG) Log.v(TAG, "Creation orientation = " + mCreationOrientation);
         if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
-            inflater.inflate(R.layout.keyguard_screen_tab_unlock, this, true);
+            Log.d("lock screen", "orientation vertacal");
+            inflater.inflate(R.layout.keyguard_screen_tab_unlock_land, this, true);
         } else {
+            Log.d(TAG, "orientation ");
             inflater.inflate(R.layout.keyguard_screen_tab_unlock_land, this, true);
         }
 
@@ -266,6 +268,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
     private void resetStatusInfo(KeyguardUpdateMonitor updateMonitor) {
         mShowingBatteryInfo = updateMonitor.shouldShowBatteryInfo();
+        Log.d(TAG, "restStatusInfo mShowingBattertInfo=" + String.valueOf(mShowingBatteryInfo));
+
         mPluggedIn = updateMonitor.isDevicePluggedIn();
         mBatteryLevel = updateMonitor.getBatteryLevel();
 
@@ -401,6 +405,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     }
 
     private void refreshBatteryStringAndIcon() {
+        Log.d(TAG, "refreshBatteryStyringAndIcon mShowingBatteryInfo=" + String.valueOf(mShowingBatteryInfo));
         if (!mShowingBatteryInfo) {
             mCharging = null;
             return;
@@ -432,6 +437,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     }
 
     private void updateStatusLines() {
+        Log.d(TAG, "updateStatusLines");
         if (!mStatus.showStatusLines()
                 || (mCharging == null && mNextAlarm == null)) {
             mStatus1.setVisibility(View.INVISIBLE);
@@ -611,6 +617,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
     void updateConfiguration() {
         Configuration newConfig = getResources().getConfiguration();
+        Log.d(TAG, "updateConfiguration newConfig=" + String.valueOf(newConfig.orientation) +
+                             " mCreationOrientation=" + String.valueOf(mCreationOrientation));
         if (newConfig.orientation != mCreationOrientation) {
             mCallback.recreateMe(newConfig);
         } else if (newConfig.hardKeyboardHidden != mKeyboardHidden) {
@@ -624,6 +632,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
     @Override
     protected void onAttachedToWindow() {
+        Log.d(TAG, "onAttachedToWindow");
         super.onAttachedToWindow();
         if (LockPatternKeyguardView.DEBUG_CONFIGURATION) {
             Log.v(TAG, "***** LOCK ATTACHED TO WINDOW");
@@ -636,6 +645,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     /** {@inheritDoc} */
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
+        Log.d(TAG, "onConfigurationChanged newConfig=" + String.valueOf(newConfig.orientation));
         super.onConfigurationChanged(newConfig);
         if (LockPatternKeyguardView.DEBUG_CONFIGURATION) {
             Log.w(TAG, "***** LOCK CONFIG CHANGING", new RuntimeException());

@@ -4522,8 +4522,20 @@ public class WindowManagerService extends IWindowManager.Stub
             mLastRotationFlags = animFlags;
         }
         if (DEBUG_ORIENTATION) Slog.v(TAG, "Overwriting rotation value from " + rotation);
+      if (rotation == WindowManagerPolicy.ROTATE_LEFT ||
+          rotation == WindowManagerPolicy.ROTATE_RIGHT) {
+        boolean toLeft = rotation == WindowManagerPolicy.ROTATE_LEFT;
+        switch (mRotation) {
+        case 0: rotation = toLeft ? 1 : 3; break;
+        case 1: rotation = toLeft ? 2 : 0; break;
+        case 2: rotation = toLeft ? 3 : 1; break;
+        case 3: rotation = toLeft ? 0 : 2; break;
+        }
+        mRequestedRotation = rotation;
+      } else {
         rotation = mPolicy.rotationForOrientationLw(mForcedAppOrientation,
                 mRotation, mDisplayEnabled);
+      }
         if (DEBUG_ORIENTATION) Slog.v(TAG, "new rotation is set to " + rotation);
         changed = mDisplayEnabled && mRotation != rotation;
 

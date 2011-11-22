@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -422,6 +423,8 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
                     + ", new config=" + getResources().getConfiguration());
         }
         if (newConfig.orientation != mCreationOrientation) {
+            if (SystemProperties.get("ro.sf.hwrotation").equals("270"))
+                return;
             mCallback.recreateMe(newConfig);
         }
     }
