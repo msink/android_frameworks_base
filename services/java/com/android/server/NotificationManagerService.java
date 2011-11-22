@@ -955,6 +955,33 @@ public class NotificationManagerService extends INotificationManager.Stub
         }
     }
 
+    public void cancelNotificationPop(String pkg, String tag, int id) {
+        EventLog.writeEvent(EventLogTags.NOTIFICATION_CANCEL, pkg, id, 0);
+
+        synchronized (mNotificationList) {
+            int index = indexOfNotificationLocked(pkg, null, id);
+            if (index >= 0) {
+                NotificationRecord r = mNotificationList.get(index);
+
+                if (r.notification.deleteIntent != null) {
+                    try {
+                        r.notification.deleteIntent.send();
+                    } catch (PendingIntent.CanceledException ex) {
+                        // do nothing - there's no relevant way to recover, and
+                        //     no reason to let this propagate
+                        Slog.w(TAG, "canceled PendingIntent for " + r.pkg, ex);
+                    }
+                }
+
+                mNotificationList.remove(index);
+
+                cancelNotificationLocked(r);
+                updateLightsLocked();
+             }
+         }
+         return;
+     }
+
     /**
      * Cancels all notifications from a given package that have all of the
      * {@code mustHaveFlags}.

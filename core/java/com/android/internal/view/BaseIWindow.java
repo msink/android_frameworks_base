@@ -76,4 +76,7 @@ public class BaseIWindow extends IWindow.Stub {
             }
         }
     }
+
+    public void closeStatusBar(String reason) {
+    }
 }

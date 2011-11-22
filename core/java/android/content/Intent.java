@@ -1904,6 +1904,11 @@ public class Intent implements Parcelable, Cloneable {
     public static final String ACTION_PRE_BOOT_COMPLETED =
             "android.intent.action.PRE_BOOT_COMPLETED";
 
+    /**
+     */
+    public static final String ACTION_CLOSE_STATUSBAR_USB =
+            "android.intent.action.CLOSE_STATUSBAR_USB";
+
     // ---------------------------------------------------------------------
     // ---------------------------------------------------------------------
     // Standard intent categories (see addCategory()).

@@ -319,6 +319,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
         context.registerReceiver(mBroadcastReceiver, filter);
     }
 
@@ -1439,7 +1440,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)
-                    || Intent.ACTION_SCREEN_OFF.equals(action)) {
+                    || Intent.ACTION_SCREEN_OFF.equals(action)
+                    || Intent.ACTION_CLOSE_STATUSBAR_USB.equals(action)) {
                 animateCollapse();
             }
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {

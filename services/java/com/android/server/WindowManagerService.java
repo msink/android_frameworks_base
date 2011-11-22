@@ -222,6 +222,8 @@ public class WindowManagerService extends IWindowManager.Stub
      */
     private boolean mKeyguardDisabled = false;
 
+    public boolean is_status_bar_button = false;
+
     private static final int ALLOW_DISABLE_YES = 1;
     private static final int ALLOW_DISABLE_NO = 0;
     private static final int ALLOW_DISABLE_UNKNOWN = -1; // check with DevicePolicyManager
@@ -4245,6 +4247,31 @@ public class WindowManagerService extends IWindowManager.Stub
         }
     }
 
+    public void closeStatusBar(String reason) {
+        synchronized(mWindowMap) {
+            WindowState w = mWindows.get(mWindows.size()-1);
+            if (w.mSurface != null) {
+                try {
+                    w.mClient.closeSystemDialogs(reason);
+                } catch (RemoteException e) {
+                }
+            }
+        }
+    }
+
+    public boolean checkTempShowStatusBar() {
+        return mPolicy.checkTempShowStatusBar();
+    }
+
+    public boolean setTempShowStatusBar(boolean mIsTempShowStatusBar) {
+        if (getFocusedWindow().mAttrs.getTitle().toString().contains("Gallery") ||
+            getFocusedWindow().mAttrs.getTitle().toString().contains("MovieView")) {
+            mPolicy.setTempShowStatusBar(mIsTempShowStatusBar);
+            return true;
+        }
+        return false;
+    }
+
     static float fixScale(float scale) {
         if (scale < 0) scale = 0;
         else if (scale > 20) scale = 20;
@@ -5457,6 +5484,31 @@ public class WindowManagerService extends IWindowManager.Stub
         return reportInjectionResult(result);
     }
 
+    public boolean injectKeyEvent_status_bar(KeyEvent ev, boolean sync) {
+        long downTime = ev.getDownTime();
+        long eventTime = ev.getEventTime();
+
+        int action = ev.getAction();
+        int code = ev.getKeyCode();
+        int repeatCount = ev.getRepeatCount();
+        int metaState = ev.getMetaState();
+        int deviceId = ev.getDeviceId();
+        int scancode = ev.getScanCode();
+
+        if (eventTime == 0) eventTime = SystemClock.uptimeMillis();
+        if (downTime == 0) downTime = eventTime;
+
+        KeyEvent newEvent = new KeyEvent(downTime, eventTime, action, code, repeatCount, metaState,
+                deviceId, scancode, KeyEvent.FLAG_FROM_SYSTEM);
+
+        final long ident = android.os.Binder.clearCallingIdentity();
+        final int result = mInputManager.injectInputEvent(newEvent,
+                0, 0, 0, INJECTION_TIMEOUT_MILLIS);
+
+        Binder.restoreCallingIdentity(ident);
+        return reportInjectionResult(result);
+    }
+
     /**
      * Inject a pointer (touch) event into the UI.
      * Even when sync is false, this method may block while waiting for current
@@ -5685,6 +5737,11 @@ public class WindowManagerService extends IWindowManager.Stub
                 boolean insetsPending, Rect outFrame, Rect outContentInsets,
                 Rect outVisibleInsets, Configuration outConfig, Surface outSurface) {
             //Log.d(TAG, ">>>>>> ENTERED relayout from " + Binder.getCallingPid());
+            boolean isNormalStatusbar = (mContext.checkCallingPermission("rockchip.permission.FULL_SCREEN") == 0);
+            if (attrs != null && attrs.type == WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL) {
+                isNormalStatusbar = false;
+            }
+            mPolicy.setForceOutStatusbar(isNormalStatusbar);
             int res = relayoutWindow(this, window, attrs,
                     requestedWidth, requestedHeight, viewFlags, insetsPending,
                     outFrame, outContentInsets, outVisibleInsets, outConfig, outSurface);

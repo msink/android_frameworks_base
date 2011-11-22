@@ -2040,6 +2040,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
         }
 
+        @Override
+        public void onCloseStatusBar(String reason) {
+            if (mFeatureId >= 0) {
+                closeAllPanels();
+            }
+        }
+
         public android.view.SurfaceHolder.Callback2 willYouTakeTheSurface() {
             return mFeatureId < 0 ? mTakeSurfaceCallback : null;
         }

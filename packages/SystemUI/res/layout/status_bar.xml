@@ -32,6 +32,51 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
             
+        <LinearLayout android:id="@+id/button_layout_Home"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:paddingRight="6dip"
+            android:orientation="horizontal"
+            android:gravity="center"
+            >
+            <TextView android:id="@+id/status_bar_back"
+                android:layout_width="65dip"
+                android:layout_height="40dip"
+                android:textColor="#000"
+                android:gravity="center"
+                android:background="@drawable/back_btu"
+                />
+            <TextView android:id="@+id/status_bar_home"
+                android:layout_width="65dip"
+                android:layout_height="40dip"
+                android:textColor="#000"
+                android:gravity="center"
+                android:background="@drawable/home_btu"
+                />
+            <TextView android:id="@+id/status_bar_menu"
+                android:layout_width="65dip"
+                android:layout_height="40dip"
+                android:textColor="#000"
+                android:gravity="center"
+                android:background="@drawable/menu_btu"
+                />
+            <TextView android:id="@+id/status_bar_add"
+                android:layout_width="65dip"
+                android:layout_height="40dip"
+                android:textColor="#000"
+                android:gravity="center"
+                android:background="@drawable/add_btu"
+                />
+            <TextView android:id="@+id/status_bar_sub"
+                android:layout_width="65dip"
+                android:layout_height="40dip"
+                android:textColor="#000"
+                android:gravity="center"
+                android:background="@drawable/sub_btu"
+                />
+        </LinearLayout>
+
         <com.android.systemui.statusbar.IconMerger android:id="@+id/notificationIcons"
             android:layout_width="0dip"
             android:layout_weight="1"

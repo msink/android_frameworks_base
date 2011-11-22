@@ -3170,6 +3170,45 @@ public final class ActivityManagerService extends ActivityManagerNative
         Binder.restoreCallingIdentity(origId);
     }
     
+    public void closeStatusBar(String reason) {
+        Intent intent = new Intent("android.intent.action.CLOSE_STATUSBAR_USB");
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+        if (reason != null) {
+            intent.putExtra("reason", reason);
+        }
+
+        final int uid = Binder.getCallingUid();
+        final long origId = Binder.clearCallingIdentity();
+        synchronized (this) {
+            int i = mWatchers.beginBroadcast();
+            while (i > 0) {
+                i--;
+                IActivityWatcher w = mWatchers.getBroadcastItem(i);
+                if (w != null) {
+                    try {
+                        w.closingSystemDialogs(reason);
+                    } catch (RemoteException e) {
+                    }
+                }
+            }
+            mWatchers.finishBroadcast();
+
+            mWindowManager.closeStatusBar(reason);
+
+            for (i=mMainStack.mHistory.size()-1; i>=0; i--) {
+                ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(mMainStack.mHistory.size()-1);
+                if ((r.info.flags&ActivityInfo.FLAG_FINISH_ON_CLOSE_SYSTEM_DIALOGS) != 0) {
+                    r.stack.finishActivityLocked(r, i,
+                            Activity.RESULT_CANCELED, null, "close-sys");
+                }
+            }
+
+            broadcastIntentLocked(null, null, intent, null,
+                    null, 0, null, null, null, false, false, -1, uid);
+        }
+        Binder.restoreCallingIdentity(origId);
+    }
+
     public Debug.MemoryInfo[] getProcessMemoryInfo(int[] pids)
             throws RemoteException {
         Debug.MemoryInfo[] infos = new Debug.MemoryInfo[pids.length];

@@ -8713,6 +8713,14 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      */
     public void onCloseSystemDialogs(String reason) {
     }
+
+    /**
+     * This needs to be a better API (NOT ON VIEW) before it is exposed.  If
+     * it is ever exposed at all.
+     * @hide
+     */
+    public void onCloseStatusBar(String reason) {
+    }
     
     /**
      * Given a Drawable whose bounds have been set to draw into this view,

@@ -17,15 +17,23 @@
 package com.android.systemui.statusbar;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.media.AudioManager;
+import android.os.Handler;
+import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.ServiceManager;
 import android.util.AttributeSet;
+import android.view.IWindowManager;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.android.systemui.R;
 
@@ -42,9 +50,21 @@ public class StatusBarView extends FrameLayout {
     View mDate;
     FixedSizeDrawable mBackground;
     
+    private boolean is_touch_button = false;
+    TextView mbut_bac;
+    TextView mbut_home;
+    TextView mbut_menu;
+    TextView mbut_add;
+    TextView mbut_sub;
+
+    boolean is_down = false;
+    final private int ADJUST_VOLUME_DELAY = 250;
+
     public StatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
+
+    Intent mHomeIntent = new Intent(Intent.ACTION_MAIN, null);
 
     @Override
     protected void onFinishInflate() {
@@ -56,7 +76,130 @@ public class StatusBarView extends FrameLayout {
         mBackground = new FixedSizeDrawable(mDate.getBackground());
         mBackground.setFixedBounds(0, 0, 0, 0);
         mDate.setBackgroundDrawable(mBackground);
+
+        mbut_home = (TextView) findViewById(R.id.status_bar_home);
+        mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
+        mbut_bac = (TextView) findViewById(R.id.status_bar_back);
+        mbut_add = (TextView) findViewById(R.id.status_bar_add);
+        mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
+
+        mbut_home.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
+                }
+                return true;
+            }
+        });
+
+        mbut_menu.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                }
+                return true;
+            }
+        });
+
+        mbut_bac.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                }
+                return true;
+            }
+        });
+
+        mbut_add.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    is_down = true;
+                    Adjust_Volume(true);
+                    maddHandler.postDelayed(maddRun, 500);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    is_down = false;
+                    maddHandler.removeCallbacks(maddRun);
+                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    if (event.getX() < 0 || event.getY() < 0 ||
+                                            event.getX() > v.getWidth() ||
+                                            event.getY() > v.getHeight()) {
+                        is_down = false;
+                        maddHandler.removeCallbacks(maddRun);
+                    }
+                }
+                return true;
+            }
+        });
+
+        mbut_sub.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    is_down = true;
+                    Adjust_Volume(false);
+                    msubHandler.postDelayed(msubRun, 500);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    is_down = false;
+                    msubHandler.removeCallbacks(msubRun);
+                }
+                else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    if (event.getX() < 0 || event.getY() < 0 ||
+                                            event.getX() > v.getWidth() ||
+                                            event.getY() > v.getHeight()) {
+                        is_down = false;
+                        msubHandler.removeCallbacks(msubRun);
+                    }
+                }
+                return true;
+            }
+        });
     }
+
+    public void Adjust_Volume(boolean opition) {
+        AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null) {
+            if (opition) {
+                audioManager.adjustSuggestedStreamVolume(
+                    AudioManager.ADJUST_RAISE,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            } else {
+                audioManager.adjustSuggestedStreamVolume (
+                    AudioManager.ADJUST_LOWER,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            }
+        }
+    }
+
+    private Handler maddHandler = new Handler();
+    private Runnable maddRun = new Runnable() {
+       public void run() {
+           maddHandler.removeCallbacks(maddRun);
+           if (is_down) {
+               Adjust_Volume(true);
+               maddHandler.postDelayed(maddRun, ADJUST_VOLUME_DELAY);
+           }
+       }
+    };
+
+    private Handler msubHandler = new Handler();
+    private Runnable msubRun = new Runnable () {
+        public void run () {
+            msubHandler.removeCallbacks (msubRun);
+            if (is_down) {
+                Adjust_Volume(false);
+                msubHandler.postDelayed(msubRun, ADJUST_VOLUME_DELAY);
+            }
+        }
+    };
 
     @Override
     protected void onAttachedToWindow() {
@@ -72,6 +215,7 @@ public class StatusBarView extends FrameLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        b = 40;
         super.onLayout(changed, l, t, r, b);
 
         // put the date date view quantized to the icons
@@ -138,7 +282,7 @@ public class StatusBarView extends FrameLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() != MotionEvent.ACTION_DOWN) {
+        if (is_touch_button) {
             mService.interceptTouchEvent(event);
         }
         return true;
@@ -146,8 +290,19 @@ public class StatusBarView extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return mService.interceptTouchEvent(event)
-                ? true : super.onInterceptTouchEvent(event);
+        return super.onInterceptTouchEvent(event);
+    }
+
+    private void sendKeyEvent(int code, int event, boolean down) {
+        try {
+            KeyEvent ev = new KeyEvent(0, 0,
+                down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
+                code, 0, 0, 0, event, KeyEvent.FLAG_FROM_SYSTEM);
+            IWindowManager.Stub
+                .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
+                .injectKeyEvent_status_bar(ev, true);
+        } catch (RemoteException e) {
+        }
     }
 }
 

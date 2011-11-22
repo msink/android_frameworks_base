@@ -56,6 +56,7 @@ oneway interface IWindow {
     void windowFocusChanged(boolean hasFocus, boolean inTouchMode);
     
     void closeSystemDialogs(String reason);
+    void closeStatusBar(String reason);
     
     /**
      * Called for wallpaper windows when their offsets change.

@@ -300,6 +300,8 @@ public interface IActivityManager extends IInterface {
     
     public void closeSystemDialogs(String reason) throws RemoteException;
     
+    public void closeStatusBar(String reason) throws RemoteException;
+
     public Debug.MemoryInfo[] getProcessMemoryInfo(int[] pids)
             throws RemoteException;
     
@@ -531,4 +533,5 @@ public interface IActivityManager extends IInterface {
     int NEW_URI_PERMISSION_OWNER_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+115;
     int GRANT_URI_PERMISSION_FROM_OWNER_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+116;
     int REVOKE_URI_PERMISSION_FROM_OWNER_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+117;
+    int CLOSE_STATUSBAR_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+118;
 }

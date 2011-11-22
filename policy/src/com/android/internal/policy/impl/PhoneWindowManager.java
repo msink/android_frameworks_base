@@ -178,6 +178,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     Context mContext;
     IWindowManager mWindowManager;
     LocalPowerManager mPowerManager;
+    boolean isForceOutStatusbar;
+    boolean isShowStatusBarTemp;
     Vibrator mVibrator; // Vibrator for giving feedback of orientation changes
 
     // Vibrator pattern for haptic feedback of a long press.
@@ -1058,6 +1060,32 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
         };
 
+    public boolean checkTempShowStatusBar() {
+        return isShowStatusBarTemp;
+    }
+
+    public void setTempShowStatusBar(boolean mIsTempShowStatusBar) {
+        Log.i("setTempShowStatusBar", "setTempShowStatusBar set to " + mIsTempShowStatusBar);
+        isShowStatusBarTemp = mIsTempShowStatusBar;
+        if (mStatusBar != null && isShowStatusBarTemp) {
+            mStatusBar.showLw(true);
+        }
+
+        if (mStatusBar != null && !isShowStatusBarTemp) {
+            mForceStatusBar = false;
+            mStatusBar.hideLw(true);
+            IStatusBarService sbs = IStatusBarService.Stub
+                .asInterface(ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+            if (sbs != null) {
+                try {
+                    // Make sure the window shade is hidden.
+                    sbs.collapse();
+                } catch (RemoteException e) {
+                }
+            }
+        }
+    }
+
     /** {@inheritDoc} */
     @Override
     public boolean interceptKeyBeforeDispatching(WindowState win, int action, int flags,
@@ -1069,6 +1097,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (false) {
             Log.d(TAG, "interceptKeyTi keyCode=" + keyCode + " down=" + down + " repeatCount="
                     + repeatCount + " keyguardOn=" + keyguardOn + " mHomePressed=" + mHomePressed);
+        }
+
+        WindowManager.LayoutParams attrs = win != null ? win.getAttrs() : null;
+        if (attrs != null && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)) {
+            int type = attrs.type;
+            if (type == TYPE_STATUS_BAR_PANEL ||
+                (win.getAppToken() != null &&
+                 win.getAppToken().toString().contains("com.android.systemui"))) {
+               if (!down && keyCode == KeyEvent.KEYCODE_BACK) {
+                   sendCloseStatusBar();
+               }
+               return true;
+            }
         }
 
         // Clear a pending HOME longpress if the user releases Home
@@ -1126,7 +1167,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
             // If a system window has focus, then it doesn't make sense
             // right now to interact with applications.
-            WindowManager.LayoutParams attrs = win != null ? win.getAttrs() : null;
             if (attrs != null) {
                 final int type = attrs.type;
                 if (type == WindowManager.LayoutParams.TYPE_KEYGUARD
@@ -1411,12 +1451,24 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // gets everything, period.
                 pf.left = df.left = cf.left = 0;
                 pf.top = df.top = cf.top = 0;
+
+                if (mForceStatusBar) {
+                    pf.top = 0;
+                    df.top = cf.top = mDockTop;
+                } else {
+                    pf.top = df.top = cf.top = 0;
+                }
+
                 pf.right = df.right = cf.right = mW;
                 pf.bottom = df.bottom = cf.bottom = mH;
                 vf.left = mCurLeft;
                 vf.top = mCurTop;
                 vf.right = mCurRight;
                 vf.bottom = mCurBottom;
+
+                if (mKeyguardMediator.isShowing()) {
+                    pf.top = df.top = vf.top = 0;
+                }
             } else if (attached != null) {
                 // A child window should be placed inside of the same visible
                 // frame that its parent had.
@@ -1501,8 +1553,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     /** {@inheritDoc} */
     public void beginAnimationLw(int displayWidth, int displayHeight) {
         mTopFullscreenOpaqueWindowState = null;
-        mForceStatusBar = false;
-        
+        if (!isShowStatusBarTemp) {
+            mForceStatusBar = false;
+        }
         mHideLockScreen = false;
         mAllowLockscreenWhenOn = false;
         mDismissKeyguard = false;
@@ -1555,9 +1608,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 //Log.i(TAG, "attr: " + mTopFullscreenOpaqueWindowState.getAttrs());
                 WindowManager.LayoutParams lp =
                     mTopFullscreenOpaqueWindowState.getAttrs();
-                boolean hideStatusBar =
-                    (lp.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0;
-                if (hideStatusBar) {
+                boolean hideStatusBar = (lp.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0
+                    || mKeyguardMediator.isShowing();
+                if (hideStatusBar && !isShowStatusBarTemp) {
                     if (DEBUG_LAYOUT) Log.v(TAG, "Hiding status bar");
                     if (mStatusBar.hideLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
                     hiding = true;
@@ -2081,6 +2134,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    static void sendCloseStatusBar()  {
+        if (ActivityManagerNative.isSystemReady()) {
+            try {
+                ActivityManagerNative.getDefault().closeStatusBar("statusBar");
+            } catch (RemoteException e) {
+            }
+        }
+    }
+
     public int rotationForOrientationLw(int orientation, int lastRotation,
             boolean displayEnabled) {
 
@@ -2442,5 +2504,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public boolean allowKeyRepeat() {
         // disable key repeat when screen is off
         return mScreenOn;
+    }
+
+    public boolean checkForceOutStatusbar() {
+        return isForceOutStatusbar;
+    }
+    public void setForceOutStatusbar(boolean mIsForcesOutStatusbar) {
+        isForceOutStatusbar = mIsForcesOutStatusbar;
     }
 }

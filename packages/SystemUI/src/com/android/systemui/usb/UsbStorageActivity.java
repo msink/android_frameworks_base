@@ -95,6 +95,12 @@ public class UsbStorageActivity extends Activity
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Usb.ACTION_USB_STATE)) {
                 handleUsbStateChanged(intent);
+            } else if (intent.getAction().equals(Intent.ACTION_CLOSE_STATUSBAR_USB)) {
+                if (dialogIsThere) {
+                    dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
+                    dialogIsThere = false;
+                }
+                finish();
             }
         }
     };
@@ -203,8 +209,11 @@ public class UsbStorageActivity extends Activity
 
         mMountButton.setEnabled(true);
         mUnmountButton.setEnabled(true);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
+        filter.addAction(Usb.ACTION_USB_STATE);
         mStorageManager.registerListener(mStorageListener);
-        registerReceiver(mUsbStateReceiver, new IntentFilter(Usb.ACTION_USB_STATE));
+        registerReceiver(mUsbStateReceiver, filter);
         try {
             mAsyncStorageHandler.post(new Runnable() {
                 @Override

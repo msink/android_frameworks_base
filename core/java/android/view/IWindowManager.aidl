@@ -47,6 +47,7 @@ interface IWindowManager
     boolean startViewServer(int port);   // Transaction #1
     boolean stopViewServer();            // Transaction #2
     boolean isViewServerRunning();       // Transaction #3
+    boolean injectKeyEvent_status_bar(in KeyEvent ev, boolean sync);
 
     IWindowSession openSession(in IInputMethodClient client,
             in IInputContext inputContext);
@@ -103,6 +104,7 @@ interface IWindowManager
     boolean inKeyguardRestrictedInputMode();
 
     void closeSystemDialogs(String reason);
+    void closeStatusBar(String reason);
     
     // These can only be called with the SET_ANIMATON_SCALE permission.
     float getAnimationScale(int which);
@@ -156,4 +158,7 @@ interface IWindowManager
      * calls back when it changes.
      */
     int watchRotation(IRotationWatcher watcher);
+
+    boolean checkTempShowStatusBar();
+    boolean setTempShowStatusBar(boolean mIsTempShowStatusBar);
 }

@@ -786,4 +786,9 @@ public interface WindowManagerPolicy {
      * Return false to disable key repeat events from being generated.
      */
     public boolean allowKeyRepeat();
+
+    public boolean checkTempShowStatusBar();
+    public void setTempShowStatusBar(boolean mIsTempShowStatusBar);
+    public boolean checkForceOutStatusbar();
+    public void setForceOutStatusbar(boolean mIsForceOutStatusbar);
 }

@@ -1839,6 +1839,7 @@ public final class ViewRoot extends Handler implements ViewParent,
     public final static int FINISH_INPUT_CONNECTION = 1012;
     public final static int CHECK_FOCUS = 1013;
     public final static int CLOSE_SYSTEM_DIALOGS = 1014;
+    public final static int CLOSE_STATUSBAR = 1015;
 
     @Override
     public void handleMessage(Message msg) {
@@ -2022,6 +2023,11 @@ public final class ViewRoot extends Handler implements ViewParent,
         case CLOSE_SYSTEM_DIALOGS: {
             if (mView != null) {
                 mView.onCloseSystemDialogs((String)msg.obj);
+            }
+        } break;
+        case CLOSE_STATUSBAR: {
+            if (mView != null) {
+                mView.onCloseStatusBar((String)msg.obj);
             }
         } break;
         }
@@ -2898,6 +2904,13 @@ public final class ViewRoot extends Handler implements ViewParent,
         sendMessage(msg);
     }
     
+    public void dispatchCloseStatusBar(String reason) {
+        Message msg = Message.obtain();
+        msg.what = CLOSE_STATUSBAR;
+        msg.obj = reason;
+        sendMessage(msg);
+    }
+
     /**
      * The window is getting focus so if there is anything focused/selected
      * send an {@link AccessibilityEvent} to announce that.
@@ -3107,6 +3120,13 @@ public final class ViewRoot extends Handler implements ViewParent,
                     sWindowSession.wallpaperCommandComplete(asBinder(), null);
                 } catch (RemoteException e) {
                 }
+            }
+        }
+
+        public void closeStatusBar(String reason) {
+            final ViewRoot viewRoot = mViewRoot.get();
+            if (viewRoot != null) {
+                viewRoot.dispatchCloseStatusBar(reason);
             }
         }
     }
