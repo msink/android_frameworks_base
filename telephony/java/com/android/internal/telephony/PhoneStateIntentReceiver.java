@@ -113,7 +113,7 @@ public final class PhoneStateIntentReceiver extends BroadcastReceiver {
         }
         int gsmSignalStrength = mSignalStrength.getGsmSignalStrength();
 
-        return (gsmSignalStrength == 99 ? -1 : gsmSignalStrength);
+        return (gsmSignalStrength == 99 || gsmSignalStrength == 199 ? -1 : gsmSignalStrength);
     }
 
     /**
@@ -135,9 +135,13 @@ public final class PhoneStateIntentReceiver extends BroadcastReceiver {
             dBm = mSignalStrength.getCdmaDbm();
         } else {
             int gsmSignalStrength = mSignalStrength.getGsmSignalStrength();
-            int asu = (gsmSignalStrength == 99 ? -1 : gsmSignalStrength);
+            int asu = (gsmSignalStrength == 99 || gsmSignalStrength == 199 ? -1 : gsmSignalStrength);
             if (asu != -1) {
+              if (asu < 100) {
                 dBm = -113 + 2*asu;
+              } else {
+                dBm = -116 + (asu - 100);
+              }
             }
         }
         return dBm;

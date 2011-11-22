@@ -17,10 +17,14 @@
 package com.android.internal.telephony;
 
 import android.app.PendingIntent;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.IConnectivityManager;
 import android.os.AsyncResult;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
@@ -297,6 +301,18 @@ public abstract class DataConnectionTracker extends Handler {
                 break;
 
             case EVENT_RADIO_AVAILABLE:
+                if (Settings.Secure.getInt(phone.getContext().getContentResolver(),
+                                           "mobile_data", 1) == 1) {
+                    Settings.Secure.putInt(phone.getContext().getContentResolver(),
+                                           "mobile_data", 0);
+                    try {
+                        IConnectivityManager.Stub.asInterface(ServiceManager.
+                                getService(Context.CONNECTIVITY_SERVICE)).
+                                setMobileDataEnabled(true);
+                    } catch (Exception e) {
+                        // nothing to do - use the old behavior
+                    }
+                }
                 onRadioAvailable();
                 break;
 

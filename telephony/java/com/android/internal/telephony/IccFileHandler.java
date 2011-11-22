@@ -341,16 +341,26 @@ public abstract class IccFileHandler extends Handler implements IccConstants {
 
                 data = result.payload;
 
+              if ((data[0] & 0xFF) == 98) {
+
+                recordSize = new int[3];
+                recordSize[0] = data[7] & 0xFF;
+                recordSize[2] = data[8] & 0xFF;
+                recordSize[1] = recordSize[0] * recordSize[2];
+
+              } else
                 if (TYPE_EF != data[RESPONSE_DATA_FILE_TYPE] ||
                     EF_TYPE_LINEAR_FIXED != data[RESPONSE_DATA_STRUCTURE]) {
                     throw new IccFileTypeMismatch();
-                }
+              } else {
 
                 recordSize = new int[3];
                 recordSize[0] = data[RESPONSE_DATA_RECORD_LENGTH] & 0xFF;
                 recordSize[1] = ((data[RESPONSE_DATA_FILE_SIZE_1] & 0xff) << 8)
                        + (data[RESPONSE_DATA_FILE_SIZE_2] & 0xff);
                 recordSize[2] = recordSize[1] / recordSize[0];
+
+              }
 
                 sendResult(response, recordSize, null);
                 break;
@@ -376,13 +386,19 @@ public abstract class IccFileHandler extends Handler implements IccConstants {
                 fileid = lc.efid;
                 recordNum = lc.recordNum;
 
+              if ((data[0] & 0xFF) == 98) {
+
+                lc.recordSize = data[7] & 0xFF;
+                lc.countRecords = data[8] & 0xFF;
+                size = lc.recordSize * lc.countRecords;
+
+              } else
                 if (TYPE_EF != data[RESPONSE_DATA_FILE_TYPE]) {
                     throw new IccFileTypeMismatch();
-                }
-
+              } else
                 if (EF_TYPE_LINEAR_FIXED != data[RESPONSE_DATA_STRUCTURE]) {
                     throw new IccFileTypeMismatch();
-                }
+              } else {
 
                 lc.recordSize = data[RESPONSE_DATA_RECORD_LENGTH] & 0xFF;
 
@@ -390,6 +406,8 @@ public abstract class IccFileHandler extends Handler implements IccConstants {
                        + (data[RESPONSE_DATA_FILE_SIZE_2] & 0xff);
 
                 lc.countRecords = size / lc.recordSize;
+
+              }
 
                  if (lc.loadAll) {
                      lc.results = new ArrayList<byte[]>(lc.countRecords);

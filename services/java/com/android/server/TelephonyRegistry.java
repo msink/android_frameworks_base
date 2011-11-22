@@ -158,8 +158,8 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
                     if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTH) != 0) {
                         try {
                             int gsmSignalStrength = mSignalStrength.getGsmSignalStrength();
-                            r.callback.onSignalStrengthChanged((gsmSignalStrength == 99 ? -1
-                                    : gsmSignalStrength));
+                            r.callback.onSignalStrengthChanged((gsmSignalStrength == 99
+                                    || gsmSignalStrength == 199 ? -1 : gsmSignalStrength));
                         } catch (RemoteException ex) {
                             remove(r.binder);
                         }
@@ -281,8 +281,8 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
                 if ((r.events & PhoneStateListener.LISTEN_SIGNAL_STRENGTH) != 0) {
                     try {
                         int gsmSignalStrength = signalStrength.getGsmSignalStrength();
-                        r.callback.onSignalStrengthChanged((gsmSignalStrength == 99 ? -1
-                                : gsmSignalStrength));
+                        r.callback.onSignalStrengthChanged((gsmSignalStrength == 99
+                                || gsmSignalStrength == 199 ? -1 : gsmSignalStrength));
                     } catch (RemoteException ex) {
                         remove(r.binder);
                     }

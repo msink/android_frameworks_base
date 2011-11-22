@@ -44,6 +44,7 @@ import com.android.internal.telephony.SmsMessageBase.TextEncodingDetails;
 import com.android.internal.telephony.TelephonyProperties;
 import com.android.internal.telephony.cdma.sms.SmsEnvelope;
 import com.android.internal.telephony.cdma.sms.UserData;
+import com.android.internal.util.BitwiseInputStream;
 import com.android.internal.util.HexDump;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +54,7 @@ import java.util.HashMap;
 
 
 final class CdmaSMSDispatcher extends SMSDispatcher {
-    private static final String TAG = "CDMA";
+    private static final String TAG = "CDMA-CdmaSMSDispatcher";
 
     private byte[] mLastDispatchedSmsFingerprint;
     private byte[] mLastAcknowledgedSmsFingerprint;
@@ -221,10 +222,33 @@ final class CdmaSMSDispatcher extends SMSDispatcher {
      *         {@link Activity#RESULT_OK} if the message has been broadcast
      *         to applications
      */
-    protected int processCdmaWapPdu(byte[] pdu, int referenceNumber, String address) {
+    protected int processCdmaWapPdu(byte[] pdu_data, int referenceNumber_old, String address) {
+        int index = 0;
+        int referenceNumber = 0;
+        int length = 0;
+        int length_flag = 0;
+        byte[] pdu = new byte[255];
+
+        BitwiseInputStream inStream = new BitwiseInputStream(pdu_data);
+        try {
+            int aa = inStream.read(8);
+            int bb = inStream.read(8);
+            int cc = inStream.read(4);
+            referenceNumber = inStream.read(8) << 8;
+            referenceNumber |= inStream.read(8);
+            int dd = inStream.read(4);
+            int ff = inStream.read(8);
+            int gg = inStream.read(8);
+            int hh = inStream.read(5);
+            int paramBits = inStream.read(8) * 8;
+            pdu = inStream.readByteArray(paramBits);
+            length = paramBits / 8;
+        } catch (BitwiseInputStream.AccessException ex) {
+            Log.e(TAG, "processCdmaWapPdu failed: " + ex);
+        }
+
         int segment;
         int totalSegments;
-        int index = 0;
         int msgType;
 
         int sourcePort = 0;

@@ -28,7 +28,7 @@ import com.android.internal.telephony.IccPhoneBookInterfaceManager;
 
 
 public class RuimPhoneBookInterfaceManager extends IccPhoneBookInterfaceManager {
-    static final String LOG_TAG = "CDMA";
+    static final String LOG_TAG = "CDMA-RuimPhoneBookInterfaceManager";
 
     public RuimPhoneBookInterfaceManager(CDMAPhone phone) {
         super(phone);

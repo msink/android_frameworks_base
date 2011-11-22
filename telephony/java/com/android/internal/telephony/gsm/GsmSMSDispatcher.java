@@ -59,6 +59,7 @@ final class GsmSMSDispatcher extends SMSDispatcher {
     protected void handleStatusReport(AsyncResult ar) {
         String pduString = (String) ar.result;
         SmsMessage sms = SmsMessage.newFromCDS(pduString);
+        int tpStatus = sms.getStatus();
 
         if (sms != null) {
             int messageRef = sms.messageRef;
@@ -66,7 +67,8 @@ final class GsmSMSDispatcher extends SMSDispatcher {
                 SmsTracker tracker = deliveryPendingList.get(i);
                 if (tracker.mMessageRef == messageRef) {
                     // Found it.  Remove from list and broadcast.
-                    deliveryPendingList.remove(i);
+                    if ((tpStatus >= 64) || (tpStatus < 32))
+                        deliveryPendingList.remove(i);
                     PendingIntent intent = tracker.mDeliveryIntent;
                     Intent fillIn = new Intent();
                     fillIn.putExtra("pdu", IccUtils.hexStringToBytes(pduString));
@@ -174,6 +176,7 @@ final class GsmSMSDispatcher extends SMSDispatcher {
         int refNumber = getNextConcatenatedRef() & 0x00FF;
         int msgCount = parts.size();
         int encoding = android.telephony.SmsMessage.ENCODING_UNKNOWN;
+        mRemainingMessages = msgCount;
 
         for (int i = 0; i < msgCount; i++) {
             TextEncodingDetails details = SmsMessage.calculateLength(parts.get(i), false);
@@ -263,6 +266,7 @@ final class GsmSMSDispatcher extends SMSDispatcher {
         int refNumber = getNextConcatenatedRef() & 0x00FF;
         int msgCount = parts.size();
         int encoding = android.telephony.SmsMessage.ENCODING_UNKNOWN;
+        mRemainingMessages = msgCount;
 
         for (int i = 0; i < msgCount; i++) {
             TextEncodingDetails details = SmsMessage.calculateLength(parts.get(i), false);

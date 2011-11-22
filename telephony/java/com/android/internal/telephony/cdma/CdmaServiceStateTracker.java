@@ -60,7 +60,7 @@ import java.util.TimeZone;
  * {@hide}
  */
 final class CdmaServiceStateTracker extends ServiceStateTracker {
-    static final String LOG_TAG = "CDMA";
+    static final String LOG_TAG = "CDMA-CdmaServiceStateTracker";
 
     CDMAPhone phone;
     CdmaCellLocation cellLoc;
@@ -373,9 +373,8 @@ final class CdmaServiceStateTracker extends ServiceStateTracker {
                         if (states[6] != null) {
                             baseStationLongitude = Integer.parseInt(states[6]);
                         }
-                        // Some carriers only return lat-lngs of 0,0
                         if (baseStationLatitude == 0 && baseStationLongitude == 0) {
-                            baseStationLatitude  = CdmaCellLocation.INVALID_LAT_LONG;
+                            baseStationLatitude = CdmaCellLocation.INVALID_LAT_LONG;
                             baseStationLongitude = CdmaCellLocation.INVALID_LAT_LONG;
                         }
                         if (states[8] != null) {
@@ -586,7 +585,7 @@ final class CdmaServiceStateTracker extends ServiceStateTracker {
     @Override
     protected void updateSpnDisplay() {
         String spn = "";
-        boolean showSpn = false;
+        boolean showSpn = true;
         String plmn = "";
         boolean showPlmn = false;
         int rule = 0;
@@ -594,10 +593,8 @@ final class CdmaServiceStateTracker extends ServiceStateTracker {
             // TODO RUIM SPN is not implemented, EF_SPN has to be read and Display Condition
             //   Character Encoding, Language Indicator and SPN has to be set
             // rule = phone.mRuimRecords.getDisplayRule(ss.getOperatorNumeric());
-            // spn = phone.mSIMRecords.getServiceProvideName();
+            spn = phone.mRuimRecords.getServiceProviderName();
             plmn = ss.getOperatorAlphaLong(); // mOperatorAlphaLong contains the ONS
-            // showSpn = (rule & ...
-            showPlmn = true; // showPlmn = (rule & ...
 
         } else {
             // In this case there is no SPN available from RUIM, we show the ERI text
@@ -605,8 +602,7 @@ final class CdmaServiceStateTracker extends ServiceStateTracker {
             showPlmn = true;
         }
 
-        if (rule != curSpnRule
-                || !TextUtils.equals(spn, curSpn)
+        if (!TextUtils.equals(spn, curSpn)
                 || !TextUtils.equals(plmn, curPlmn)) {
             Intent intent = new Intent(Intents.SPN_STRINGS_UPDATED_ACTION);
             intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
@@ -1199,23 +1195,20 @@ final class CdmaServiceStateTracker extends ServiceStateTracker {
     onSignalStrengthResult(AsyncResult ar) {
         SignalStrength oldSignalStrength = mSignalStrength;
 
+        int rssi = 99;
         if (ar.exception != null) {
             // Most likely radio is resetting/disconnected change to default values.
             setSignalStrengthDefaultValues();
         } else {
             int[] ints = (int[])ar.result;
-            int offset = 2;
-            int cdmaDbm = (ints[offset] > 0) ? -ints[offset] : -120;
-            int cdmaEcio = (ints[offset+1] > 0) ? -ints[offset+1] : -160;
-            int evdoRssi = (ints[offset+2] > 0) ? -ints[offset+2] : -120;
-            int evdoEcio = (ints[offset+3] > 0) ? -ints[offset+3] : -1;
-            int evdoSnr  = ((ints[offset+4] > 0) && (ints[offset+4] <= 8)) ? ints[offset+4] : -1;
-
-            //log(String.format("onSignalStrengthResult cdmaDbm=%d cdmaEcio=%d evdoRssi=%d evdoEcio=%d evdoSnr=%d",
-            //        cdmaDbm, cdmaEcio, evdoRssi, evdoEcio, evdoSnr));
-            mSignalStrength = new SignalStrength(99, -1, cdmaDbm, cdmaEcio,
-                    evdoRssi, evdoEcio, evdoSnr, false);
+            if (ints.length != 0) {
+                rssi = ints[0];
+            } else {
+                Log.e(LOG_TAG, "Bogus signal strength response");
+                rssi = 99;
+            }
         }
+        mSignalStrength = new SignalStrength(rssi, -1, -1, -1, -1, -1, -1, true);
 
         try {
             phone.notifySignalStrength();

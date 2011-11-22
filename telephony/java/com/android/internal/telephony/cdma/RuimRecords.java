@@ -17,10 +17,12 @@
 package com.android.internal.telephony.cdma;
 
 import android.os.AsyncResult;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Registrant;
 import android.util.Log;
+import android.util.Xml;
 
 import com.android.internal.telephony.AdnRecord;
 import com.android.internal.telephony.AdnRecordCache;
@@ -29,6 +31,7 @@ import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.TelephonyProperties;
 import com.android.internal.telephony.cdma.RuimCard;
 import com.android.internal.telephony.MccTable;
+import com.android.internal.util.XmlUtils;
 
 // can't be used since VoiceMailConstants is not public
 //import com.android.internal.telephony.gsm.VoiceMailConstants;
@@ -37,12 +40,20 @@ import com.android.internal.telephony.IccRecords;
 import com.android.internal.telephony.IccUtils;
 import com.android.internal.telephony.PhoneProxy;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * {@hide}
  */
 public final class RuimRecords extends IccRecords {
-    static final String LOG_TAG = "CDMA";
+    static final String LOG_TAG = "CDMA-RuimRecords";
 
     private static final boolean DBG = true;
     private boolean  m_ota_commited=false;
@@ -59,6 +70,7 @@ public final class RuimRecords extends IccRecords {
 
     private static final int EVENT_RUIM_READY = 1;
     private static final int EVENT_RADIO_OFF_OR_NOT_AVAILABLE = 2;
+    private static final int EVENT_GET_IMSI_DONE = 3;
     private static final int EVENT_GET_DEVICE_IDENTITY_DONE = 4;
     private static final int EVENT_GET_ICCID_DONE = 5;
     private static final int EVENT_GET_CDMA_SUBSCRIPTION_DONE = 10;
@@ -72,6 +84,60 @@ public final class RuimRecords extends IccRecords {
 
     private static final int EVENT_RUIM_REFRESH = 31;
 
+    CdmaSpnOverride mCdmaSpnOverride;
+
+    public class CdmaSpnOverride {
+        final static String LOG_TAG = "CDMA-CdmaSpnOverride";
+        final static String PARTNER_SPN_OVERRIDE_PATH = "etc/spn-conf.xml";
+
+        private HashMap<String, String> CarrierSpnMap;
+
+        CdmaSpnOverride() {
+            CarrierSpnMap = new HashMap();
+            loadSpnOverrides();
+        }
+
+        boolean containsCarrier(String carrier) {
+            return CarrierSpnMap.containsKey(carrier);
+        }
+
+        String getSpn(String carrier) {
+            return CarrierSpnMap.get(carrier);
+        }
+
+        private void loadSpnOverrides() {
+            File spnFile = new File(Environment.getRootDirectory(), PARTNER_SPN_OVERRIDE_PATH);
+            FileReader spnReader;
+            try {
+                spnReader = new FileReader(spnFile);
+            } catch (FileNotFoundException e) {
+                Log.w(LOG_TAG, "Can't open " + Environment.getRootDirectory()
+                                             + "/" + PARTNER_SPN_OVERRIDE_PATH);
+                return;
+            }
+
+            try {
+                XmlPullParser parser = Xml.newPullParser();
+                parser.setInput(spnReader);
+                XmlUtils.beginDocument(parser, "spnOverrides");
+
+                for (;;) {
+                    XmlUtils.nextElement(parser);
+                    String name = parser.getName();
+                    if (!"spnOverride".equals(name))
+                        break;
+                    String numeric = parser.getAttributeValue(null, "numeric");
+                    String data = parser.getAttributeValue(null, "spn");
+                    CarrierSpnMap.put(numeric, data);
+                }
+
+            } catch (XmlPullParserException e) {
+                Log.w(LOG_TAG, "Exception in spn-conf parser " + e);
+            } catch (IOException e) {
+                Log.w(LOG_TAG, "Exception in spn-conf parser " + e);
+            }
+        }
+    }
 
     RuimRecords(CDMAPhone p) {
         super(p);
@@ -83,6 +149,7 @@ public final class RuimRecords extends IccRecords {
         // recordsToLoad is set to 0 because no requests are made yet
         recordsToLoad = 0;
 
+        mCdmaSpnOverride = new CdmaSpnOverride();
 
         p.mCM.registerForRUIMReady(this, EVENT_RUIM_READY, null);
         p.mCM.registerForOffOrNotAvailable(this, EVENT_RADIO_OFF_OR_NOT_AVAILABLE, null);
@@ -131,6 +198,23 @@ public final class RuimRecords extends IccRecords {
     /** Returns null if RUIM is not yet ready */
     public String getPrlVersion() {
         return mPrlVersion;
+    }
+
+    public String getServiceProviderName() {
+        return spn;
+    }
+
+    String getSIMOperatorNumeric() {
+        if (mImsi == null)
+            return null;
+        return mImsi.substring(0, 5);
+    }
+
+    private void setSpnFromConfig(String carrier) {
+        if (mCdmaSpnOverride.containsCarrier(carrier)) {
+            spn = mCdmaSpnOverride.getSpn(carrier);
+            Log.d(LOG_TAG, "setSpnFromConfig  spn=" + spn);
+        }
     }
 
     @Override
@@ -258,7 +342,40 @@ public final class RuimRecords extends IccRecords {
                 if (ar.exception == null) {
                     handleRuimRefresh((int[])(ar.result));
                 }
-                break;
+            break;
+
+            case EVENT_GET_IMSI_DONE:
+                isRecordLoadResponse = true;
+
+                ar = (AsyncResult)msg.obj;
+                if (ar.exception != null) {
+                    Log.e(LOG_TAG, "Exception querying IMSI, Exception:" + ar.exception);
+                    break;
+                }
+
+                mImsi = (String) ar.result;
+
+                // IMSI (MCC+MNC+MSIN) is at least 6 digits, but not more
+                // than 15 (and usually 15).
+                if (mImsi != null && (mImsi.length() < 6 || mImsi.length() > 15)) {
+                    Log.e(LOG_TAG, "invalid IMSI " + mImsi);
+                    mImsi = null;
+                }
+
+                Log.d(LOG_TAG, "IMSI: " + mImsi.substring(0, 6) + "xxxxxxxxx");
+
+                if (mncLength == UNKNOWN) {
+                    // the SIM has told us all it knows, but it didn't know the mnc length.
+                    // guess using the mcc
+                    try {
+                        int mcc = Integer.parseInt(mImsi.substring(0,3));
+                        mncLength = MccTable.smallestDigitsMccForMnc(mcc);
+                    } catch (NumberFormatException e) {
+                        mncLength = UNKNOWN;
+                        Log.e(LOG_TAG, "SIMRecords: Corrupt IMSI!");
+                    }
+                }
+            break;
 
         }}catch (RuntimeException exc) {
             // I don't want these exceptions to be fatal
@@ -287,7 +404,8 @@ public final class RuimRecords extends IccRecords {
 
     @Override
     protected void onAllRecordsLoaded() {
-        Log.d(LOG_TAG, "RuimRecords: record load complete");
+        String operator = getSIMOperatorNumeric();
+        Log.d(LOG_TAG, "RuimRecords: record load complete   operator=" + operator);
 
         // Further records that can be inserted are Operator/OEM dependent
 
@@ -295,6 +413,7 @@ public final class RuimRecords extends IccRecords {
             new AsyncResult(null, null, null));
         ((CDMAPhone) phone).mRuimCard.broadcastIccStateChangedIntent(
                 RuimCard.INTENT_VALUE_ICC_LOADED, null);
+        setSpnFromConfig(operator);
     }
 
     private void onRuimReady() {
@@ -316,6 +435,9 @@ public final class RuimRecords extends IccRecords {
         recordsRequested = true;
 
         Log.v(LOG_TAG, "RuimRecords:fetchRuimRecords " + recordsToLoad);
+
+        phone.mCM.getIMSI(obtainMessage(3));
+        recordsToLoad++;
 
         phone.getIccFileHandler().loadEFTransparent(EF_ICCID,
                 obtainMessage(EVENT_GET_ICCID_DONE));

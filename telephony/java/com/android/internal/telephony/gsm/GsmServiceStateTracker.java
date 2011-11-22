@@ -368,7 +368,7 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
                 }
                 pollState();
                 // Signal strength polling stops when radio is off
-                queueNextSignalStrengthPoll();
+                queueSignalStrengthNow();
                 break;
 
             case EVENT_RADIO_STATE_CHANGED:
@@ -856,7 +856,28 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
                 ret = "HSPA";
                 break;
             default:
-                Log.e(LOG_TAG, "Wrong network type: " + Integer.toString(type));
+                if (SystemProperties.get("ril.function.dataonly", "0").equals("1"))
+                switch (type) {
+                    case DATA_ACCESS_CDMA_IS95A:
+                    case DATA_ACCESS_CDMA_IS95B:
+                        ret = "CDMA";
+                        break;
+                    case DATA_ACCESS_CDMA_1xRTT:
+                        ret = "CDMA - 1xRTT";
+                        break;
+                    case DATA_ACCESS_CDMA_EvDo_0:
+                        ret = "CDMA - EvDo rev. 0";
+                        break;
+                    case DATA_ACCESS_CDMA_EvDo_A:
+                        ret = "CDMA - EvDo rev. A";
+                        break;
+                    case DATA_ACCESS_CDMA_EvDo_B:
+                        ret = "CDMA - EvDo rev. B";
+                        break;
+                    default:
+                        Log.e(LOG_TAG, "Wrong network type: " + Integer.toString(type));
+                        break;
+                }
                 break;
         }
 
@@ -1119,6 +1140,15 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
 
         // TODO Don't poll signal strength if screen is off
         sendMessageDelayed(msg, POLL_PERIOD_MILLIS);
+    }
+
+    private void queueSignalStrengthNow() {
+        Log.d(LOG_TAG, "queueSignalStrengthNow");
+        if (dontPollSignalStrength || cm.getRadioState().isCdma())
+            return;
+        Message msg = obtainMessage();
+        msg.what = EVENT_POLL_SIGNAL_STRENGTH;
+        sendMessage(msg);
     }
 
     /**

@@ -19,14 +19,19 @@ package com.android.internal.telephony.cdma;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.ContentObserver;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.IConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncResult;
 import android.os.Message;
@@ -35,6 +40,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
+import android.provider.Telephony;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
@@ -59,7 +65,7 @@ import java.util.ArrayList;
  * {@hide}
  */
 public final class CdmaDataConnectionTracker extends DataConnectionTracker {
-    protected final String LOG_TAG = "CDMA";
+    protected final String LOG_TAG = "CDMA-CdmaDataConnectionTracker";
 
     private CDMAPhone mCdmaPhone;
 
@@ -114,6 +120,14 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
     // if we have no active Apn this is null
     protected ApnSetting mActiveApn;
 
+    static final String APN_ID = "apn_id";
+    static final Uri PREFERAPN_URI = Uri.parse("content://telephony/carriers/preferapn");
+    private ArrayList<ApnSetting> allApns = null;
+    private ArrayList<ApnSetting> waitingApns = null;
+    private ApnSetting preferredApn = null;
+    private boolean canSetPreferApn = false;
+    private ApnChangeObserver apnObserver;
+
     // Possibly promote to base class, the only difference is
     // the INTENT_RECONNECT_ALARM action is a different string.
     // Do consider technology changes if it is promoted.
@@ -156,6 +170,16 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         }
     };
 
+    private class ApnChangeObserver extends ContentObserver {
+        public ApnChangeObserver () {
+            super(mDataConnectionTracker);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            sendMessage(obtainMessage(EVENT_APN_CHANGED));
+        }
+    }
 
     /* Constructor */
 
@@ -188,6 +212,10 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         p.getContext().registerReceiver(mIntentReceiver, filter, null, p);
 
         mDataConnectionTracker = this;
+
+        apnObserver = new ApnChangeObserver();
+        p.getContext().getContentResolver().registerContentObserver
+                (Telephony.Carriers.CONTENT_URI, true, apnObserver);
 
         createAllDataConnectionList();
 
@@ -236,6 +264,7 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         phone.mCM.unregisterForCdmaOtaProvision(this);
 
         phone.getContext().unregisterReceiver(this.mIntentReceiver);
+        phone.getContext().getContentResolver().unregisterContentObserver(apnObserver);
         destroyAllDataConnectionList();
     }
 
@@ -250,6 +279,9 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
                     state.toString(), s.toString());
             state = s;
         }
+        if (state == State.FAILED && waitingApns != null) {
+            waitingApns.clear();
+        }
     }
 
     @Override
@@ -259,9 +291,13 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
 
     @Override
     protected boolean isApnTypeAvailable(String type) {
-        for (String s : mSupportedApnTypes) {
-            if (TextUtils.equals(type, s)) {
-                return true;
+        if (type.equals("dun"))
+            return false;
+        if (allApns != null) {
+            for (ApnSetting apn : allApns) {
+                if (apn.canHandleType(type)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -279,7 +315,11 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
     }
 
     protected String getActiveApnString() {
-        return null;
+        String result = null;
+        if (mActiveApn != null) {
+            result = mActiveApn.apn;
+        }
+        return result;
     }
 
     /**
@@ -335,9 +375,16 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
                         phone.getState() == Phone.State.IDLE )
                 && isDataAllowed()
                 && desiredPowerState
-                && !mPendingRestartRadio
-                && !mCdmaPhone.needsOtaServiceProvisioning()) {
+                && !mPendingRestartRadio) {
 
+            if (state == State.IDLE) {
+                waitingApns = buildWaitingApns();
+                if (waitingApns.isEmpty()) {
+                    notifyNoData(null);
+                    return false;
+                }
+                log("Create from allApns : " + apnListToString(allApns));
+            }
             return setupData(reason);
 
         } else {
@@ -416,6 +463,44 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         return null;
     }
 
+    private String[] parseTypes(String types) {
+        String[] result;
+        // If unset, set to DEFAULT.
+        if (types == null || types.equals("")) {
+            result = new String[1];
+            result[0] = Phone.APN_TYPE_ALL;
+        } else {
+            result = types.split(",");
+        }
+        return result;
+    }
+
+    private ArrayList<ApnSetting> createApnList(Cursor cursor) {
+        ArrayList<ApnSetting> result = new ArrayList<ApnSetting>();
+        if (cursor.moveToFirst()) {
+            do {
+                String[] types = parseTypes(
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.TYPE)));
+                ApnSetting apn = new ApnSetting(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(Telephony.Carriers._ID)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.NUMERIC)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.NAME)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.APN)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.PROXY)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.PORT)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.MMSC)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.MMSPROXY)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.MMSPORT)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.USER)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Carriers.PASSWORD)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(Telephony.Carriers.AUTH_TYPE)),
+                        types);
+                result.add(apn);
+            } while (cursor.moveToNext());
+        }
+        return result;
+    }
+
     private boolean setupData(String reason) {
         CdmaDataConnection conn = findFreeDataConnection();
 
@@ -424,15 +509,9 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
             return false;
         }
 
+        ApnSetting apn = getNextApn();
         mActiveDataConnection = conn;
-        String[] types;
-        if (mRequestedApnType.equals(Phone.APN_TYPE_DUN)) {
-            types = new String[1];
-            types[0] = Phone.APN_TYPE_DUN;
-        } else {
-            types = mDefaultApnTypes;
-        }
-        mActiveApn = new ApnSetting(0, "", "", "", "", "", "", "", "", "", "", 0, types);
+        mActiveApn = apn;
 
         Message msg = obtainMessage();
         msg.what = EVENT_DATA_SETUP_COMPLETE;
@@ -444,11 +523,33 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         return true;
     }
 
+    private void onApnChanged() {
+        boolean isConnected;
+
+        isConnected = (state != State.IDLE && state != State.FAILED);
+
+        String operator = mCdmaPhone.mRuimRecords.getSIMOperatorNumeric();
+        log("--bruins--onApnChanged operator=" + operator);
+        mCdmaPhone.updateCurrentCarrierInProvider(operator);
+
+        createAllApnList();
+        if (state != State.DISCONNECTING) {
+            cleanUpConnection(isConnected, Phone.REASON_APN_CHANGED);
+            if (!isConnected) {
+                // reset reconnect timer
+                mRetryMgr.resetRetryCount();
+                mReregisterOnReconnectFailure = false;
+                trySetupData(Phone.REASON_APN_CHANGED);
+            }
+        }
+    }
+
     private void notifyDefaultData(String reason) {
         setState(State.CONNECTED);
         phone.notifyDataConnection(reason);
         startNetStatPoll();
         mRetryMgr.resetRetryCount();
+        mReregisterOnReconnectFailure = false;
     }
 
     private void resetPollStats() {
@@ -481,6 +582,8 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         sendEmptyMessageDelayed(EVENT_RESTART_RADIO, TIME_DELAYED_TO_RESTART_RADIO);
         mPendingRestartRadio = true;
     }
+
+    private boolean mReregisterOnReconnectFailure = false;
 
     private Runnable mPollNetStat = new Runnable() {
 
@@ -632,6 +735,7 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
     }
 
     protected void onRecordsLoaded() {
+        createAllApnList();
         if (state == State.FAILED) {
             cleanUpConnection(false, null);
         }
@@ -986,6 +1090,144 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
         reconnectAfterFail(cause, reason);
     }
 
+    private void createAllApnList() {
+        allApns = new ArrayList<ApnSetting>();
+        String operator = mCdmaPhone.mRuimRecords.getSIMOperatorNumeric();
+
+        if (operator != null) {
+            String selection = "numeric = '" + operator + "'";
+
+            Cursor cursor = phone.getContext().getContentResolver().query(
+                    Telephony.Carriers.CONTENT_URI, null, selection, null, null);
+
+            if (cursor != null) {
+                if (cursor.getCount() > 0) {
+                    allApns = createApnList(cursor);
+                    // TODO: Figure out where this fits in.  This basically just
+                    // writes the pap-secrets file.  No longer tied to PdpConnection
+                    // object.  Not used on current platform (no ppp).
+                    //PdpConnection pdp = pdpList.get(pdp_name);
+                    //if (pdp != null && pdp.dataLink != null) {
+                    //    pdp.dataLink.setPasswordInfo(cursor);
+                    //}
+                }
+                cursor.close();
+            }
+        }
+
+        if (allApns.isEmpty()) {
+            if (DBG) log("No APN found for carrier: " + operator);
+            preferredApn = null;
+        } else {
+            preferredApn = getPreferredApn();
+            Log.d(LOG_TAG, "Get PreferredAPN");
+            if (preferredApn != null && !preferredApn.numeric.equals(operator)) {
+                preferredApn = null;
+                setPreferredApn(-1);
+            }
+        }
+    }
+
+    private ArrayList<ApnSetting> buildWaitingApns() {
+        ArrayList<ApnSetting> apnList = new ArrayList<ApnSetting>();
+        String operator = mCdmaPhone.mRuimRecords.getSIMOperatorNumeric();
+
+        if (mRequestedApnType.equals(Phone.APN_TYPE_DEFAULT)) {
+            if (canSetPreferApn && preferredApn != null) {
+                Log.i(LOG_TAG, "Preferred APN:" + operator + ":"
+                        + preferredApn.numeric + ":" + preferredApn);
+                if (preferredApn.numeric.equals(operator)) {
+                    Log.i(LOG_TAG, "Waiting APN set to preferred APN");
+                    apnList.add(preferredApn);
+                    return apnList;
+                } else {
+                    setPreferredApn(-1);
+                    preferredApn = null;
+                }
+            }
+        }
+
+        if (allApns != null) {
+            for (ApnSetting apn : allApns) {
+                if (apn.canHandleType(mRequestedApnType)) {
+                    apnList.add(apn);
+                }
+            }
+        }
+        return apnList;
+    }
+
+    private ApnSetting getNextApn() {
+        ArrayList<ApnSetting> list = waitingApns;
+        ApnSetting apn = null;
+
+        if (list != null) {
+            if (!list.isEmpty()) {
+                apn = list.get(0);
+            }
+        }
+        return apn;
+    }
+
+    private String apnListToString(ArrayList<ApnSetting> apns) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0, size = apns.size(); i < size; i++) {
+            result.append('[')
+                  .append(apns.get(i).toString())
+                  .append(']');
+        }
+        return result.toString();
+    }
+
+    private void setPreferredApn(int pos) {
+        if (!canSetPreferApn) {
+            return;
+        }
+
+        ContentResolver resolver = phone.getContext().getContentResolver();
+        resolver.delete(PREFERAPN_URI, null, null);
+
+        if (pos >= 0) {
+            ContentValues values = new ContentValues();
+            values.put(APN_ID, pos);
+            resolver.insert(PREFERAPN_URI, values);
+        }
+    }
+
+    private ApnSetting getPreferredApn() {
+        if (allApns.isEmpty()) {
+            return null;
+        }
+
+        Cursor cursor = phone.getContext().getContentResolver().query(
+                PREFERAPN_URI, new String[] { "_id", "name", "apn" },
+                null, null, Telephony.Carriers.DEFAULT_SORT_ORDER);
+
+        if (cursor != null) {
+            canSetPreferApn = true;
+        } else {
+            canSetPreferApn = false;
+        }
+
+        if (canSetPreferApn && cursor.getCount() > 0) {
+            int pos;
+            cursor.moveToFirst();
+            pos = cursor.getInt(cursor.getColumnIndexOrThrow(Telephony.Carriers._ID));
+            for(ApnSetting p:allApns) {
+                if (p.id == pos && p.canHandleType(mRequestedApnType)) {
+                    cursor.close();
+                    return p;
+                }
+            }
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        return null;
+    }
+
     public void handleMessage (Message msg) {
 
         if (!phone.mIsTheCurrentActivePhone) {
@@ -1017,6 +1259,10 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
             case EVENT_RESTART_RADIO:
                 if (DBG) log("EVENT_RESTART_RADIO");
                 onRestartRadio();
+                break;
+
+            case EVENT_APN_CHANGED:
+                onApnChanged();
                 break;
 
             default:

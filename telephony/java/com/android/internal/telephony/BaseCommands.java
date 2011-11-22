@@ -22,6 +22,7 @@ import android.os.RegistrantList;
 import android.os.Registrant;
 import android.os.Handler;
 import android.os.AsyncResult;
+import android.provider.Settings;
 import android.util.Config;
 import android.util.Log;
 
@@ -603,8 +604,14 @@ public abstract class BaseCommands implements CommandsInterface {
     protected void setRadioState(RadioState newState) {
         RadioState oldState;
 
+        int isRadioAvailable = 0;
+        if (mState.isAvailable())
+            isRadioAvailable = 1;
+        Settings.System.putInt(mContext.getContentResolver(),
+                               Settings.System.RADIO_STATE, isRadioAvailable);
+
         synchronized (mStateMonitor) {
-            if (Config.LOGV) {
+            if (true /*Config.LOGV*/) {
                 Log.v(LOG_TAG, "setRadioState old: " + mState
                     + " new " + newState);
             }

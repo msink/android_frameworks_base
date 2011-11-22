@@ -18,6 +18,7 @@ package com.android.internal.telephony.cdma;
 
 import android.os.Message;
 import android.util.Log;
+import android.util.Patterns;
 
 import com.android.internal.telephony.DataConnection;
 import com.android.internal.telephony.gsm.ApnSetting;
@@ -29,7 +30,7 @@ import com.android.internal.telephony.RILConstants;
  */
 public class CdmaDataConnection extends DataConnection {
 
-    private static final String LOG_TAG = "CDMA";
+    private static final String LOG_TAG = "CDMA-CdmaDataConnection";
 
     /** Fail cause of last Data Call activate from RIL_LastDataCallActivateFailCause */
     private final static int PS_NET_DOWN_REASON_OPERATOR_DETERMINED_BARRING         = 8;
@@ -37,6 +38,7 @@ public class CdmaDataConnection extends DataConnection {
     private final static int PS_NET_DOWN_REASON_OPTION_NOT_SUPPORTED                = 32;
     private final static int PS_NET_DOWN_REASON_OPTION_UNSUBSCRIBED                 = 33;
 
+    private ApnSetting apn;
 
     // ***** Constructor
     private CdmaDataConnection(CDMAPhone phone, String name) {
@@ -70,6 +72,7 @@ public class CdmaDataConnection extends DataConnection {
     protected void onConnect(ConnectionParams cp) {
         if (DBG) log("CdmaDataConnection Connecting...");
 
+        apn = cp.apn;
         createTime = -1;
         lastFailTime = -1;
         lastFailCause = FailCause.NONE;
@@ -85,9 +88,15 @@ public class CdmaDataConnection extends DataConnection {
         // msg.obj will be returned in AsyncResult.userObj;
         Message msg = obtainMessage(EVENT_SETUP_DATA_CONNECTION_DONE, cp);
         msg.obj = cp;
+        int authType = apn.authType;
+        if (authType == -1) {
+            authType = (apn.user != null) ? RILConstants.SETUP_DATA_AUTH_PAP_CHAP
+                                          : RILConstants.SETUP_DATA_AUTH_NONE;
+        }
+        setHttpProxy(apn.proxy, apn.port);
         phone.mCM.setupDataCall(Integer.toString(RILConstants.SETUP_DATA_TECH_CDMA),
-                Integer.toString(dataProfile), null, null,
-                null, Integer.toString(RILConstants.SETUP_DATA_AUTH_PAP_CHAP), msg);
+                Integer.toString(dataProfile), apn.apn, apn.user,
+                apn.password, Integer.toString(authType), msg);
     }
 
     @Override
@@ -128,6 +137,34 @@ public class CdmaDataConnection extends DataConnection {
         } else {
             return true;
         }
+    }
+
+    @Override
+    protected void clearSettings() {
+        super.clearSettings();
+        apn = null;
+    }
+
+    private void setHttpProxy(String httpProxy, String httpPort) {
+        if (httpProxy == null || httpProxy.length() == 0) {
+            phone.setSystemProperty("net.gprs.http-proxy", null);
+        } else {
+            if (httpPort == null || httpPort.length() == 0) {
+                httpPort = "8080";
+            }
+            phone.setSystemProperty("net.gprs.http-proxy",
+                "http://" + httpProxy + ":" + httpPort + "/");
+        }
+    }
+
+    public ApnSetting getApn() {
+        return apn;
+    }
+
+    private boolean isIpAddress(String address) {
+        if (address == null)
+            return false;
+        return Patterns.IP_ADDRESS.matcher(apn.mmsProxy).matches();
     }
 
     @Override

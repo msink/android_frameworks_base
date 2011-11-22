@@ -31,7 +31,8 @@ import com.android.internal.telephony.sip.SipPhoneFactory;
  * {@hide}
  */
 public class PhoneFactory {
-    static final String LOG_TAG = "PHONE";
+    static final String LOG_TAG = "PHONE-PhoneFactory";
+    static final String VERSION = "v0.11";
     static final int SOCKET_OPEN_RETRY_MILLIS = 2 * 1000;
     static final int SOCKET_OPEN_MAX_RETRY = 3;
     //***** Class Variables
@@ -44,13 +45,15 @@ public class PhoneFactory {
     static private Looper sLooper;
     static private Context sContext;
 
-    static final int preferredNetworkMode = RILConstants.PREFERRED_NETWORK_MODE;
+    static int preferredNetworkMode = RILConstants.PREFERRED_NETWORK_MODE;
 
-    static final int preferredCdmaSubscription = RILConstants.PREFERRED_CDMA_SUBSCRIPTION;
+    static int preferredCdmaSubscription = RILConstants.PREFERRED_CDMA_SUBSCRIPTION;
 
     //***** Class Methods
 
     public static void makeDefaultPhones(Context context) {
+        preferredNetworkMode = RILConstants.PREFERRED_NETWORK_MODE;
+        preferredCdmaSubscription = RILConstants.PREFERRED_CDMA_SUBSCRIPTION;
         makeDefaultPhone(context);
     }
 

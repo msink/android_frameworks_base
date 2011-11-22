@@ -1216,6 +1216,12 @@ public class GSMPhone extends PhoneBase {
                 break;
 
             case EVENT_SIM_RECORDS_LOADED:
+                mCM.getBasebandVersion(
+                        obtainMessage(EVENT_GET_BASEBAND_VERSION_DONE));
+
+                mCM.getIMEI(obtainMessage(EVENT_GET_IMEI_DONE));
+                mCM.getIMEISV(obtainMessage(EVENT_GET_IMEISV_DONE));
+
                 updateCurrentCarrierInProvider();
 
                 // Check if this is a different SIM than the previous one. If so unset the

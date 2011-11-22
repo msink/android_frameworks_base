@@ -81,6 +81,8 @@ public abstract class SMSDispatcher extends Handler {
         "destination_port",
     };
 
+    static private final String SEND_NEXT_MSG_EXTRA = "SendNextMsg";
+
     static final protected int EVENT_NEW_SMS = 1;
 
     static final protected int EVENT_SEND_SMS_COMPLETE = 2;
@@ -152,6 +154,8 @@ public abstract class SMSDispatcher extends Handler {
 
     protected boolean mStorageAvailable = true;
     protected boolean mReportMemoryStatusPending = false;
+
+    static protected int mRemainingMessages = -1;
 
     protected static int getNextConcatenatedRef() {
         sConcatenatedRef += 1;
@@ -463,7 +467,16 @@ public abstract class SMSDispatcher extends Handler {
 
             if (sentIntent != null) {
                 try {
+                  if (mRemainingMessages > -1) {
+                    mRemainingMessages = mRemainingMessages - 1;
+                  }
+                  if (mRemainingMessages == 0) {
+                    Intent sendNext = new Intent();
+                    sendNext.putExtra(SEND_NEXT_MSG_EXTRA, true);
+                    sentIntent.send(mContext, -1, sendNext);
+                  } else {
                     sentIntent.send(Activity.RESULT_OK);
+                  }
                 } catch (CanceledException ex) {}
             }
         } else {
@@ -501,6 +514,12 @@ public abstract class SMSDispatcher extends Handler {
                     Intent fillIn = new Intent();
                     if (ar.result != null) {
                         fillIn.putExtra("errorCode", ((SmsResponse)ar.result).errorCode);
+                    }
+                    if (mRemainingMessages > -1) {
+                        mRemainingMessages = mRemainingMessages - 1;
+                    }
+                    if (mRemainingMessages == 0) {
+                        fillIn.putExtra(SEND_NEXT_MSG_EXTRA, true);
                     }
                     tracker.mSentIntent.send(mContext, error, fillIn);
 

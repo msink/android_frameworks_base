@@ -520,7 +520,6 @@ public class GsmConnection extends Connection {
             // outgoing calls only
             processNextPostDialChar();
         }
-        releaseWakeLock();
     }
 
     private void
