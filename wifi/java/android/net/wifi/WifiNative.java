@@ -94,6 +94,12 @@ public class WifiNative {
 
     public native static boolean stopDriverCommand();
 
+    public static native boolean startPBCCommand(String bssid);
+
+    public static native String startPINCommand(String bssid);
+
+    public static native boolean stopWPSCommand();
+
     /**
      * Start filtering out multicast packets, to reduce battery consumption
      * that would result from processing them, only to discard them.
@@ -156,4 +162,5 @@ public class WifiNative {
      * @return the event string sent by the supplicant.
      */
     public native static String waitForEvent();
+
 }

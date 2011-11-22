@@ -2455,4 +2455,19 @@ public class WifiService extends IWifiManager.Stub {
             return (mMulticasters.size() > 0);
         }
     }
+
+    public boolean startPBC(String bssid) {
+        enforceChangePermission();
+        return mWifiStateTracker.startPBC(bssid);
+    }
+
+    public String startPIN(String bssid) {
+        enforceChangePermission();
+        return mWifiStateTracker.startPIN(bssid);
+    }
+
+    public boolean stopWPS() {
+        enforceChangePermission();
+        return mWifiStateTracker.stopWPS();
+    }
 }

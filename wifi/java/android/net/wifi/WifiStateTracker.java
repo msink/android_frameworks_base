@@ -100,6 +100,7 @@ public class WifiStateTracker extends NetworkStateTracker {
     private static final int EVENT_DRIVER_STATE_CHANGED              = 12;
     private static final int EVENT_PASSWORD_KEY_MAY_BE_INCORRECT     = 13;
     private static final int EVENT_MAYBE_START_SCAN_POST_DISCONNECT  = 14;
+    private static final int EVENT_WPS_SUCCESS                       = 15;
 
     /**
      * The driver state indication.
@@ -541,6 +542,11 @@ public class WifiStateTracker extends NetworkStateTracker {
         sendEmptyMessage(EVENT_PASSWORD_KEY_MAY_BE_INCORRECT);
     }
 
+    void notifyWPSSuccess() {
+        Log.d(TAG, "Need to send WPS SUCCESS message");
+        sendEmptyMessage(EVENT_WPS_SUCCESS);
+    }
+
     /**
      * Send the tracker a notification that a connection to the supplicant
      * daemon has been established.
@@ -768,6 +774,7 @@ public class WifiStateTracker extends NetworkStateTracker {
 
 
     private void checkIsBluetoothPlaying() {
+      if (SystemProperties.getBoolean("ro.service.bt.enabled", false))  {
         boolean isBluetoothPlaying = false;
         Set<BluetoothDevice> connected = mBluetoothA2dp.getConnectedSinks();
 
@@ -778,6 +785,7 @@ public class WifiStateTracker extends NetworkStateTracker {
             }
         }
         setBluetoothScanMode(isBluetoothPlaying);
+      }
     }
 
     public void enableRssiPolling(boolean enable) {
@@ -934,11 +942,13 @@ public class WifiStateTracker extends NetworkStateTracker {
                 if (died) {
                     resetConnections(true);
                 }
+              synchronized (this) {
                 // When supplicant dies, kill the DHCP thread
                 if (mDhcpTarget != null) {
                     mDhcpTarget.getLooper().quit();
                     mDhcpTarget = null;
                 }
+              }
                 mContext.removeStickyBroadcast(new Intent(WifiManager.NETWORK_STATE_CHANGED_ACTION));
                 if (ActivityManagerNative.isSystemReady()) {
                     intent = new Intent(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
@@ -978,6 +988,14 @@ public class WifiStateTracker extends NetworkStateTracker {
                 if (LOCAL_LOGD) Log.v(TAG, "Changing supplicant state: "
                                       + currentState +
                                       " ==> " + newState);
+
+                if ((currentState == SupplicantState.COMPLETED &&
+                        newState == SupplicantState.GROUP_HANDSHAKE &&
+                        mHaveIpAddress) ||
+                    (currentState == SupplicantState.COMPLETED &&
+                        newState == SupplicantState.GROUP_HANDSHAKE &&
+                        mHaveIpAddress))
+                    break;
 
                 int networkId = supplicantStateResult.networkId;
 
@@ -1085,6 +1103,8 @@ public class WifiStateTracker extends NetworkStateTracker {
                         intent.putExtra(
                             WifiManager.EXTRA_SUPPLICANT_ERROR,
                             WifiManager.ERROR_AUTHENTICATING);
+                        intent.putExtra("supplicantError_BSSID", networkId);
+                        wifiManagerDisableNetwork(networkId);
                     }
                     mContext.sendStickyBroadcast(intent);
                 }
@@ -1309,6 +1329,9 @@ public class WifiStateTracker extends NetworkStateTracker {
                     mWM.setWifiEnabled(false);
                     mWM.setWifiEnabled(true);
                     break;
+                case DRIVER_STOPPED:
+                default:
+                    break;
                 }
                 synchronized (this) {
                     updateBatteryWorkSourceLocked(null);
@@ -1317,6 +1340,15 @@ public class WifiStateTracker extends NetworkStateTracker {
 
             case EVENT_PASSWORD_KEY_MAY_BE_INCORRECT:
                 mPasswordKeyMayBeIncorrect = true;
+                break;
+
+            case EVENT_WPS_SUCCESS:
+                if (ActivityManagerNative.isSystemReady()) {
+                    Log.d(TAG, "Want to broadcast WPS_SUCCESS");
+                    mContext.sendBroadcast(new Intent("android.net.wifi.WPA_SUCCESS"));
+                } else {
+                    Log.d(TAG, "Want to broadcast WPS_SUCCESS but system is not ready");
+                }
                 break;
         }
     }
@@ -1393,6 +1425,7 @@ public class WifiStateTracker extends NetworkStateTracker {
         mHaveIpAddress = false;
         mObtainingIpAddress = false;
         mWifiInfo.setIpAddress(0);
+        mWifiInfo.setNetworkId(-1);
 
         /*
          * Reset connection depends on both the interface and the IP assigned,
@@ -1400,11 +1433,13 @@ public class WifiStateTracker extends NetworkStateTracker {
          */
         NetworkUtils.resetConnections(mInterfaceName);
 
+      synchronized (this) {
         // Stop DHCP
         if (mDhcpTarget != null) {
             mDhcpTarget.setCancelCallback(true);
             mDhcpTarget.removeMessages(EVENT_DHCP_START);
         }
+      }
         if (!NetworkUtils.stopDhcp(mInterfaceName)) {
             Log.e(TAG, "Could not stop DHCP");
         }
@@ -1856,6 +1891,18 @@ public class WifiStateTracker extends NetworkStateTracker {
                 WifiNative.enableNetworkCommand(config.networkId, false);
             }
         }
+    }
+
+    public synchronized boolean startPBC(String bssid) {
+        return WifiNative.startPBCCommand(bssid);
+    }
+
+    public synchronized String startPIN(String bssid) {
+        return WifiNative.startPINCommand(bssid);
+    }
+
+    public synchronized boolean stopWPS() {
+        return WifiNative.stopWPSCommand();
     }
 
     /**

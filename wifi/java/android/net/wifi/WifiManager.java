@@ -276,6 +276,10 @@ public class WifiManager {
      */
     public static final String EXTRA_SUPPLICANT_ERROR = "supplicantError";
 
+    public static final String EXTRA_SUPPLICANT_ERROR_BSSID = "supplicantError_BSSID";
+
+    public static final String WPS_SUCCESS_ACTION = "android.net.wifi.WPA_SUCCESS";
+
     /**
      * An access point scan has completed, and results are available from the supplicant.
      * Call {@link #getScanResults()} to obtain the results.
@@ -491,6 +495,29 @@ public class WifiManager {
         }
     }
 
+    public boolean startPBC(String bssid) {
+        try {
+            return mService.startPBC(bssid);
+        } catch (RemoteException e) {
+            return false;
+        }
+    }
+
+    public String startPIN(String bssid) {
+        try {
+            return mService.startPIN(bssid);
+        } catch (RemoteException e) {
+            return null;
+        }
+    }
+
+    public boolean stopWPS() {
+        try {
+            return mService.stopWPS();
+        } catch (RemoteException e) {
+            return false;
+        }
+    }
     /**
      * Disable a configured network. The specified network will not be
      * a candidate for associating. This may result in the asynchronous

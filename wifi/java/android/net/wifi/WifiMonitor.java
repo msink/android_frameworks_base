@@ -54,6 +54,9 @@ public class WifiMonitor {
     private static final String passwordKeyMayBeIncorrectEvent =
        "pre-shared key may be incorrect";
 
+    private static final String wpsEventPrefix = "WPS-";
+    private static final String wpsSUCCESS = "WPS-SUCCESS";
+
     /**
      * Names of events from wpa_supplicant (minus the prefix). In the
      * format descriptions, * &quot;<code>x</code>&quot;
@@ -179,6 +182,8 @@ public class WifiMonitor {
                     if (eventStr.startsWith(wpaEventPrefix) &&
                             0 < eventStr.indexOf(passwordKeyMayBeIncorrectEvent)) {
                         handlePasswordKeyMayBeIncorrect();
+                    } else if (eventStr.startsWith("WPS-")) {
+                        handleWPSMessage(eventStr);
                     }
                     continue;
                 }
@@ -282,6 +287,16 @@ public class WifiMonitor {
                 }
             }
             return false;
+        }
+
+        private void handleWPSMessage(String eventStr) {
+            Log.d(TAG, "Got event string: " + eventStr);
+            if (eventStr.startsWith("WPS-SUCCESS")) {
+                Log.d(TAG, "call mWifiStateTracker.notifyWPSSuccess");
+                mWifiStateTracker.notifyWPSSuccess();
+            } else {
+                Log.d(TAG, "eventStr is not WPS-SUCCESS");
+            }
         }
 
         private void handlePasswordKeyMayBeIncorrect() {

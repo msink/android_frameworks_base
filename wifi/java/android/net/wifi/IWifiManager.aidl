@@ -38,6 +38,12 @@ interface IWifiManager
 
     boolean enableNetwork(int netId, boolean disableOthers);
 
+    boolean startPBC(String bssid);
+
+    String startPIN(String bssid);
+
+    boolean stopWPS();
+
     boolean disableNetwork(int netId);
 
     boolean pingSupplicant();

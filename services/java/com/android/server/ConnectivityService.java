@@ -57,8 +57,11 @@ import java.util.List;
  */
 public class ConnectivityService extends IConnectivityManager.Stub {
 
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "ConnectivityService";
+    private static final void LOG(String msg) {
+        Slog.d(TAG, msg);
+    }
 
     // how long to wait before switching back to a radio's default network
     private static final int RESTORE_DEFAULT_NETWORK_DELAY = 1 * 60 * 1000;
@@ -258,7 +261,10 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         String id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         if (id != null && id.length() > 0) {
-            String name = new String("android_").concat(id);
+            String name = new String("").concat(id);
+            if (name.length() > 16) {
+                name = name.substring(0, 16);
+            }
             SystemProperties.set("net.hostname", name);
         }
 
@@ -268,6 +274,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         mHandler = new MyHandler();
 
         mNetworkPreference = getPersistedNetworkPreference();
+        LOG("ConnectivityService(Context) : mNetworkPreference = " + mNetworkPreference);
 
         mRadioAttributes = new RadioAttributes[ConnectivityManager.MAX_RADIO_TYPE+1];
         mNetAttributes = new NetworkAttributes[ConnectivityManager.MAX_NETWORK_TYPE+1];
@@ -359,6 +366,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
          */
         boolean noMobileData = !getMobileDataEnabled();
         for (int netType : mPriorityList) {
+            Slog.d(TAG, "ConnectivityService(Context) : netType = " + netType + "; it's radio type is '" + mNetAttributes[netType].mRadio + ";.");
             switch (mNetAttributes[netType].mRadio) {
             case ConnectivityManager.TYPE_WIFI:
                 if (DBG) Slog.v(TAG, "Starting Wifi Service.");
@@ -434,6 +442,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                 Settings.Secure.putInt(cr, Settings.Secure.NETWORK_PREFERENCE, preference);
                 synchronized(this) {
                     mNetworkPreference = preference;
+                    LOG("handleSetNetworkPreference(int) : mNetworkPreference = " + mNetworkPreference);
                 }
                 enforcePreference();
             }
@@ -962,6 +971,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
     private void handleDisconnect(NetworkInfo info) {
 
         int prevNetType = info.getType();
+        LOG("handleDisconnect() : Entered : prevNetType = " + prevNetType);
 
         mNetTrackers[prevNetType].setTeardownRequested(false);
         /*
@@ -1079,6 +1089,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     switchTo.setFailover(true);
                     if (!switchTo.isConnectedOrConnecting() ||
                             newNet.isTeardownRequested()) {
+                        LOG("tryFailover() : to reconnect " + switchTo.getTypeName());
                         newNet.reconnect();
                     }
                     if (DBG) {
@@ -1214,6 +1225,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
 
     private void handleConnect(NetworkInfo info) {
         int type = info.getType();
+        LOG("handleConnect() : Entered : 'type' = " + type + "; is available? : " + info.isAvailable());
 
         // snapshot isFailover, because sendConnectedBroadcast() resets it
         boolean isFailover = info.isFailover();
@@ -1222,6 +1234,11 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         // if this is a default net and other default is running
         // kill the one not preferred
         if (mNetAttributes[type].isDefault()) {
+            LOG("handleConnect() : mActiveDefaultNetwork = " + mActiveDefaultNetwork + ", mNetworkPreference = " + mNetworkPreference);
+            if (-1 != mActiveDefaultNetwork) {
+                LOG("handleConnect() : priority of mActiveDefaultNetwork : " + mNetAttributes[mActiveDefaultNetwork].mPriority
+                    + ", priority of current net : " + mNetAttributes[type].mPriority);
+            }
             if (mActiveDefaultNetwork != -1 && mActiveDefaultNetwork != type) {
                 if ((type != mNetworkPreference &&
                         mNetAttributes[mActiveDefaultNetwork].mPriority >
@@ -1261,6 +1278,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         thisNet.setTeardownRequested(false);
         thisNet.updateNetworkSettings();
         handleConnectivityChange(type);
+        LOG("handleConnect() : to send 'CONNECTIVITY_ACTION' broadcast.");
         sendConnectedBroadcast(info);
     }
 
@@ -1521,10 +1539,13 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     EventLog.writeEvent(EventLogTags.CONNECTIVITY_STATE_CHANGED,
                             eventLogParam);
 
+                    LOG("handleMessage() : to branch; state = " + state);
                     if (info.getDetailedState() ==
                             NetworkInfo.DetailedState.FAILED) {
+                        LOG("handleMessage() : to call handleConnectionFailure(); detailed state : " + info.getDetailedState());
                         handleConnectionFailure(info);
                     } else if (state == NetworkInfo.State.DISCONNECTED) {
+                        LOG("handleMessage() : to call handleDisconnect(); state : " + state);
                         handleDisconnect(info);
                     } else if (state == NetworkInfo.State.SUSPENDED) {
                         // TODO: need to think this over.
@@ -1534,8 +1555,10 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                         // suspended. This allows the applications an
                         // opportunity to handle DISCONNECTED and SUSPENDED
                         // differently, or not.
+                        LOG("handleMessage() : to call handleDisconnect(); state : " + state);
                         handleDisconnect(info);
                     } else if (state == NetworkInfo.State.CONNECTED) {
+                        LOG("handleMessage() : state = " + state + "; to call handleConnect().");
                         handleConnect(info);
                     }
                     break;
