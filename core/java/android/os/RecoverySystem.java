@@ -324,6 +324,13 @@ public class RecoverySystem {
         bootCommand(context, arg);
     }
 
+    public static void installRKimage(Context context, String imagePath)
+        throws IOException {
+        Log.w("RecoverySystem", "!!! REBOOTING TO INSTALL rkimage " + imagePath + " !!!");
+        String arg = "--update_rkimage=" + imagePath;
+        bootCommand(context, arg);
+    }
+
     /**
      * Reboots the device and wipes the user data partition.  This is
      * sometimes called a "factory reset", which is something of a
