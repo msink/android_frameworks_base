@@ -638,6 +638,11 @@ public class VideoView extends SurfaceView implements MediaPlayerControl {
 
     public void seekTo(int msec) {
         if (isInPlaybackState()) {
+            if (!mMediaPlayer.isPlaying()) {
+                mMediaPlayer.start();
+                mCurrentState = STATE_PLAYING;
+                mTargetState = STATE_PLAYING;
+            }
             mMediaPlayer.seekTo(msec);
             mSeekWhenPrepared = 0;
         } else {

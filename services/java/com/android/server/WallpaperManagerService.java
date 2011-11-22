@@ -580,6 +580,10 @@ class WallpaperManagerService extends IWallpaperManager.Stub {
                 } catch (RemoteException e) {
                 }
             }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
             mContext.unbindService(mWallpaperConnection);
             try {
                 if (DEBUG) Slog.v(TAG, "Removing window token: "
@@ -587,6 +591,8 @@ class WallpaperManagerService extends IWallpaperManager.Stub {
                 mIWindowManager.removeWindowToken(mWallpaperConnection.mToken);
             } catch (RemoteException e) {
             }
+            mWallpaperConnection.mService = null;
+            mWallpaperConnection.mEngine = null;
             mWallpaperConnection = null;
         }
     }

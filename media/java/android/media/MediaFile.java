@@ -44,30 +44,36 @@ public class MediaFile {
     public static final int FILE_TYPE_AMR     = 4;
     public static final int FILE_TYPE_AWB     = 5;
     public static final int FILE_TYPE_WMA     = 6;
-    public static final int FILE_TYPE_OGG     = 7;
-    public static final int FILE_TYPE_AAC     = 8;
-    public static final int FILE_TYPE_MKA     = 9;
+    public static final int FILE_TYPE_FLAC    = 7;
+    public static final int FILE_TYPE_APE     = 8;
+    public static final int FILE_TYPE_AAC     = 9;
+    public static final int FILE_TYPE_OGG     = 10;
+    public static final int FILE_TYPE_3GP_AUDIO=11;
     private static final int FIRST_AUDIO_FILE_TYPE = FILE_TYPE_MP3;
-    private static final int LAST_AUDIO_FILE_TYPE = FILE_TYPE_MKA;
+    private static final int LAST_AUDIO_FILE_TYPE = FILE_TYPE_3GP_AUDIO;
 
     // MIDI file types
-    public static final int FILE_TYPE_MID     = 11;
-    public static final int FILE_TYPE_SMF     = 12;
-    public static final int FILE_TYPE_IMY     = 13;
+    public static final int FILE_TYPE_MID     = 12;
+    public static final int FILE_TYPE_SMF     = 13;
+    public static final int FILE_TYPE_IMY     = 14;
     private static final int FIRST_MIDI_FILE_TYPE = FILE_TYPE_MID;
     private static final int LAST_MIDI_FILE_TYPE = FILE_TYPE_IMY;
    
     // Video file types
-    public static final int FILE_TYPE_MP4     = 21;
+    public static final int FILE_TYPE_MP2TS   = 19;
+    public static final int FILE_TYPE_MP4     = 20;
+    public static final int FILE_TYPE_MPG     = 21;
     public static final int FILE_TYPE_M4V     = 22;
     public static final int FILE_TYPE_3GPP    = 23;
     public static final int FILE_TYPE_3GPP2   = 24;
     public static final int FILE_TYPE_WMV     = 25;
-    public static final int FILE_TYPE_ASF     = 26;
-    public static final int FILE_TYPE_MKV     = 27;
-    public static final int FILE_TYPE_MP2TS   = 28;
-    private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
-    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MP2TS;
+    public static final int FILE_TYPE_WEBM    = 26;
+    public static final int FILE_TYPE_FLV     = 27;
+    public static final int FILE_TYPE_RM      = 28;
+    public static final int FILE_TYPE_AVI     = 29;
+    public static final int FILE_TYPE_MKV     = 30;
+    private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP2TS;
+    private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_MKV;
     
     // Image file types
     public static final int FILE_TYPE_JPEG    = 31;
@@ -127,17 +133,23 @@ public class MediaFile {
 
     static {
         addFileType("MP3", FILE_TYPE_MP3, "audio/mpeg");
+        addFileType("MPGA", FILE_TYPE_MP3, "audio/mpeg");
+        addFileType("MP1", FILE_TYPE_MP3, "audio/mpeg");
+        addFileType("MP2", FILE_TYPE_MP3, "audio/mpeg");
         addFileType("M4A", FILE_TYPE_M4A, "audio/mp4");
         addFileType("WAV", FILE_TYPE_WAV, "audio/x-wav");
         addFileType("AMR", FILE_TYPE_AMR, "audio/amr");
         addFileType("AWB", FILE_TYPE_AWB, "audio/amr-wb");
-        if (isWMAEnabled()) {
-            addFileType("WMA", FILE_TYPE_WMA, "audio/x-ms-wma");
-        }
+        addFileType("WMA", FILE_TYPE_WMA, "audio/x-ms-wma");
+        addFileType("FLAC", FILE_TYPE_FLAC, "audio/flac");
+        addFileType("APE", FILE_TYPE_APE, "audio/ape");
         addFileType("OGG", FILE_TYPE_OGG, "application/ogg");
         addFileType("OGA", FILE_TYPE_OGG, "application/ogg");
         addFileType("AAC", FILE_TYPE_AAC, "audio/aac");
-        addFileType("MKA", FILE_TYPE_MKA, "audio/x-matroska");
+        addFileType("3GP", FILE_TYPE_3GP_AUDIO, "audio/3gpp");
+        addFileType("3GPP", FILE_TYPE_3GP_AUDIO, "audio/3gpp");
+        addFileType("3G2", FILE_TYPE_3GP_AUDIO, "audio/3gpp2");
+        addFileType("3GPP2", FILE_TYPE_3GP_AUDIO, "audio/3gpp2");
  
         addFileType("MID", FILE_TYPE_MID, "audio/midi");
         addFileType("MIDI", FILE_TYPE_MID, "audio/midi");
@@ -150,19 +162,24 @@ public class MediaFile {
         
         addFileType("MPEG", FILE_TYPE_MP4, "video/mpeg");
         addFileType("MP4", FILE_TYPE_MP4, "video/mp4");
+        addFileType("MOV", FILE_TYPE_MP4, "video/mp4");
         addFileType("M4V", FILE_TYPE_M4V, "video/mp4");
         addFileType("3GP", FILE_TYPE_3GPP, "video/3gpp");
         addFileType("3GPP", FILE_TYPE_3GPP, "video/3gpp");
         addFileType("3G2", FILE_TYPE_3GPP2, "video/3gpp2");
         addFileType("3GPP2", FILE_TYPE_3GPP2, "video/3gpp2");
+        addFileType("WMV", FILE_TYPE_WMV, "video/wmv");
+        addFileType("ASF", FILE_TYPE_WMV, "video/wmv");
+        addFileType("WEBM", FILE_TYPE_WEBM, "video/VP8");
+        addFileType("FLV", FILE_TYPE_FLV, "video/flv");
+        addFileType("RMVB", FILE_TYPE_RM, "video/rmvb");
+        addFileType("RM", FILE_TYPE_RM, "video/rmvb");
+        addFileType("AVI", FILE_TYPE_AVI, "video/avi");
         addFileType("MKV", FILE_TYPE_MKV, "video/x-matroska");
-        addFileType("WEBM", FILE_TYPE_MKV, "video/x-matroska");
-        addFileType("TS", FILE_TYPE_MP2TS, "video/mp2ts");
-
-        if (isWMVEnabled()) {
-            addFileType("WMV", FILE_TYPE_WMV, "video/x-ms-wmv");
-            addFileType("ASF", FILE_TYPE_ASF, "video/x-ms-asf");
-        }
+        addFileType("MPG", FILE_TYPE_MPG, "video/mpg");
+        addFileType("DAT", FILE_TYPE_MPG, "video/mpg");
+        addFileType("VOB", FILE_TYPE_MPG, "video/mpg");
+        addFileType("MPEG", FILE_TYPE_MPG, "video/mpg");
 
         addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg");
         addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg");
@@ -174,6 +191,11 @@ public class MediaFile {
         addFileType("M3U", FILE_TYPE_M3U, "audio/x-mpegurl");
         addFileType("PLS", FILE_TYPE_PLS, "audio/x-scpls");
         addFileType("WPL", FILE_TYPE_WPL, "application/vnd.ms-wpl");
+
+        addFileType("TS", FILE_TYPE_MP2TS, "video/mp2ts");
+        addFileType("TP", FILE_TYPE_MP2TS, "video/mp2ts");
+        addFileType("TRP", FILE_TYPE_MP2TS, "video/mp2ts");
+        addFileType("M2TS", FILE_TYPE_MP2TS, "video/mp2ts");
 
         // compute file extensions list for native Media Scanner
         StringBuilder builder = new StringBuilder();

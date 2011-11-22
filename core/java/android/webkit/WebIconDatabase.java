@@ -24,6 +24,7 @@ import android.os.Message;
 import android.provider.Browser;
 import android.util.Log;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -199,8 +200,12 @@ public final class WebIconDatabase {
      */
     public void open(String path) {
         if (path != null) {
+            File db = new File(path);
+            if (!db.exists()) {
+                db.mkdirs();
+            }
             mEventHandler.postMessage(
-                    Message.obtain(null, EventHandler.OPEN, path));
+                    Message.obtain(null, EventHandler.OPEN, db.getAbsolutePath()));
         }
     }
 

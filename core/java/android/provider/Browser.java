@@ -341,6 +341,26 @@ public class Browser {
         return str;
     }
 
+    public static final String[] getVisitedHistoryByOrder(ContentResolver cr, String order, int num) {
+        Cursor c = null;
+        try {
+            String[] projection = new String[] {
+                "url"
+            };
+            c = cr.query(BOOKMARKS_URI, projection, "visits > 0", null, order);
+            int count = c.getCount() > num ? num : c.getCount();
+            String[] str = new String[count];
+            for (int i = 0; i < count && c.moveToNext(); i++) {
+                str[i] = c.getString(0);
+            }
+            return str;
+        } catch (IllegalStateException e) {
+            return new String[0];
+        } finally {
+            if (c != null) c.close();
+        }
+    }
+
     /**
      * If there are more than MAX_HISTORY_COUNT non-bookmark history
      * items in the bookmark/history table, delete TRUNCATE_N_OLDEST

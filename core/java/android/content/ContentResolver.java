@@ -595,6 +595,10 @@ public abstract class ContentResolver {
      */
     public final Uri insert(Uri url, ContentValues values)
     {
+        try {
+            Thread.sleep(10);
+        } catch (Exception e) {
+        }
         IContentProvider provider = acquireProvider(url);
         if (provider == null) {
             throw new IllegalArgumentException("Unknown URL " + url);
@@ -715,6 +719,10 @@ public abstract class ContentResolver {
      */
     public final int update(Uri uri, ContentValues values, String where,
             String[] selectionArgs) {
+        try {
+            Thread.sleep(10);
+        } catch (Exception e) {
+        }
         IContentProvider provider = acquireProvider(uri);
         if (provider == null) {
             throw new IllegalArgumentException("Unknown URI " + uri);

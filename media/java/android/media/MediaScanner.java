@@ -28,6 +28,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.SystemProperties;
@@ -455,7 +456,7 @@ public class MediaScanner
             }
             FileCacheEntry entry = mFileCache.get(key);
             if (entry == null) {
-                entry = new FileCacheEntry(null, 0, path, 0);
+                entry = new FileCacheEntry(null, 0, path, 2);
                 mFileCache.put(key, entry);
             }
             entry.mSeenInFileSystem = true;
@@ -502,6 +503,20 @@ public class MediaScanner
 
         public Uri doScanFile(String path, String mimeType, long lastModified, long fileSize, boolean scanAlways) {
             Uri result = null;
+            String volumeName = null;
+
+            Cursor cursor = mContext.getContentResolver().query
+                                (MediaStore.getMediaScannerUri(),
+                                 new String[] { "volume" }, null, null, null);
+            if (cursor != null) {
+                if (cursor.getCount() == 1) {
+                    cursor.moveToFirst();
+                    volumeName = cursor.getString(0);
+                }
+                cursor.close();
+                cursor = null;
+            }
+
 //            long t1 = System.currentTimeMillis();
             try {
                 FileCacheEntry entry = beginFile(path, mimeType, lastModified, fileSize);
@@ -660,6 +675,7 @@ public class MediaScanner
             boolean isImage = MediaFile.isImageFileType(mFileType);
             if (isVideo) {
                 tableUri = mVideoUri;
+                return null;
             } else if (isImage) {
                 tableUri = mImagesUri;
             } else if (isAudio) {
@@ -770,6 +786,8 @@ public class MediaScanner
 
             Uri result = null;
             if (rowId == 0) {
+                Log.d(TAG, "insert tableUri: " + tableUri +
+                           ", database uri: " + tableUri.getPathSegments().get(0));
                 // new file, insert it
                 result = mMediaProvider.insert(tableUri, values);
                 if (result != null) {
@@ -1054,7 +1072,7 @@ public class MediaScanner
 
     private void pruneDeadThumbnailFiles() {
         HashSet<String> existingFiles = new HashSet<String>();
-        String directory = "/sdcard/DCIM/.thumbnails";
+        String directory = Environment.getFlashStorageDirectory().getPath() + "/DCIM/.thumbnails";
         String [] files = (new File(directory)).list();
         if (files == null)
             files = new String[0];
@@ -1097,8 +1115,9 @@ public class MediaScanner
         }
     }
 
-    private void postscan(String[] directories) throws RemoteException {
+    private void postscan(String[] directories, String volumeName) throws RemoteException {
         Iterator<FileCacheEntry> iterator = mFileCache.values().iterator();
+        beginTransaction(volumeName);
 
         while (iterator.hasNext()) {
             FileCacheEntry entry = iterator.next();
@@ -1145,8 +1164,10 @@ public class MediaScanner
             processPlayLists();
         }
 
-        if (mOriginalCount == 0 && mImagesUri.equals(Images.Media.getContentUri("external")))
+        if (mImagesUri.equals(Images.Media.getContentUri("external")))
             pruneDeadThumbnailFiles();
+
+        endTransaction(volumeName);
 
         // allow GC to clean up
         mGenreCache = null;
@@ -1177,6 +1198,31 @@ public class MediaScanner
         }
     }
 
+    private void beginTransaction(String volumeName) {
+        String BEGIN_TRANSACTION = "BeginTransaction";
+        if (volumeName == null)
+            return;
+        try {
+            mMediaProvider.call(BEGIN_TRANSACTION, volumeName, null);
+        } catch (RemoteException e) {
+            Log.e(TAG, "media scan begin transaction fail");
+        }
+    }
+
+    private void endTransaction(String volumeName) {
+        String END_TRANSACTION = "EndTransaction";
+        if (volumeName == null)
+            return;
+        try {
+            if (mMediaProvider == null) {
+                Log.e(TAG, "mMediaProvide is null");
+            }
+            mMediaProvider.call(END_TRANSACTION, volumeName, null);
+        } catch (RemoteException e) {
+            Log.e(TAG, "media scan end transaction fail");
+        }
+    }
+
     public void scanDirectories(String[] directories, String volumeName) {
         try {
             long start = System.currentTimeMillis();
@@ -1184,14 +1230,17 @@ public class MediaScanner
             prescan(null);
             long prescan = System.currentTimeMillis();
 
+            beginTransaction(volumeName);
             for (int i = 0; i < directories.length; i++) {
                 processDirectory(directories[i], MediaFile.sFileExtensions, mClient);
             }
+            endTransaction(volumeName);
             long scan = System.currentTimeMillis();
-            postscan(directories);
+            postscan(directories, volumeName);
             long end = System.currentTimeMillis();
 
             if (Config.LOGD) {
+                Log.d(TAG, "volumeName: " + volumeName);
                 Log.d(TAG, " prescan time: " + (prescan - start) + "ms\n");
                 Log.d(TAG, "    scan time: " + (scan - prescan) + "ms\n");
                 Log.d(TAG, "postscan time: " + (end - scan) + "ms\n");

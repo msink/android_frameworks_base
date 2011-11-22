@@ -206,6 +206,7 @@ public class WebSettings {
     private boolean         mSupportZoom = true;
     private boolean         mBuiltInZoomControls = false;
     private boolean         mAllowFileAccess = true;
+    private boolean         mAllowContentAccess = true;
     private boolean         mLoadWithOverviewMode = false;
     private boolean         mUseWebViewBackgroundOverscrollBackground = true;
 
@@ -469,6 +470,21 @@ public class WebSettings {
      */
     public boolean getAllowFileAccess() {
         return mAllowFileAccess;
+    }
+
+    /**
+     * Enable or disable content access within WebView. Content access is enabled by
+     * default.
+     */
+    public void setAllowContentAccess(boolean allow) {
+        mAllowContentAccess = allow;
+    }
+
+    /**
+     * Returns true if this WebView supports content access.
+     */
+    public boolean getAllowContentAccess() {
+        return mAllowContentAccess;
     }
 
     /**

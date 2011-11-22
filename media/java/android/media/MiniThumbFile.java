@@ -81,7 +81,7 @@ public class MiniThumbFile {
 
     private String randomAccessFilePath(int version) {
         String directoryName =
-                Environment.getExternalStorageDirectory().toString()
+                Environment.getFlashStorageDirectory().toString()
                 + "/DCIM/.thumbnails";
         return directoryName + "/.thumbdata" + version + "-" + mUri.hashCode();
     }
