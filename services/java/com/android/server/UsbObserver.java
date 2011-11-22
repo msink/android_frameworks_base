@@ -109,6 +109,10 @@ class UsbObserver extends UEventObserver {
                         mEnabledFunctions.remove(function);
                     }
                 }
+                // trigger an Intent broadcast
+                if (mSystemReady) {
+                    update();
+                }
             }
         }
     }

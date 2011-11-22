@@ -77,6 +77,9 @@ class IInputMethodSessionWrapper extends IInputMethodSession.Stub
     }
 
     public void executeMessage(Message msg) {
+        if (mInputMethodSession == null)
+            return;
+
         switch (msg.what) {
             case DO_FINISH_INPUT:
                 mInputMethodSession.finishInput();

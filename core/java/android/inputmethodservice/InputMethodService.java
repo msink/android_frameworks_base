@@ -841,14 +841,7 @@ public class InputMethodService extends AbstractInputMethodService {
      */
     public boolean onEvaluateFullscreenMode() {
         Configuration config = getResources().getConfiguration();
-        if (config.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-            return false;
-        }
-        if (mInputEditorInfo != null
-                && (mInputEditorInfo.imeOptions & EditorInfo.IME_FLAG_NO_FULLSCREEN) != 0) {
-            return false;
-        }
-        return true;
+        return false;
     }
     
     /**

@@ -16,6 +16,7 @@
 
 package android.text.method;
 
+import android.os.SystemProperties;
 import android.text.*;
 import android.text.method.TextKeyListener.Capitalize;
 import android.util.SparseArray;
@@ -31,6 +32,8 @@ import android.view.View;
 public class QwertyKeyListener extends BaseKeyListener {
     private static QwertyKeyListener[] sInstance =
         new QwertyKeyListener[Capitalize.values().length * 2];
+    public static String TAG = "qwertykeylistener";
+    final static boolean DEBUG = false;
 
     public QwertyKeyListener(Capitalize cap, boolean autotext) {
         mAutoCap = cap;
@@ -84,6 +87,20 @@ public class QwertyKeyListener extends BaseKeyListener {
         // QWERTY keyboard normal case
 
         int i = event.getUnicodeChar(getMetaState(content));
+        if (SystemProperties.get("sys.event.capslock").equals("on")
+                    && event.getFlags() == KeyEvent.FLAG_FROM_SYSTEM) {
+            if (i >= 'a' && i <= 'z') {
+                i -= 0x20;
+            } else if (i >= 'A' && i <= 'Z') {
+                i += 0x20;
+            }
+        }
+
+        if (!SystemProperties.get("sys.event.numlock").equals("on")
+                   && event.getFlags() == KeyEvent.FLAG_FROM_SYSTEM) {
+            if (keyCode >= KeyEvent.KEYCODE_KP0 && keyCode <= KeyEvent.KEYCODE_KPDOT)
+                return true;
+        }
 
         int count = event.getRepeatCount();
         if (count > 0 && selStart == selEnd && selStart > 0) {

@@ -122,6 +122,9 @@ implements KeyListener {
         if (keyCode == KeyEvent.KEYCODE_DEL) {
             backspace(view, content, keyCode, event);
             return true;
+        } else if (keyCode == KeyEvent.KEYCODE_DELETE) {
+            keyDelete(view, content, keyCode, event);
+            return true;
         }
         
         return super.onKeyDown(view, content, keyCode, event);
@@ -154,6 +157,47 @@ implements KeyListener {
         }
         
         content.replace(selStart, selEnd, text);
+        return true;
+    }
+
+    public boolean keyDelete(View view, Editable content, int keyCode, KeyEvent event) {
+        boolean result = true;
+        int a = Selection.getSelectionStart(content);
+        int b = Selection.getSelectionEnd(content);
+        int selStart = Math.min(a, b);
+        int selEnd = Math.max(a, b);
+        if (selStart != selEnd) {
+            content.delete(selStart, selEnd);
+        } else if (altkeyDelete(view, content, keyCode, event)) {
+            result = true;
+        } else {
+            int to = android.text.TextUtils.getOffsetAfter(content, selEnd);
+            if (to != selEnd) {
+                content.delete(Math.min(to, selEnd), Math.max(to, selEnd));
+            } else {
+                result = false;
+            }
+        }
+        if (result != false) {
+            BaseKeyListener.adjustMetaAfterKeypress(content);
+        }
+        return result;
+    }
+
+    private boolean altkeyDelete(View view, Editable content, int keyCode, KeyEvent event) {
+        if (getMetaState(content, META_ALT_ON) != META_SHIFT_ON)
+            return false;
+        if (!(view instanceof android.widget.TextView))
+            return false;
+        Layout layout = ((TextView)view).getLayout();
+        if (layout == null)
+            return false;
+        int l = layout.getLineForOffset(Selection.getSelectionStart(content));
+        int start = layout.getLineStart(l);
+        int end = layout.getLineEnd(l);
+        if (end == start)
+            return false;
+        content.delete(start, end);
         return true;
     }
 }

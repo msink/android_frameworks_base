@@ -332,6 +332,44 @@ public class KeyEvent extends InputEvent implements Parcelable {
      * On a game controller, the button labeled Mode. */
     public static final int KEYCODE_BUTTON_MODE     = 110;
 
+    public static final int KEYCODE_KP0             = 111;
+    public static final int KEYCODE_KP1             = 112;
+    public static final int KEYCODE_KP2             = 113;
+    public static final int KEYCODE_KP3             = 114;
+    public static final int KEYCODE_KP4             = 115;
+    public static final int KEYCODE_KP5             = 116;
+    public static final int KEYCODE_KP6             = 117;
+    public static final int KEYCODE_KP7             = 118;
+    public static final int KEYCODE_KP8             = 119;
+    public static final int KEYCODE_KP9             = 120;
+    public static final int KEYCODE_NUMLOCK         = 121;
+    public static final int KEYCODE_KPSLASH         = 122;
+    public static final int KEYCODE_KPASTERISK      = 123;
+    public static final int KEYCODE_KPMINUS         = 124;
+    public static final int KEYCODE_KPPLUS          = 125;
+    public static final int KEYCODE_KPENTER         = 126;
+    public static final int KEYCODE_KPDOT           = 127;
+    public static final int KEYCODE_CAPSLOCK        = 128;
+    public static final int KEYCODE_LEFTMETA        = 129;
+    public static final int KEYCODE_RIGHTMETA       = 130;
+    public static final int KEYCODE_COMPOSE         = 131;
+    public static final int KEYCODE_F5              = 132;
+    public static final int KEYCODE_F6              = 133;
+    public static final int KEYCODE_F7              = 134;
+    public static final int KEYCODE_F8              = 135;
+    public static final int KEYCODE_F9              = 136;
+    public static final int KEYCODE_F11             = 137;
+    public static final int KEYCODE_F12             = 138;
+    public static final int KEYCODE_SYSRQ           = 139;
+    public static final int KEYCODE_SCROLLLOCK      = 140;
+    public static final int KEYCODE_PAUSE           = 141;
+    public static final int KEYCODE_INSERT          = 142;
+    public static final int KEYCODE_PAGEUP          = 143;
+    public static final int KEYCODE_PAGEDOWN        = 144;
+    public static final int KEYCODE_DELETE          = 145;
+    public static final int KEYCODE_LEFTCTRL        = 146;
+    public static final int KEYCODE_RIGHTCTRL       = 147;
+
     // NOTE: If you add a new keycode here you must also add it to:
     //  isSystem()
     //  native/include/android/keycodes.h

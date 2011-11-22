@@ -953,6 +953,43 @@
         <enum name="KEYCODE_BUTTON_START" value="108" />
         <enum name="KEYCODE_BUTTON_SELECT" value="109" />
         <enum name="KEYCODE_BUTTON_MODE" value="110" />
+        <enum name="KEYCODE_KP0" value="111" />
+        <enum name="KEYCODE_KP1" value="112" />
+        <enum name="KEYCODE_KP2" value="113" />
+        <enum name="KEYCODE_KP3" value="114" />
+        <enum name="KEYCODE_KP4" value="115" />
+        <enum name="KEYCODE_KP5" value="116" />
+        <enum name="KEYCODE_KP6" value="117" />
+        <enum name="KEYCODE_KP7" value="118" />
+        <enum name="KEYCODE_KP8" value="119" />
+        <enum name="KEYCODE_KP9" value="120" />
+        <enum name="KEYCODE_NUMLOCK" value="121" />
+        <enum name="KEYCODE_KPSLASH" value="122" />
+        <enum name="KEYCODE_KPASTERISK" value="123" />
+        <enum name="KEYCODE_KPMINUS" value="124" />
+        <enum name="KEYCODE_KPPLUS" value="125" />
+        <enum name="KEYCODE_KPENTER" value="126" />
+        <enum name="KEYCODE_KPDOT" value="127" />
+        <enum name="KEYCODE_CAPSLOCK" value="128" />
+        <enum name="KEYCODE_LEFTMETA" value="129" />
+        <enum name="KEYCODE_RIGHTMETA" value="130" />
+        <enum name="KEYCODE_COMPOSE" value="131" />
+        <enum name="KEYCODE_F5" value="132" />
+        <enum name="KEYCODE_F6" value="133" />
+        <enum name="KEYCODE_F7" value="134" />
+        <enum name="KEYCODE_F8" value="135" />
+        <enum name="KEYCODE_F9" value="136" />
+        <enum name="KEYCODE_F11" value="137" />
+        <enum name="KEYCODE_F12" value="138" />
+        <enum name="KEYCODE_SYSRQ" value="139" />
+        <enum name="KEYCODE_SCROLLLOCK" value="140" />
+        <enum name="KEYCODE_PAUSE" value="141" />
+        <enum name="KEYCODE_INSERT" value="142" />
+        <enum name="KEYCODE_PAGEUP" value="143" />
+        <enum name="KEYCODE_PAGEDOWN" value="144" />
+        <enum name="KEYCODE_DELETE" value="145" />
+        <enum name="KEYCODE_LEFTCTRL" value="146" />
+        <enum name="KEYCODE_RIGHTCTRL" value="147" />
     </attr>
 
     <!-- ***************************************************************** -->
