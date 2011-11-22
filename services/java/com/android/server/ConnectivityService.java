@@ -27,6 +27,7 @@ import android.net.IConnectivityManager;
 import android.net.MobileDataStateTracker;
 import android.net.NetworkInfo;
 import android.net.NetworkStateTracker;
+import android.net.ethernet.EthernetStateTracker;
 import android.net.wifi.WifiStateTracker;
 import android.os.Binder;
 import android.os.Handler;
@@ -367,7 +368,14 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                 wifiService.startWifi();
                 mNetTrackers[ConnectivityManager.TYPE_WIFI] = wst;
                 wst.startMonitoring();
-
+                break;
+            case ConnectivityManager.TYPE_ETHERNET:
+                if (DBG) Slog.i(TAG, "Starting Ethernet Service.");
+                EthernetStateTracker est = new EthernetStateTracker(context, mHandler);
+                EthernetService ethernetService = new EthernetService(context, est);
+                ServiceManager.addService(Context.ETHERNET_SERVICE, ethernetService);
+                mNetTrackers[ConnectivityManager.TYPE_ETHERNET] = est;
+                est.startMonitoring();
                 break;
             case ConnectivityManager.TYPE_MOBILE:
                 mNetTrackers[netType] = new MobileDataStateTracker(context, mHandler,

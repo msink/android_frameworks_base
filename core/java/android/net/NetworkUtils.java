@@ -85,6 +85,8 @@ public class NetworkUtils {
      */
     public native static String getDhcpError();
 
+    public native static String getDhcpError(String param);
+
     /**
      * When static IP configuration has been specified, configure the network
      * interface according to the values supplied.

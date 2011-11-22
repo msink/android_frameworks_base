@@ -70,6 +70,8 @@ import android.net.IConnectivityManager;
 import android.net.ThrottleManager;
 import android.net.IThrottleManager;
 import android.net.Uri;
+import android.net.ethernet.IEthernetManager;
+import android.net.ethernet.EthernetManager;
 import android.net.wifi.IWifiManager;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
@@ -103,6 +105,7 @@ import android.accounts.AccountManager;
 import android.accounts.IAccountManager;
 import android.app.admin.DevicePolicyManager;
 import com.android.internal.os.IDropBoxManagerService;
+import com.rockchip.android.macro.rkMacro;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -169,6 +172,7 @@ class ContextImpl extends Context {
     private static ConnectivityManager sConnectivityManager;
     private static ThrottleManager sThrottleManager;
     private static WifiManager sWifiManager;
+    private static EthernetManager sEthernetManager;
     private static LocationManager sLocationManager;
     private static final HashMap<String, SharedPreferencesImpl> sSharedPrefs =
             new HashMap<String, SharedPreferencesImpl>();
@@ -937,6 +941,8 @@ class ContextImpl extends Context {
             return getThrottleManager();
         } else if (WIFI_SERVICE.equals(name)) {
             return getWifiManager();
+        } else if (ETHERNET_SERVICE.equals(name)) {
+            return getEthernetManager();
         } else if (NOTIFICATION_SERVICE.equals(name)) {
             return getNotificationManager();
         } else if (KEYGUARD_SERVICE.equals(name)) {
@@ -1058,6 +1064,21 @@ class ContextImpl extends Context {
             }
         }
         return sWifiManager;
+    }
+
+    private EthernetManager getEthernetManager() {
+      if (rkMacro.ENABLE_ETHERNET) {
+        synchronized (sSync) {
+            if (sEthernetManager == null) {
+                IBinder b = ServiceManager.getService(ETHERNET_SERVICE);
+                IEthernetManager service = IEthernetManager.Stub.asInterface(b);
+                sEthernetManager = new EthernetManager(service, mMainThread.getHandler());
+            }
+        }
+        return sEthernetManager;
+      } else {
+        throw new UnsupportedOperationException("Device is configged NOT to support ethernet!");
+      }
     }
 
     private NotificationManager getNotificationManager() {

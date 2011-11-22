@@ -1155,6 +1155,7 @@ public final class Settings {
          * Set to 1 for true and 0 for false.
          */
         public static final String WIFI_USE_STATIC_IP = "wifi_use_static_ip";
+        public static final String ETHERNET_USE_STATIC_IP = "ethernet_use_static_ip";
 
         /**
          * The static IP address.
@@ -1162,6 +1163,7 @@ public final class Settings {
          * Example: "192.168.1.51"
          */
         public static final String WIFI_STATIC_IP = "wifi_static_ip";
+        public static final String ETHERNET_STATIC_IP = "ethernet_static_ip";
 
         /**
          * If using static IP, the gateway's IP address.
@@ -1169,6 +1171,7 @@ public final class Settings {
          * Example: "192.168.1.1"
          */
         public static final String WIFI_STATIC_GATEWAY = "wifi_static_gateway";
+        public static final String ETHERNET_STATIC_GATEWAY = "ethernet_static_gateway";
 
         /**
          * If using static IP, the net mask.
@@ -1176,6 +1179,7 @@ public final class Settings {
          * Example: "255.255.255.0"
          */
         public static final String WIFI_STATIC_NETMASK = "wifi_static_netmask";
+        public static final String ETHERNET_STATIC_NETMASK = "ethernet_static_netmask";
 
         /**
          * If using static IP, the primary DNS's IP address.
@@ -1183,6 +1187,7 @@ public final class Settings {
          * Example: "192.168.1.1"
          */
         public static final String WIFI_STATIC_DNS1 = "wifi_static_dns1";
+        public static final String ETHERNET_STATIC_DNS1 = "ethernet_static_dns1";
 
         /**
          * If using static IP, the secondary DNS's IP address.
@@ -1190,6 +1195,7 @@ public final class Settings {
          * Example: "192.168.1.2"
          */
         public static final String WIFI_STATIC_DNS2 = "wifi_static_dns2";
+        public static final String ETHERNET_STATIC_DNS2 = "ethernet_static_dns2";
 
         /**
          * The number of radio channels that are allowed in the local
@@ -2577,6 +2583,7 @@ public final class Settings {
          * Whether the Wi-Fi should be on.  Only the Wi-Fi service should touch this.
          */
         public static final String WIFI_ON = "wifi_on";
+        public static final String ETHERNET_ON = "ethernet_on";
 
         /**
          * Used to save the Wifi_ON state prior to tethering.

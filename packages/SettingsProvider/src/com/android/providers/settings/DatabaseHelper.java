@@ -258,6 +258,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Settings.Secure.WIFI_NETWORKS_AVAILABLE_REPEAT_DELAY,
                     Settings.Secure.WIFI_NUM_OPEN_NETWORKS_KEPT,
                     Settings.Secure.WIFI_ON,
+                    Settings.Secure.ETHERNET_ON,
                     Settings.Secure.WIFI_WATCHDOG_ACCEPTABLE_PACKET_LOSS_PERCENTAGE,
                     Settings.Secure.WIFI_WATCHDOG_AP_COUNT,
                     Settings.Secure.WIFI_WATCHDOG_BACKGROUND_CHECK_DELAY_MS,
