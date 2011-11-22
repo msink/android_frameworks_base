@@ -80,6 +80,8 @@
          The default product has external storage on an SD card, which is
          removable. -->
     <bool name="config_externalStorageRemovable" product="default">true</bool>
+    <bool name="config_hostStorageRemovable">true</bool>
+    <bool name="config_flashStorageRemovable">false</bool>
 
     <!-- XXXXX NOTE THE FOLLOWING RESOURCES USE THE WRONG NAMING CONVENTION.
          Please don't copy them, copy anything else. -->

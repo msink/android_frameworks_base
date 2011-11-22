@@ -97,10 +97,11 @@ final class NativeDaemonConnector implements Runnable {
                     LocalSocketAddress.Namespace.RESERVED);
 
             socket.connect(address);
-            mCallbacks.onDaemonConnected();
 
             InputStream inputStream = socket.getInputStream();
             mOutputStream = socket.getOutputStream();
+
+            mCallbacks.onDaemonConnected();
 
             byte[] buffer = new byte[BUFFER_SIZE];
             int start = 0;
@@ -241,7 +242,11 @@ final class NativeDaemonConnector implements Runnable {
                 if ((code >= 200) && (code < 600)) {
                     complete = true;
                 }
-                response.add(line);
+                if (code > 600) {
+                    Slog.w(TAG, "doCmd(" + cmd + ") bypass " + code);
+                } else {
+                    response.add(line);
+                }
             } catch (InterruptedException ex) {
                 Slog.e(TAG, "Failed to process response", ex);
             }

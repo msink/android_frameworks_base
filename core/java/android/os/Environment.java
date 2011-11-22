@@ -92,16 +92,22 @@ public class Environment {
     private static final File EXTERNAL_STORAGE_DIRECTORY
             = getDirectory("EXTERNAL_STORAGE", "/sdcard");
 
+    private static final File FLASH_STORAGE_DIRECTORY
+            = getDirectory("FLASH_STORAGE", "/flash");
+
     private static final File EXTERNAL_STORAGE_ANDROID_DATA_DIRECTORY
-            = new File (new File(getDirectory("EXTERNAL_STORAGE", "/sdcard"),
+            = new File (new File(getDirectory("FLASH_STORAGE", "/sdcard"),
                     "Android"), "data");
 
     private static final File EXTERNAL_STORAGE_ANDROID_MEDIA_DIRECTORY
-            = new File (new File(getDirectory("EXTERNAL_STORAGE", "/sdcard"),
+            = new File (new File(getDirectory("FLASH_STORAGE", "/sdcard"),
                     "Android"), "media");
 
     private static final File DOWNLOAD_CACHE_DIRECTORY
             = getDirectory("DOWNLOAD_CACHE", "/cache");
+
+    private static final File HOST_STORAGE_DIRECTORY
+            = getDirectory("HOST_STORAGE_DIRECTORY", "/mnt/udisk");
 
     /**
      * Gets the Android data directory.
@@ -150,6 +156,14 @@ public class Environment {
      */
     public static File getExternalStorageDirectory() {
         return EXTERNAL_STORAGE_DIRECTORY;
+    }
+
+    public static File getFlashStorageDirectory() {
+        return FLASH_STORAGE_DIRECTORY;
+    }
+
+    public static File getHostStorageDirectory() {
+        return HOST_STORAGE_DIRECTORY;
     }
 
     /**
@@ -386,7 +400,30 @@ public class Environment {
                 mMntSvc = IMountService.Stub.asInterface(ServiceManager
                                                          .getService("mount"));
             }
-            return mMntSvc.getVolumeState(getExternalStorageDirectory().toString());
+            String externalVolumeState = mMntSvc.getVolumeState(getExternalStorageDirectory().toString());
+            return !externalVolumeState.equals(MEDIA_MOUNTED) ? getFlashStorageState() : externalVolumeState;
+        } catch (Exception rex) {
+            return Environment.MEDIA_REMOVED;
+        }
+    }
+
+    public static String getFlashStorageState() {
+        try {
+            if (mMntSvc == null) {
+                mMntSvc = IMountService.Stub.asInterface(ServiceManager.getService("mount"));
+            }
+            return mMntSvc.getVolumeState(getFlashStorageDirectory().toString());
+        } catch (Exception rex) {
+            return Environment.MEDIA_REMOVED;
+        }
+    }
+
+    public static String getHostStorageState() {
+        try {
+            if (mMntSvc == null) {
+                mMntSvc = IMountService.Stub.asInterface(ServiceManager.getService("mount"));
+            }
+            return mMntSvc.getVolumeState(getHostStorageDirectory().toString());
         } catch (Exception rex) {
             return Environment.MEDIA_REMOVED;
         }
@@ -408,5 +445,17 @@ public class Environment {
     static File getDirectory(String variableName, String defaultPath) {
         String path = System.getenv(variableName);
         return path == null ? new File(defaultPath) : new File(path);
+    }
+
+    public static boolean isFlashStorageRemovable()
+    {
+        return Resources.getSystem().getBoolean(
+                com.android.internal.R.bool.config_flashStorageRemovable);
+    }
+
+    public static boolean isHostStorageRemovable()
+    {
+        return Resources.getSystem().getBoolean(
+                com.android.internal.R.bool.config_hostStorageRemovable);
     }
 }

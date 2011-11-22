@@ -1061,8 +1061,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadBooleanSetting(stmt, Settings.System.NOTIFICATION_LIGHT_PULSE,
                     R.bool.def_notification_pulse);
             loadSetting(stmt, Settings.Secure.SET_INSTALL_LOCATION, 0);
-            loadSetting(stmt, Settings.Secure.DEFAULT_INSTALL_LOCATION,
-                    PackageHelper.APP_INSTALL_AUTO);
+            loadIntegerSetting(stmt, Settings.Secure.DEFAULT_INSTALL_LOCATION,
+                    R.integer.default_install_location);
     
             loadUISoundEffectsSettings(stmt);
     

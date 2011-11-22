@@ -6,11 +6,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.storage.IMountService;
 import android.os.storage.StorageEventListener;
 import android.os.storage.StorageManager;
@@ -47,6 +49,8 @@ public class ExternalStorageFormatter extends Service
     private boolean mFactoryReset = false;
     private boolean mAlwaysReset = false;
 
+    private String mPath;
+
     StorageEventListener mStorageListener = new StorageEventListener() {
         @Override
         public void onStorageStateChanged(String path, String oldState, String newState) {
@@ -73,6 +77,15 @@ public class ExternalStorageFormatter extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            if ((mPath = extras.getString("path")) == null) {
+                mPath = Environment.getExternalStorageDirectory().toString();
+            }
+        } else {
+            mPath = Environment.getExternalStorageDirectory().toString();
+        }
+        Log.v("ExternalMediaFormatActivity,onStartCommand", "volume: " + mPath);
         if (FORMAT_AND_FACTORY_RESET.equals(intent.getAction())) {
             mFactoryReset = true;
         }
@@ -115,7 +128,7 @@ public class ExternalStorageFormatter extends Service
     @Override
     public void onCancel(DialogInterface dialog) {
         IMountService mountService = getMountService();
-        String extStoragePath = Environment.getExternalStorageDirectory().toString();
+        String extStoragePath = mPath;
         try {
             mountService.mountVolume(extStoragePath);
         } catch (RemoteException e) {
@@ -133,14 +146,35 @@ public class ExternalStorageFormatter extends Service
     }
 
     void updateProgressState() {
-        String status = Environment.getExternalStorageState();
+        String status;
+
+        if (mPath.equals(Environment.getFlashStorageDirectory().getPath())) {
+            status = Environment.getFlashStorageState();
+        } else {
+            try {
+                IMountService mMntSvc = IMountService.Stub.
+                          asInterface(ServiceManager.getService("mount"));
+                status = mMntSvc.getVolumeState(Environment.getExternalStorageDirectory().toString());
+            } catch (Exception rex) {
+                Log.i(TAG, "get ExternalStroageState error");
+                status = Environment.MEDIA_REMOVED;
+            }
+        }
+
+        Log.d(TAG, "updateProgressState status=" + status);
+
         if (Environment.MEDIA_MOUNTED.equals(status)
                 || Environment.MEDIA_MOUNTED_READ_ONLY.equals(status)) {
             updateProgressDialog(R.string.progress_unmounting);
+            SystemProperties.set("sys.storage.state", "formating");
             IMountService mountService = getMountService();
-            String extStoragePath = Environment.getExternalStorageDirectory().toString();
             try {
-                mountService.unmountVolume(extStoragePath, true);
+                if (mPath.equals(Environment.getFlashStorageDirectory().toString())) {
+                    updateProgressDialog(R.string.progress_unmounting_nand);
+                    mountService.unmountVolume(Environment.
+                                 getExternalStorageDirectory().toString(), true);
+                }
+                mountService.unmountVolume(mPath, true);
             } catch (RemoteException e) {
                 Log.w(TAG, "Failed talking with mount service", e);
             }
@@ -148,8 +182,9 @@ public class ExternalStorageFormatter extends Service
                 || Environment.MEDIA_UNMOUNTED.equals(status)
                 || Environment.MEDIA_UNMOUNTABLE.equals(status)) {
             updateProgressDialog(R.string.progress_erasing);
+            SystemProperties.set("sys.storage.state", "ready");
             final IMountService mountService = getMountService();
-            final String extStoragePath = Environment.getExternalStorageDirectory().toString();
+            final String extStoragePath = mPath;
             if (mountService != null) {
                 new Thread() {
                     public void run() {
@@ -175,7 +210,8 @@ public class ExternalStorageFormatter extends Service
                             sendBroadcast(new Intent("android.intent.action.MASTER_CLEAR"));
                         } else {
                             try {
-                                mountService.mountVolume(extStoragePath);
+                                mountService.mountVolume(Environment.
+                                    getExternalStorageDirectory().toString());
                             } catch (RemoteException e) {
                                 Log.w(TAG, "Failed talking with mount service", e);
                             }

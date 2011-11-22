@@ -31,6 +31,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.hardware.Usb;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -45,6 +46,8 @@ import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -67,10 +70,18 @@ public class UsbStorageActivity extends Activity
     private TextView mBanner;
     private TextView mMessage;
     private ImageView mIcon;
+    private TextView chargingIcon;
+    private TextView usbIcon;
+    private TextView usbIconLarger;
+    private TextView usbMsg;
+
+    private AlertDialog ad = null;
     private StorageManager mStorageManager = null;
     private static final int DLG_CONFIRM_KILL_STORAGE_USERS = 1;
     private static final int DLG_ERROR_SHARING = 2;
     static final boolean localLOGV = false;
+    private boolean dialogIsThere = false;
+    private boolean mWasUsbStorageInUse = false;
 
     // UI thread
     private Handler mUIHandler;
@@ -91,14 +102,24 @@ public class UsbStorageActivity extends Activity
     private StorageEventListener mStorageListener = new StorageEventListener() {
         @Override
         public void onStorageStateChanged(String path, String oldState, String newState) {
-            final boolean on = newState.equals(Environment.MEDIA_SHARED);
-            switchDisplay(on);
+            if (newState.equals(Environment.MEDIA_SHARED) &&
+                    path.equals(Environment.getFlashStorageDirectory().getPath())) {
+                switchDisplay(true);
+            } else if (newState.equals(Environment.MEDIA_MOUNTED) &&
+                    path.equals(Environment.getFlashStorageDirectory().getPath())) {
+                switchDisplay(false);
+            }
         }
     };
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey("killstorageusers")) {
+            showDialog(1);
+            ad.onRestoreInstanceState(savedInstanceState.getBundle("killstorageusers"));
+        }
 
         if (mStorageManager == null) {
             mStorageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
@@ -134,9 +155,18 @@ public class UsbStorageActivity extends Activity
         mUnmountButton = (Button) findViewById(com.android.internal.R.id.unmount_button);
         mUnmountButton.setOnClickListener(this);
         mProgressBar = (ProgressBar) findViewById(com.android.internal.R.id.progress);
+        switchDisplay(false, true);
     }
 
     private void switchDisplay(final boolean usbStorageInUse) {
+        switchDisplay(usbStorageInUse, false);
+    }
+
+    private void switchDisplay(final boolean usbStorageInUse, final boolean force) {
+        if (usbStorageInUse == mWasUsbStorageInUse && !force) {
+            return;
+        }
+        mWasUsbStorageInUse = usbStorageInUse;
         mUIHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -148,14 +178,18 @@ public class UsbStorageActivity extends Activity
     private void switchDisplayAsync(boolean usbStorageInUse) {
         if (usbStorageInUse) {
             mProgressBar.setVisibility(View.GONE);
+            mUnmountButton.setEnabled(true);
             mUnmountButton.setVisibility(View.VISIBLE);
+            mMountButton.setEnabled(false);
             mMountButton.setVisibility(View.GONE);
             mIcon.setImageResource(com.android.internal.R.drawable.usb_android_connected);
             mBanner.setText(com.android.internal.R.string.usb_storage_stop_title);
             mMessage.setText(com.android.internal.R.string.usb_storage_stop_message);
         } else {
             mProgressBar.setVisibility(View.GONE);
+            mUnmountButton.setEnabled(false);
             mUnmountButton.setVisibility(View.GONE);
+            mMountButton.setEnabled(true);
             mMountButton.setVisibility(View.VISIBLE);
             mIcon.setImageResource(com.android.internal.R.drawable.usb_android);
             mBanner.setText(com.android.internal.R.string.usb_storage_title);
@@ -167,6 +201,8 @@ public class UsbStorageActivity extends Activity
     protected void onResume() {
         super.onResume();
 
+        mMountButton.setEnabled(true);
+        mUnmountButton.setEnabled(true);
         mStorageManager.registerListener(mStorageListener);
         registerReceiver(mUsbStateReceiver, new IntentFilter(Usb.ACTION_USB_STATE));
         try {
@@ -195,6 +231,10 @@ public class UsbStorageActivity extends Activity
         boolean connected = intent.getExtras().getBoolean(Usb.USB_CONNECTED);
         if (!connected) {
             // It was disconnected from the plug, so finish
+            if (dialogIsThere) {
+                dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
+                dialogIsThere = false;
+            }
             finish();
         }
     }
@@ -211,23 +251,33 @@ public class UsbStorageActivity extends Activity
     public Dialog onCreateDialog(int id, Bundle args) {
         switch (id) {
         case DLG_CONFIRM_KILL_STORAGE_USERS:
-            return new AlertDialog.Builder(this)
+            dialogIsThere = true;
+            ad = new AlertDialog.Builder(this)
                     .setTitle(R.string.dlg_confirm_kill_storage_users_title)
                     .setPositiveButton(R.string.dlg_ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
+                            dialogIsThere = false;
                             switchUsbMassStorage(true);
                         }})
-                    .setNegativeButton(R.string.cancel, null)
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
+                            dialogIsThere = false;
+                            finish();
+                        }})
                     .setMessage(R.string.dlg_confirm_kill_storage_users_text)
                     .setOnCancelListener(this)
                     .create();
+            return ad;
         case DLG_ERROR_SHARING:
-            return new AlertDialog.Builder(this)
+            ad = new AlertDialog.Builder(this)
                     .setTitle(R.string.dlg_error_title)
                     .setNeutralButton(R.string.dlg_ok, null)
                     .setMessage(R.string.usb_storage_error_message)
                     .setOnCancelListener(this)
                     .create();
+            return ad;
         }
         return null;
     }
@@ -279,9 +329,16 @@ public class UsbStorageActivity extends Activity
             showDialogInner(DLG_ERROR_SHARING);
         }
         String extStoragePath = Environment.getExternalStorageDirectory().toString();
+        String flashStoragePath = Environment.getFlashStorageDirectory().toString();
         boolean showDialog = false;
         try {
             int[] stUsers = ims.getStorageUsers(extStoragePath);
+            if (ims.getVolumeState(extStoragePath).equals(Environment.MEDIA_MOUNTED)) {
+                if (stUsers != null && stUsers.length > 0) {
+                    showDialog = true;
+                }
+            }
+            stUsers = ims.getStorageUsers(flashStoragePath);
             if (stUsers != null && stUsers.length > 0) {
                 showDialog = true;
             } else {
@@ -308,15 +365,30 @@ public class UsbStorageActivity extends Activity
     public void onClick(View v) {
         if (v == mMountButton) {
            // Check for list of storage users and display dialog if needed.
+            mMountButton.setEnabled(false);
+            mUnmountButton.setEnabled(true);
             checkStorageUsers();
         } else if (v == mUnmountButton) {
             if (localLOGV) Log.i(TAG, "Disabling UMS");
+            mMountButton.setEnabled(true);
+            mUnmountButton.setEnabled(false);
             switchUsbMassStorage(false);
         }
     }
 
     public void onCancel(DialogInterface dialog) {
+        if (dialogIsThere) {
+            dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
+            dialogIsThere = false;
+        }
         finish();
     }
 
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        if (ad != null && dialogIsThere) {
+            state.putBundle("killstorageusers", ad.onSaveInstanceState());
+            dismissDialog(1);
+        }
+    }
 }

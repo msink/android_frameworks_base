@@ -34,6 +34,7 @@ import android.util.Log;
 public class ExternalMediaFormatActivity extends AlertActivity implements DialogInterface.OnClickListener {
 
     private static final int POSITIVE_BUTTON = AlertDialog.BUTTON_POSITIVE;
+    private String mPath;
 
     /** Used to detect when the media state changes, in case we need to call finish() */
     private BroadcastReceiver mStorageReceiver = new BroadcastReceiver() {
@@ -56,8 +57,21 @@ public class ExternalMediaFormatActivity extends AlertActivity implements Dialog
         super.onCreate(savedInstanceState);
 
         Log.d("ExternalMediaFormatActivity", "onCreate!");
+        Bundle extras = getIntent().getExtras();
+        mPath = extras.getString("path");
+        Log.v("ExternalMediaFormatActivity", "volume: " + mPath);
+
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
+      if (mPath.equals("/mnt/sdcard")) {
+        p.mIconId = com.android.internal.R.drawable.stat_sys_warning;
+        p.mTitle = getString(com.android.internal.R.string.flashmedia_format_title);
+        p.mMessage = getString(com.android.internal.R.string.flashmedia_format_message);
+        p.mPositiveButtonText = getString(com.android.internal.R.string.flashmedia_format_button_format);
+        p.mPositiveButtonListener = this;
+        p.mNegativeButtonText = getString(com.android.internal.R.string.cancel);
+        p.mNegativeButtonListener = this;
+      } else {
         p.mIconId = com.android.internal.R.drawable.stat_sys_warning;
         p.mTitle = getString(com.android.internal.R.string.extmedia_format_title);
         p.mMessage = getString(com.android.internal.R.string.extmedia_format_message);
@@ -65,6 +79,7 @@ public class ExternalMediaFormatActivity extends AlertActivity implements Dialog
         p.mPositiveButtonListener = this;
         p.mNegativeButtonText = getString(com.android.internal.R.string.cancel);
         p.mNegativeButtonListener = this;
+      }
         setupAlert();
     }
 
@@ -95,6 +110,7 @@ public class ExternalMediaFormatActivity extends AlertActivity implements Dialog
         if (which == POSITIVE_BUTTON) {
             Intent intent = new Intent(ExternalStorageFormatter.FORMAT_ONLY);
             intent.setComponent(ExternalStorageFormatter.COMPONENT_NAME);
+            intent.putExtra("path", mPath);
             startService(intent);
         }
 

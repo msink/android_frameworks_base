@@ -904,4 +904,12 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"某台计算机正在使用 USB 存储设备。"</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"目前有计算机正在使用 SD 卡。"</string>
     <string name="media_unknown_state" msgid="729192782197290385">"外部媒体处于未知状态。"</string>
+
+    <string name="flashmedia_format_title">格式化内部大容量存储设备</string>
+    <string name="flashmedia_format_message">确定要将内部大容量存储设备格式化吗？内部大容量存储设备上的所有数据都将丢失。</string>
+    <string name="flash_media_checking_notification_title">正在准备内部存储设备</string>
+    <string name="flash_media_checking_notification_message">正在检查是否有错误。</string>
+    <string name="flash_media_nofs_notification_title">内部大容量存储无文件系统</string>
+    <string name="flash_media_nofs_notification_message">内部大容量存储无文件系统，或文件系统不受支持，点击进行格式化。</string>
+    <string name="progress_unmounting_nand">正在卸载内部存储设备...</string>
 </resources>

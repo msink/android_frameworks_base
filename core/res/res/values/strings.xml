@@ -2120,12 +2120,15 @@
     <string name="extmedia_format_title" product="nosdcard">Format USB storage</string>
     <!-- See EXTMEDIA_FORMAT.  EXTMEDIA_FORMAT_DIALOG:  After the user selects the notification, a dialog is shown asking if he wants to format the SD card.  This is the title. -->
     <string name="extmedia_format_title" product="default">Format SD card</string>
+    <string name="flashmedia_format_title">Format Flash Storage</string>
     <!-- See EXTMEDIA_FORMAT.   This is the message. [CHAR LIMIT=NONE] -->
     <string name="extmedia_format_message" product="nosdcard">Format USB storage, erasing all files stored there?  Action cannot be reversed!</string>
     <!-- See EXTMEDIA_FORMAT.   This is the message. -->
     <string name="extmedia_format_message" product="default">Are you sure you want to format the SD card? All data on your card will be lost.</string>
+    <string name="flashmedia_format_message">Are you sure you want to format the flash storage? All data on your internal flash will be lost.</string>
     <!-- See EXTMEDIA_FORMAT.    This is the button text to format the sd card. -->
     <string name="extmedia_format_button_format">Format</string>
+    <string name="flashmedia_format_button_format">Format</string>
 
     <!-- Title of notification shown when ADB is actively connected to the phone. -->
     <string name="adb_active_notification_title">USB debugging connected</string>
@@ -2153,6 +2156,10 @@
     <!-- Shown when external media is being checked -->
     <string name="ext_media_checking_notification_title" product="default">Preparing SD card</string>
     <string name="ext_media_checking_notification_message">Checking for errors.</string>
+    <string name="usb_media_checking_notification_title">Preparing USBMassStorage</string>
+    <string name="usb_media_checking_notification_message">Checking for errors.</string>
+    <string name="flash_media_checking_notification_title">Preparing Internal Flash Storage</string>
+    <string name="flash_media_checking_notification_message">Checking for errors.</string>
 
     <!-- Shown when external media is blank (or unsupported filesystem) [CHAR LIMIT=30] -->
     <string name="ext_media_nofs_notification_title" product="nosdcard">Blank USB storage</string>
@@ -2161,6 +2168,10 @@
     <!-- Shown when USB storage cannot be read.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_nofs_notification_message" product="nosdcard">USB storage blank or has unsupported filesystem.</string>
     <string name="ext_media_nofs_notification_message" product="default">SD card blank or has unsupported filesystem.</string>
+    <string name="flash_media_nofs_notification_title">Blank Internal Flash</string>
+    <string name="flash_media_nofs_notification_message">Internal Flash blank or has unsupported filesystem.</string>
+    <string name="usb_media_nofs_notification_title">Blank USBMassStorage</string>
+    <string name="usb_media_nofs_notification_message">USBMassStorage blank or has unsupported filesystem.</string>
 
     <!-- Shown when external media is unmountable (corrupt)) [CHAR LIMIT=30] -->
     <string name="ext_media_unmountable_notification_title" product="nosdcard">Damaged USB storage</string>
@@ -2186,6 +2197,15 @@
     <string name="ext_media_safe_unmount_notification_message" product="nosdcard">You can safely remove USB storage.</string>
     <string name="ext_media_safe_unmount_notification_message" product="default">You can safely remove SD card.</string>
 
+    <string name="usb_media_unmountable_notification_title">Damaged USBMassStorage</string>
+    <string name="usb_media_unmountable_notification_message">USBMassStorage damaged. You may have to reformat it.</string>
+    <string name="usb_media_badremoval_notification_title">USBMassStorage unexpectedly removed</string>
+    <string name="usb_media_badremoval_notification_message">Unmount USBMassStorage before removing to avoid data loss.</string>
+    <string name="usb_media_safe_unmount_notification_title">USBMassStorage safe to remove</string>
+    <string name="usb_media_safe_unmount_notification_message">You can safely remove USBMassStorage.</string>
+    <string name="flash_media_safe_unmount_notification_title">Internal flash storage safe to remove</string>
+    <string name="flash_media_safe_unmount_notification_message">Safely remove internal flash storage.</string>
+
     <!-- Shown when external media is missing [CHAR LIMIT=30] -->
     <string name="ext_media_nomedia_notification_title" product="nosdcard">Removed USB storage</string>
     <!-- Shown when external media is missing -->
@@ -2193,6 +2213,8 @@
     <!-- Shown when external media is missing.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_nomedia_notification_message" product="nosdcard">USB storage removed. Insert new media.</string>
     <string name="ext_media_nomedia_notification_message" product="default">SD card removed. Insert a new one.</string>
+    <string name="usb_media_nomedia_notification_title">Removed USBMassStorage</string>
+    <string name="usb_media_nomedia_notification_message">USBMassStorage removed. Insert a new one.</string>
 
     <!-- Shown in LauncherActivity when the requested target Intent didn't return any matching Activities, leaving the list empty. -->
     <string name="activity_list_empty">No matching activities found</string>
@@ -2325,6 +2347,7 @@
     <string name="progress_unmounting" product="nosdcard">Unmounting USB storage...</string>
     <!-- Text for progress dialog while unmounting SD card [CHAR LIMIT=NONE] -->
     <string name="progress_unmounting" product="default">Unmounting SD card...</string>
+    <string name="progress_unmounting_nand">Unmounting Internal Mass Storage...</string>
     <!-- Text for progress dialog while erasing USB storage volume [CHAR LIMIT=NONE] -->
     <string name="progress_erasing" product="nosdcard">Erasing USB storage...</string>
     <!-- Text for progress dialog while erasing SD card [CHAR LIMIT=NONE] -->
