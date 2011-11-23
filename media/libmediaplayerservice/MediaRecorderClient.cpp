@@ -44,6 +44,10 @@
 #include "StagefrightRecorder.h"
 #include <gui/ISurfaceTexture.h>
 
+#ifdef FSL_GM_PLAYER
+#include "media/OMXMediaRecorder.h"
+#endif
+
 namespace android {
 
 const char* cameraPermission = "android.permission.CAMERA";
@@ -307,11 +311,21 @@ status_t MediaRecorderClient::release()
 MediaRecorderClient::MediaRecorderClient(const sp<MediaPlayerService>& service, pid_t pid)
 {
     LOGV("Client constructor");
-    mPid = pid;
+	mPid = pid;
 
-    mRecorder = new StagefrightRecorder;
+#ifdef FSL_GM_PLAYER
+	char value[PROPERTY_VALUE_MAX];
+	if (property_get("media.omxgm.enable-record", value, NULL)
+			&& ( !strcmp(value, "1") || !strcasecmp(value, "true"))) {
+		mRecorder = new OMXRecorder;
+	} else {
+#endif
+		mRecorder = new StagefrightRecorder;
+#ifdef FSL_GM_PLAYER
+	}
+#endif
 
-    mMediaPlayerService = service;
+	mMediaPlayerService = service;
 }
 
 MediaRecorderClient::~MediaRecorderClient()

@@ -23,7 +23,6 @@
 #include <utils/String8.h>
 #include <camera/ICamera.h>
 #include <surfaceflinger/ISurface.h>
-#include <hardware_legacy/AudioSystemLegacy.h>
 
 namespace android {
 
@@ -32,14 +31,19 @@ struct OMXRecorder : public MediaRecorderBase {
     virtual ~OMXRecorder();
 
     virtual status_t init();
-    virtual status_t setAudioSource(android_audio_legacy::audio_source as);
+#ifdef ICS
+    virtual status_t setAudioSource(audio_source_t as);
+#else
+    virtual status_t setAudioSource(audio_source as);
+#endif
     virtual status_t setVideoSource(video_source vs);
     virtual status_t setOutputFormat(output_format of);
     virtual status_t setAudioEncoder(audio_encoder ae);
     virtual status_t setVideoEncoder(video_encoder ve);
     virtual status_t setVideoSize(int width, int height);
     virtual status_t setVideoFrameRate(int frames_per_second);
-    virtual status_t setCamera(const sp<ICamera>& camera);
+	virtual status_t setCamera(const sp<ICamera>& camera);
+	virtual status_t setCamera(const sp<ICamera>& camera, const sp<ICameraRecordingProxy>& proxy);
     virtual status_t setPreviewSurface(const sp<ISurface>& surface);
     virtual status_t setPreviewSurface(const sp<Surface>& surface);
     virtual status_t setOutputFile(const char *path);
@@ -55,6 +59,8 @@ struct OMXRecorder : public MediaRecorderBase {
     virtual status_t getMaxAmplitude(int *max);
     virtual status_t dump(int fd, const Vector<String16>& args) const;
     status_t ProcessEvent(int msg, int ext1, int ext2);
+    // Querying a SurfaceMediaSourcer
+    virtual sp<ISurfaceTexture> querySurfaceMediaSource() const;
 
 private:
     // Encoding parameter handling utilities
