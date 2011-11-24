@@ -971,6 +971,16 @@ const char* eglQueryString(EGLDisplay dpy, EGLint name)
     egl_display_t const * const dp = validate_display(dpy);
     if (!dp) return (const char *) NULL;
 
+    for (int i=0 ; i<IMPL_NUM_IMPLEMENTATIONS ; i++) {
+        egl_connection_t* const cnx = &gEGLImpl[i];
+        if (cnx->dso) {
+            if (cnx->egl.eglQueryString) {
+                const char *str = cnx->egl.eglQueryString(
+                        dp->disp[i].dpy, name);
+                if (str) return str;
+            }
+        }
+    }
     switch (name) {
         case EGL_VENDOR:
             return dp->getVendorString();
