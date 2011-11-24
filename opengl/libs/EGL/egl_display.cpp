@@ -182,6 +182,16 @@ EGLBoolean egl_display_t::initialize(EGLint *major, EGLint *minor) {
         }
 #endif
 
+#if defined(IMX5X)
+#warning "imx5x eglInitialize() workaround"
+        /*
+         * same workaround should be applied to imx5x Z430 EGL as ADRENO130
+         */
+        if (i == IMPL_HARDWARE) {
+            disp[i].dpy =
+               cnx->egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        }
+#endif
         EGLDisplay idpy = disp[i].dpy;
         if (cnx->egl.eglInitialize(idpy, &cnx->major, &cnx->minor)) {
             //LOGD("initialized %d dpy=%p, ver=%d.%d, cnx=%p",
