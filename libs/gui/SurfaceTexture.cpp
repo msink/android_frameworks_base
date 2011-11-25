@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+
 #define LOG_TAG "SurfaceTexture"
 //#define LOG_NDEBUG 0
 

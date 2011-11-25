@@ -14,6 +14,8 @@
  ** limitations under the License.
  */
 
+/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>

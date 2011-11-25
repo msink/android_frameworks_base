@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright 2009-2011 Freescale Semiconductor Inc. */
 
 #ifndef ANDROID_AUDIO_TRACK_SHARED_H
 #define ANDROID_AUDIO_TRACK_SHARED_H

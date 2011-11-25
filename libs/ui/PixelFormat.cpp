@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+
 #include <ui/PixelFormat.h>
 #include <pixelflinger/format.h>
 #include <hardware/hardware.h>

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright 2009-2011 Freescale Semiconductor Inc. */
 
 package android.net.wifi;
 
@@ -1957,22 +1958,19 @@ public class WifiStateMachine extends StateMachine {
                             setWifiApState(WIFI_AP_STATE_ENABLING);
                             break;
                     }
-
-                    if(WifiNative.loadDriver()) {
-                        if (DBG) log("Driver load successful");
+		    Log.d(TAG,"Begin to load driver message="+message.arg1);
 		    boolean ret = false;
-		    // Since Atheros WIFI driver need a different API,
-		    // we call AP driver and WIFI driver in different
-		    // API
-		    if (message.arg1 == WIFI_STATE_ENABLING) {
-			ret = WifiNative.loadDriver();
-		    } else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
-			ret = WifiNative.loadApDriver();
-		    }
-
+                    // Since Atheros WIFI driver need a different API,
+                    // we call AP driver and WIFI driver in different
+                    // API
+                    if (message.arg1 == WIFI_STATE_ENABLING) {
+                        ret = WifiNative.loadDriver();
+                    } else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
+                        ret = WifiNative.loadApDriver();
+                    }
                     if(ret) {
-                        Log.d(TAG, "Driver load successful");
-                        sendMessage(CMD_LOAD_DRIVER_SUCCESS);
+			Log.d(TAG, "Driver load successful");
+		        sendMessage(CMD_LOAD_DRIVER_SUCCESS);
                     } else {
                         loge("Failed to load driver!");
                         switch(message.arg1) {
@@ -1987,8 +1985,7 @@ public class WifiStateMachine extends StateMachine {
                     }
                     mWakeLock.release();
                     }
-                }
-            }).start();
+		}).start();
         }
 
         @Override
@@ -2274,7 +2271,7 @@ public class WifiStateMachine extends StateMachine {
             if (DBG) log(getName() + "\n");
             EventLog.writeEvent(EVENTLOG_WIFI_STATE_CHANGED, getName());
             /* Initialize for connect mode operation at start */
-            mIsScanMode = false;
+            mIsScanMode = true;
             /* Wifi is available as long as we have a connection to supplicant */
             mNetworkInfo.setIsAvailable(true);
             /* Set scan interval */
