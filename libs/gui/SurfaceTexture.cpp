@@ -760,7 +760,7 @@ status_t SurfaceTexture::updateTexImage() {
     if (!mQueue.empty()) {
         Fifo::iterator front(mQueue.begin());
         int buf = *front;
-
+if(!isExternalFormat(mPixelFormat)) {
         // Update the GL texture object.
         EGLImageKHR image = mSlots[buf].mEglImage;
         EGLDisplay dpy = eglGetCurrentDisplay();
@@ -796,7 +796,7 @@ status_t SurfaceTexture::updateTexImage() {
         if (failed) {
             return -EINVAL;
         }
-
+}
         if (mCurrentTexture != INVALID_BUFFER_SLOT) {
             if (mUseFenceSync) {
                 EGLSyncKHR fence = eglCreateSyncKHR(dpy, EGL_SYNC_FENCE_KHR,
@@ -839,8 +839,10 @@ status_t SurfaceTexture::updateTexImage() {
         mQueue.erase(front);
         mDequeueCondition.signal();
     } else {
+if(!isExternalFormat(mPixelFormat)) {
         // We always bind the texture even if we don't update its contents.
         glBindTexture(mTexTarget, mTexName);
+}
     }
 
     return OK;
@@ -855,6 +857,8 @@ bool SurfaceTexture::isExternalFormat(uint32_t format)
     case HAL_PIXEL_FORMAT_YCbCr_422_SP:
     case HAL_PIXEL_FORMAT_YCrCb_420_SP:
     case HAL_PIXEL_FORMAT_YCbCr_422_I:
+    case HAL_PIXEL_FORMAT_YCbCr_420_SP:
+    case HAL_PIXEL_FORMAT_YCbCr_420_I:
         return true;
     }
 
