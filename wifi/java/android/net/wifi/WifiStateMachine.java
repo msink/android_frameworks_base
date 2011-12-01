@@ -2271,7 +2271,7 @@ public class WifiStateMachine extends StateMachine {
             if (DBG) log(getName() + "\n");
             EventLog.writeEvent(EVENTLOG_WIFI_STATE_CHANGED, getName());
             /* Initialize for connect mode operation at start */
-            mIsScanMode = true;
+            mIsScanMode = false;
             /* Wifi is available as long as we have a connection to supplicant */
             mNetworkInfo.setIsAvailable(true);
             /* Set scan interval */
