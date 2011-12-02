@@ -465,7 +465,7 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
                 swap(bufWidth, bufHeight);
             }
 
-            if (isFixedSize() ||
+            if (isFixedSize() || isCropped() ||
                     (bufWidth == front.requested_w &&
                     bufHeight == front.requested_h))
             {
