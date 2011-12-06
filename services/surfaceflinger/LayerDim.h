@@ -42,6 +42,8 @@ public:
     virtual bool isProtectedByApp() const { return false; }
     virtual bool isProtectedByDRM() const { return false; }
     virtual const char* getTypeId() const { return "LayerDim"; }
+    virtual void setGeometry(hwc_layer_t* hwcl);
+    virtual void setPerFrameData(hwc_layer_t* hwcl);
 };
 
 // ---------------------------------------------------------------------------

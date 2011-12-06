@@ -183,11 +183,9 @@ void Layer::setGeometry(hwc_layer_t* hwcl)
 
     hwcl->flags &= ~HWC_SKIP_LAYER;
 
-    // we can't do alpha-fade with the hwc HAL
+    // we do alpha-fade with the hwc HAL
     const State& s(drawingState());
-    if (s.alpha < 0xFF) {
-        hwcl->flags = HWC_SKIP_LAYER;
-    }
+    hwcl->blending |= (s.alpha << 16);
 
     /*
      * Transformations are applied in this order:

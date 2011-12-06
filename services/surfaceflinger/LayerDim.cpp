@@ -74,6 +74,39 @@ void LayerDim::onDraw(const Region& clip) const
     }
 }
 
+void LayerDim::setGeometry(hwc_layer_t* hwcl)
+{
+    hwcl->compositionType = HWC_FRAMEBUFFER;
+    hwcl->hints = 0;
+    hwcl->flags = 0;
+    hwcl->transform = 0;
+
+    const State& s(drawingState());
+    hwcl->transform = s.transform.getOrientation();
+
+    /* Dim. */
+    hwcl->blending = HWC_BLENDING_DIM | (drawingState().alpha << 16);
+
+    hwcl->displayFrame.left   = mTransformedBounds.left;
+    hwcl->displayFrame.top    = mTransformedBounds.top;
+    hwcl->displayFrame.right  = mTransformedBounds.right;
+    hwcl->displayFrame.bottom = mTransformedBounds.bottom;
+
+    hwcl->visibleRegionScreen.rects =
+            reinterpret_cast<hwc_rect_t const *>(
+                    visibleRegionScreen.getArray(
+                            &hwcl->visibleRegionScreen.numRects));
+}
+
+void LayerDim::setPerFrameData(hwc_layer_t* hwcl) {
+    hwcl->handle = NULL;
+
+    hwcl->sourceCrop.left   = 0;
+    hwcl->sourceCrop.top    = 0;
+    hwcl->sourceCrop.right  = 0;
+    hwcl->sourceCrop.bottom = 0;
+}
+
 // ---------------------------------------------------------------------------
 
 }; // namespace android
