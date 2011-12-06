@@ -102,7 +102,8 @@ SurfaceFlinger::SurfaceFlinger()
         mLastTransactionTime(0),
         mBootFinished(false),
         mConsoleSignals(0),
-        mSecureFrameBuffer(0)
+        mSecureFrameBuffer(0),
+        mOverlayClear(false)
 {
     init();
 }
@@ -697,41 +698,36 @@ void SurfaceFlinger::computeVisibleRegions(
         // subtract the opaque region covered by the layers above us
         visibleRegion.subtractSelf(aboveOpaqueLayers);
 
-        if(!(layer->mUsage & GRALLOC_USAGE_HWC_OVERLAY)) {
-		// compute this layer's dirty region
-		if (layer->contentDirty) {
-		    // we need to invalidate the whole region
-		    dirty = visibleRegion;
-		    // as well, as the old visible region
-		    dirty.orSelf(layer->visibleRegionScreen);
-		    layer->contentDirty = false;
-		} else {
-		    /* compute the exposed region:
-		     *   the exposed region consists of two components:
-		     *   1) what's VISIBLE now and was COVERED before
-		     *   2) what's EXPOSED now less what was EXPOSED before
-		     *
-		     * note that (1) is conservative, we start with the whole
-		     * visible region but only keep what used to be covered by
-		     * something -- which mean it may have been exposed.
-		     *
-		     * (2) handles areas that were not covered by anything but got
-		     * exposed because of a resize.
-		     */
-		    const Region newExposed = visibleRegion - coveredRegion;
-		    const Region oldVisibleRegion = layer->visibleRegionScreen;
-		    const Region oldCoveredRegion = layer->coveredRegionScreen;
-		    const Region oldExposed = oldVisibleRegion - oldCoveredRegion;
-		    dirty = (visibleRegion&oldCoveredRegion) | (newExposed-oldExposed);
-		}
-		dirty.subtractSelf(aboveOpaqueLayers);
-
-		// accumulate to the screen dirty region
-		dirtyRegion.orSelf(dirty);
-
-		// Update aboveOpaqueLayers for next (lower) layer
-		aboveOpaqueLayers.orSelf(opaqueRegion);
+	// compute this layer's dirty region
+	if (layer->contentDirty) {
+	    // we need to invalidate the whole region
+	    dirty = visibleRegion;
+	    // as well, as the old visible region
+	    dirty.orSelf(layer->visibleRegionScreen);
+	    layer->contentDirty = false;
+	} else {
+	    /* compute the exposed region:
+	     *   the exposed region consists of two components:
+	     *   1) what's VISIBLE now and was COVERED before
+	     *   2) what's EXPOSED now less what was EXPOSED before
+	     *
+	     * note that (1) is conservative, we start with the whole
+	     * visible region but only keep what used to be covered by
+	     * something -- which mean it may have been exposed.
+	     *
+	     * (2) handles areas that were not covered by anything but got
+	     * exposed because of a resize.
+	     */
+	    const Region newExposed = visibleRegion - coveredRegion;
+	    const Region oldVisibleRegion = layer->visibleRegionScreen;
+	    const Region oldCoveredRegion = layer->coveredRegionScreen;
+	    const Region oldExposed = oldVisibleRegion - oldCoveredRegion;
+	    dirty = (visibleRegion&oldCoveredRegion) | (newExposed-oldExposed);
 	}
+	dirty.subtractSelf(aboveOpaqueLayers);
+
+	// accumulate to the screen dirty region
+	dirtyRegion.orSelf(dirty);
         // Store the visible region is screen space
         layer->setVisibleRegion(visibleRegion);
         layer->setCoveredRegion(coveredRegion);
@@ -775,6 +771,7 @@ void SurfaceFlinger::handlePageFlip()
         const DisplayHardware& hw = graphicPlane(0).displayHardware();
         const Region screenRegion(hw.bounds());
         if (visibleRegions) {
+            mOverlayClear = true;
             Region opaqueRegion;
             computeVisibleRegions(currentLayers, mDirtyRegion, opaqueRegion);
 
@@ -1011,6 +1008,7 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
         // should never happen unless the window manager has a bug
         // draw something...
         drawWormhole();
+        mWormholeRegion.clear();
     }
 #ifdef SECOND_DISPLAY_SUPPORT
     mTopOrientation = 0;
@@ -1023,6 +1021,14 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
     size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
         if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
+            if(mOverlayClear) {
+                mOverlayClear = false;
+                const sp<LayerBase>& layer(layers[i]);
+                const Region clip(dirty.intersect(layer->visibleRegionScreen));
+                if (!clip.isEmpty()) {
+                    layer->clearWithOpenGL(clip);
+                }
+            }
             continue;
         }
         const sp<LayerBase>& layer(layers[i]);

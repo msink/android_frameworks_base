@@ -223,6 +223,7 @@ public:
 
     int32_t  getOrientation() const { return mOrientation; }
     int32_t  getPlaneOrientation() const { return mPlaneOrientation; }
+    void clearWithOpenGL(const Region& clip) const;
     
 protected:
     const GraphicPlane& graphicPlane(int dpy) const;
@@ -230,7 +231,6 @@ protected:
 
           void clearWithOpenGL(const Region& clip, GLclampf r, GLclampf g,
                                GLclampf b, GLclampf alpha) const;
-          void clearWithOpenGL(const Region& clip) const;
           void drawWithOpenGL(const Region& clip) const;
 
           void setFiltering(bool filtering);

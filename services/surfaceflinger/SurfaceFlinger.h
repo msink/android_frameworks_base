@@ -411,6 +411,7 @@ private:
    #ifdef SECOND_DISPLAY_SUPPORT
    int                                      mTopOrientation;
    #endif
+   bool mOverlayClear;
 };
 
 // ---------------------------------------------------------------------------
