@@ -37,6 +37,7 @@ public:
                         OMXMetadataRetriever(int nMediaType = 0);
     virtual             ~OMXMetadataRetriever();
 
+    virtual status_t    setDataSource(const char *url);
     virtual status_t    setDataSource(const char *url, const KeyedVector<String8, String8> *headers = NULL);
     virtual status_t    setDataSource(int fd, int64_t offset, int64_t length);
     virtual status_t    setMode(int mode);
