@@ -267,6 +267,20 @@ int SurfaceTextureClient::query(int what, int* value) const {
             case NATIVE_WINDOW_TRANSFORM_HINT:
                 *value = mTransformHint;
                 return NO_ERROR;
+            case NATIVE_WINDOW_GET_BUFFERS_COUNT:{
+                int slotCnt = 0;
+                for(int i = 0; i < NUM_BUFFER_SLOTS; i++) {
+                    if(mSlots[i] != 0)
+                        slotCnt ++;
+                }
+                *value = slotCnt;
+                return NO_ERROR;
+            }
+            case NATIVE_WINDOW_GET_BUFFER:
+                //the value should be a structure inlcude two 32bit member.
+                //the first member is buffer index, and the second is buffer return pointer.
+                *(value + 1) = (int)(android_native_buffer_t*)(mSlots[*(value)].get());
+                return NO_ERROR;
         }
     }
     return mSurfaceTexture->query(what, value);
