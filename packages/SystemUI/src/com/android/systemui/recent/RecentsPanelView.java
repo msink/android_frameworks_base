@@ -187,6 +187,9 @@ public class RecentsPanelView extends RelativeLayout implements OnItemClickListe
     public void show(boolean show, boolean animate,
             ArrayList<TaskDescription> recentTaskDescriptions) {
         if (show) {
+	    // Clear will set mRecentTasksDirty as true, so it will
+	    // actually get the dirty list form AM
+	    clearRecentTasksList();
             // Need to update list of recent apps before we set visibility so this view's
             // content description is updated before it gets focus for TalkBack mode
             refreshRecentTasksList(recentTaskDescriptions);
