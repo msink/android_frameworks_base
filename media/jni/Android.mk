@@ -61,6 +61,10 @@ ifeq ($(HAVE_FSL_IMX_CODEC),true)
 LOCAL_CFLAGS += -DFSL_GM_PLAYER
 endif
 
+ifeq ($(findstring x4.,x$(PLATFORM_VERSION)), x4.)
+LOCAL_CFLAGS += -DICS
+endif
+
 LOCAL_LDLIBS := -lpthread
 
 LOCAL_MODULE:= libmedia_jni
