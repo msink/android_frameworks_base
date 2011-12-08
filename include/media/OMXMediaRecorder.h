@@ -43,7 +43,9 @@ struct OMXRecorder : public MediaRecorderBase {
     virtual status_t setVideoSize(int width, int height);
     virtual status_t setVideoFrameRate(int frames_per_second);
 	virtual status_t setCamera(const sp<ICamera>& camera);
+#ifdef ICS
 	virtual status_t setCamera(const sp<ICamera>& camera, const sp<ICameraRecordingProxy>& proxy);
+#endif
     virtual status_t setPreviewSurface(const sp<ISurface>& surface);
     virtual status_t setPreviewSurface(const sp<Surface>& surface);
     virtual status_t setOutputFile(const char *path);
@@ -60,7 +62,9 @@ struct OMXRecorder : public MediaRecorderBase {
     virtual status_t dump(int fd, const Vector<String16>& args) const;
     status_t ProcessEvent(int msg, int ext1, int ext2);
     // Querying a SurfaceMediaSourcer
+#ifdef ICS
     virtual sp<ISurfaceTexture> querySurfaceMediaSource() const;
+#endif
 
 private:
     // Encoding parameter handling utilities

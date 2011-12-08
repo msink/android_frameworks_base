@@ -26,6 +26,8 @@
 
 namespace android {
 
+class ISurfaceTexture;
+
 class OMXPlayer : public MediaPlayerInterface
 {
 public:
