@@ -126,6 +126,9 @@ static sp<MediaSource> InstantiateSoftwareEncoder(
 #undef FACTORY_CREATE
 
 static const CodecInfo kDecoderInfo[] = {
+    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_decoder.mpeg4.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_decoder.h263.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_decoder.avc.v3.hw-based" },
     { MEDIA_MIMETYPE_IMAGE_JPEG, "OMX.TI.JPEG.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.google.mp3.decoder" },
@@ -146,7 +149,6 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_AUDIO_AAC, "AACDecoder" },
     { MEDIA_MIMETYPE_AUDIO_G711_ALAW, "G711Decoder" },
     { MEDIA_MIMETYPE_AUDIO_G711_MLAW, "G711Decoder" },
-//    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_decoder.mpeg4.hw-based" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.7x30.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.Video.Decoder" },
@@ -162,13 +164,11 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Nvidia.h264.decode" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "M4vH263Decoder" },
 //    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.PV.mpeg4dec" },
-//    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_decoder.h263.hw-based" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.7x30.video.decoder.h263" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.qcom.video.decoder.h263" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.SEC.H263.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_H263, "M4vH263Decoder" },
 //    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.PV.h263dec" },
-//    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_decoder.avc.hw-based" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.7x30.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.Video.Decoder" },
@@ -1408,12 +1408,16 @@ status_t OMXCodec::setVideoOutputFormat(
     CODEC_LOGV("setVideoOutputFormat width=%ld, height=%ld", width, height);
 
     OMX_VIDEO_CODINGTYPE compressionFormat = OMX_VIDEO_CodingUnused;
+    char *role = NULL;
     if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_AVC, mime)) {
         compressionFormat = OMX_VIDEO_CodingAVC;
+        role = "video_decoder.avc";
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_MPEG4, mime)) {
         compressionFormat = OMX_VIDEO_CodingMPEG4;
+        role = "video_decoder.mpeg4";
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_H263, mime)) {
         compressionFormat = OMX_VIDEO_CodingH263;
+        role = "video_decoder.h263";
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_VPX, mime)) {
         compressionFormat = OMX_VIDEO_CodingVPX;
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_MPEG2, mime)) {
@@ -1421,6 +1425,15 @@ status_t OMXCodec::setVideoOutputFormat(
     } else {
         LOGE("Not a supported video mime type: %s", mime);
         CHECK(!"Should not be here. Not a supported video mime type.");
+    }
+
+    if (role) {
+        OMX_PARAM_COMPONENTROLETYPE CurRole;
+        InitOMXParams(&CurRole);
+        memcpy(&CurRole.cRole, role, OMX_MAX_STRINGNAME_SIZE);
+        mOMX->setParameter(
+                mNode, OMX_IndexParamStandardComponentRole,
+                &CurRole, sizeof(CurRole));
     }
 
     status_t err = setVideoPortFormatType(
@@ -1954,6 +1967,7 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
     // XXX: Is this the right logic to use?  It's not clear to me what the OMX
     // buffer counts refer to - how do they account for the renderer holding on
     // to buffers?
+    minUndequeuedBufs = 0;
     if (def.nBufferCountActual < def.nBufferCountMin + minUndequeuedBufs) {
         OMX_U32 newBufferCount = def.nBufferCountMin + minUndequeuedBufs;
         def.nBufferCountActual = newBufferCount;
@@ -2054,7 +2068,7 @@ OMXCodec::BufferInfo* OMXCodec::dequeueBufferFromNativeWindow() {
     if (err != 0) {
       CODEC_LOGE("dequeueBuffer failed w/ error 0x%08x", err);
 
-      setState(ERROR);
+      //setState(ERROR);
       return 0;
     }
 
@@ -3000,6 +3014,8 @@ bool OMXCodec::flushPortAsync(OMX_U32 portIndex) {
     status_t err =
         mOMX->sendCommand(mNode, OMX_CommandFlush, portIndex);
     CHECK_EQ(err, (status_t)OK);
+
+    usleep(50000);
 
     return true;
 }
