@@ -73,7 +73,11 @@ private:
 	sp<IMediaRecorderClient> mListener;
     void                *recorder;
 	void                *cameraPtr;
+	void                *cameraProxyPtr;
 	sp<ICamera>			mCamera; 
+#ifdef ICS
+	sp<ICameraRecordingProxy> mCameraProxy; 
+#endif
     sp<ISurface> mPreviewSurface;
     sp<Surface> mPreviewSurface2;
 
