@@ -62,6 +62,7 @@ enum {
     GET_TRACK_NAME,
     GET_DEFAULT_TRACK,
     SELECT_TRACK,
+    SET_PLAY_SPEED,
 };
 
 class BpMediaPlayer: public BpInterface<IMediaPlayer>
@@ -245,6 +246,15 @@ public:
         data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
         data.writeInt32(index);
         remote()->transact(SELECT_TRACK, data, &reply);
+        return reply.readInt32();
+    }
+
+    status_t setPlaySpeed(int speed)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(speed);
+        remote()->transact(SET_PLAY_SPEED, data, &reply);
         return reply.readInt32();
     }
 
@@ -568,6 +578,12 @@ status_t BnMediaPlayer::onTransact(
         case SELECT_TRACK: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             status_t ret = selectTrack(data.readInt32());
+            reply->writeInt32(ret);
+            return NO_ERROR;
+        } break;
+        case SET_PLAY_SPEED: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            status_t ret = setPlaySpeed(data.readInt32());
             reply->writeInt32(ret);
             return NO_ERROR;
         } break;

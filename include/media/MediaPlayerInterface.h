@@ -164,6 +164,7 @@ public:
     virtual char*       getTrackName(int index) = 0;
     virtual int         getDefaultTrack() = 0;
     virtual status_t    selectTrack(int index) = 0;
+    virtual status_t    setPlaySpeed(int speed) = 0;
 
     void        setNotifyCallback(
             void* cookie, notify_callback_f notifyFunc) {
@@ -202,6 +203,7 @@ public:
     virtual char*       getTrackName(int index) {return NULL;}
     virtual int         getDefaultTrack() {return 0;}
     virtual status_t    selectTrack(int index) {return INVALID_OPERATION;}
+    virtual status_t    setPlaySpeed(int speed) {return INVALID_OPERATION;}
 protected:
     sp<AudioSink>       mAudioSink;
 };

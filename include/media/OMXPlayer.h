@@ -65,6 +65,7 @@ public:
     virtual char*       getTrackName(int index);
     virtual int         getDefaultTrack();
     virtual status_t    selectTrack(int index);
+    virtual status_t    setPlaySpeed(int speed);
     virtual status_t    setParameter(int key, const Parcel &request);
     virtual status_t    getParameter(int key, Parcel *reply);
 

@@ -1113,6 +1113,13 @@ public class MediaPlayer
     public native void selectTrack(int Index);
 
     /**
+     * Set play speed.
+     *
+     * @param Speed   the speed of playback, from -16 to 16
+     */
+    public native void setPlaySpeed(int speed);
+
+    /**
      * Gets the media metadata.
      *
      * @param update_only controls whether the full set of available

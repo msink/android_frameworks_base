@@ -279,6 +279,7 @@ private:
         virtual status_t    getDefaultTrack(int *number);
         virtual char*       getTrackName(int index);
         virtual status_t    selectTrack(int index);
+        virtual status_t    setPlaySpeed(int speed);
 
         sp<MediaPlayerBase>     createPlayer(player_type playerType);
 

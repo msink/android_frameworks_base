@@ -207,6 +207,7 @@ public:
             status_t    getDefaultTrack(int *number);
             char*       getTrackName(int index);
             status_t    selectTrack(int index);
+            status_t    setPlaySpeed(int speed);
 private:
             void            clear_l();
             status_t        seekTo_l(int msec);

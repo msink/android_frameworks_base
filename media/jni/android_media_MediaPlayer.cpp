@@ -900,6 +900,17 @@ android_media_MediaPlayer_getParameter(JNIEnv *env, jobject thiz, jint key, jobj
     process_media_player_call(env, thiz, mp->getParameter(key, reply), NULL, NULL );
 }
 
+static void android_media_MediaPlayer_setPlaySpeed(JNIEnv *env,  jobject thiz, jint speed) 
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+    LOGV("setPlaySpeed: %d", speed);
+    process_media_player_call( env, thiz, mp->setPlaySpeed(speed), NULL, NULL );
+}
+
 // ----------------------------------------------------------------------------
 
 static JNINativeMethod gMethods[] = {
@@ -950,6 +961,7 @@ static JNINativeMethod gMethods[] = {
     {"getTrackName",        "(I)Ljava/lang/String;",            (void *)android_media_MediaPlayer_getTrackName},
     {"getDefaultTrack",     "()I",                              (void *)android_media_MediaPlayer_getDefaultTrack},
     {"selectTrack",         "(I)V",                             (void *)android_media_MediaPlayer_selectTrack},
+    {"setPlaySpeed",        "(I)V",                             (void *)android_media_MediaPlayer_setPlaySpeed},
 };
 
 static const char* const kClassPathName = "android/media/MediaPlayer";

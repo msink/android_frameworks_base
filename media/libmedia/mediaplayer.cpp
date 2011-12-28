@@ -390,6 +390,15 @@ status_t MediaPlayer::getCurrentPosition(int *msec)
     return INVALID_OPERATION;
 }
 
+status_t MediaPlayer::setPlaySpeed(int speed)
+{
+    Mutex::Autolock _l(mLock);
+    if (mPlayer != 0) { 
+        return mPlayer->setPlaySpeed(speed);
+    }
+    return INVALID_OPERATION;
+}
+
 status_t MediaPlayer::getDuration_l(int *msec)
 {
     bool isValidState = (mCurrentState & (MEDIA_PLAYER_PREPARED | MEDIA_PLAYER_STARTED | MEDIA_PLAYER_PAUSED | MEDIA_PLAYER_STOPPED | MEDIA_PLAYER_PLAYBACK_COMPLETE));

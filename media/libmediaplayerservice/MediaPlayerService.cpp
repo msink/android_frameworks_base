@@ -1156,6 +1156,14 @@ status_t MediaPlayerService::Client::selectTrack(int index)
     return p->selectTrack(index);
 }
 
+status_t MediaPlayerService::Client::setPlaySpeed(int speed)
+{
+    LOGV("set play speed to %d\n", speed);
+    sp<MediaPlayerBase> p = getPlayer();
+    if (p == 0) return UNKNOWN_ERROR;
+    return p->setPlaySpeed(speed);
+}
+
 status_t MediaPlayerService::Client::seekTo(int msec)
 {
     LOGV("[%d] seekTo(%d)", mConnId, msec);

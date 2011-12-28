@@ -95,6 +95,7 @@ public:
     virtual status_t    getDefaultTrack(int *number) = 0;
     virtual char*       getTrackName(int index) = 0;
     virtual status_t    selectTrack(int index) = 0;
+    virtual status_t    setPlaySpeed(int speed) = 0;
 };
 
 // ----------------------------------------------------------------------------
