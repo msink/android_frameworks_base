@@ -10726,6 +10726,7 @@ package android.media {
     method public void setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener);
     method public void setOnSeekCompleteListener(android.media.MediaPlayer.OnSeekCompleteListener);
     method public void setOnVideoSizeChangedListener(android.media.MediaPlayer.OnVideoSizeChangedListener);
+    method public void setPlaySpeed(int);
     method public void setScreenOnWhilePlaying(boolean);
     method public void setSurface(android.view.Surface);
     method public void setVolume(float, float);

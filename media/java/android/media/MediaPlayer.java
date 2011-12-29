@@ -1117,7 +1117,7 @@ public class MediaPlayer
      *
      * @param Speed   the speed of playback, from -16 to 16
      */
-    public native void setPlaySpeed(int speed);
+    public native void setPlaySpeed(int Speed);
 
     /**
      * Gets the media metadata.
