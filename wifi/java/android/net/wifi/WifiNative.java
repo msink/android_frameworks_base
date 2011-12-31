@@ -54,8 +54,6 @@ public class WifiNative {
 
     public native static boolean loadDriver();
 
-    public native static boolean loadApDriver();
-
     public native static boolean isDriverLoaded();
 
     public native static boolean unloadDriver();

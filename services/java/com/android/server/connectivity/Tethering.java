@@ -239,7 +239,7 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
     }
 
     public void interfaceLinkStateChanged(String iface, boolean up) {
-        if (VDBG) Log.d(TAG, "interfaceLinkStateChanged " + iface + ", " + up);
+        //if (VDBG) Log.d(TAG, "interfaceLinkStateChanged " + iface + ", " + up);
         interfaceStatusChanged(iface, up);
     }
 

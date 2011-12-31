@@ -1963,11 +1963,11 @@ public class WifiStateMachine extends StateMachine {
                     // Since Atheros WIFI driver need a different API,
                     // we call AP driver and WIFI driver in different
                     // API
-                    if (message.arg1 == WIFI_STATE_ENABLING) {
+                    //if (message.arg1 == WIFI_STATE_ENABLING) {
                         ret = WifiNative.loadDriver();
-                    } else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
-                        ret = WifiNative.loadApDriver();
-                    }
+			//} else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
+                        //ret = true;//WifiNative.loadApDriver();
+			// }
                     if(ret) {
 			Log.d(TAG, "Driver load successful");
 		        sendMessage(CMD_LOAD_DRIVER_SUCCESS);

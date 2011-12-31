@@ -109,18 +109,9 @@ static jboolean android_net_wifi_isDriverLoaded(JNIEnv* env, jobject)
     return (jboolean)(::is_wifi_driver_loaded() == 1);
 }
 
-static jboolean android_net_wifi_loadDriver(JNIEnv* env, jobject clazz)
+static jboolean android_net_wifi_loadDriver(JNIEnv* env, jobject)
 {
     return (jboolean)(::wifi_load_driver() == 0);
-}
-
-static jboolean android_net_wifi_loadApDriver(JNIEnv* env, jobject clazz)
-{
-#ifdef ATH_WIFI_SDK
-    return (jboolean)(::wifi_load_ap_driver() == 0);
-#else
-    return android_net_wifi_loadDriver(env, clazz);
-#endif
 }
 
 static jboolean android_net_wifi_unloadDriver(JNIEnv* env, jobject)
@@ -568,7 +559,6 @@ static JNINativeMethod gWifiMethods[] = {
     /* name, signature, funcPtr */
 
     { "loadDriver", "()Z",  (void *)android_net_wifi_loadDriver },
-    { "loadApDriver", "()Z",  (void *)android_net_wifi_loadApDriver },
     { "isDriverLoaded", "()Z",  (void *)android_net_wifi_isDriverLoaded},
     { "unloadDriver", "()Z",  (void *)android_net_wifi_unloadDriver },
     { "startSupplicant", "()Z",  (void *)android_net_wifi_startSupplicant },
