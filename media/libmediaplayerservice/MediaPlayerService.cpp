@@ -213,6 +213,7 @@ extmap OMX_PLAYER_FILE_EXTS [] =  {
         {".mp4", OMX_PLAYER},
         {".m4a", OMX_PLAYER},
         {".3gp", OMX_PLAYER},
+        {".3g2", OMX_PLAYER},
         {".3gpp", OMX_PLAYER},
         {".mov", OMX_PLAYER},
         {".rmvb", OMX_PLAYER},
