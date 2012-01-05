@@ -1460,12 +1460,14 @@ EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute
 
 EGLClientBuffer eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw)
 {
-    SurfaceRef _s(draw);
+    egl_display_t const * const dp = validate_display(dpy);
+    if (!dp) return EGL_FALSE;
+
+    SurfaceRef _s(dp, draw);
     if (!_s.get()) return setError(EGL_BAD_SURFACE, (EGLClientBuffer*)0);
 
     if (!validate_display(dpy))
         return 0;
-    egl_display_t const * const dp = get_display(dpy);
     egl_surface_t const * const s = get_surface(draw);
     if (s->cnx->egl.eglGetRenderBufferANDROID) {
         return s->cnx->egl.eglGetRenderBufferANDROID(

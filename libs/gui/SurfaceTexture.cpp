@@ -762,43 +762,43 @@ status_t SurfaceTexture::updateTexImage() {
     if (!mQueue.empty()) {
         Fifo::iterator front(mQueue.begin());
         int buf = *front;
-if(!isExternalFormat(mPixelFormat)) {
         // Update the GL texture object.
         EGLImageKHR image = mSlots[buf].mEglImage;
         EGLDisplay dpy = eglGetCurrentDisplay();
-        if (image == EGL_NO_IMAGE_KHR) {
-            if (mSlots[buf].mGraphicBuffer == 0) {
-                ST_LOGE("buffer at slot %d is null", buf);
-                return BAD_VALUE;
+        if(!isExternalFormat(mPixelFormat)) {
+           if (image == EGL_NO_IMAGE_KHR) {
+                if (mSlots[buf].mGraphicBuffer == 0) {
+                    ST_LOGE("buffer at slot %d is null", buf);
+                    return BAD_VALUE;
+                }
+                image = createImage(dpy, mSlots[buf].mGraphicBuffer);
+                mSlots[buf].mEglImage = image;
+                mSlots[buf].mEglDisplay = dpy;
+                if (image == EGL_NO_IMAGE_KHR) {
+                    // NOTE: if dpy was invalid, createImage() is guaranteed to
+                    // fail. so we'd end up here.
+                    return -EINVAL;
+                }
             }
-            image = createImage(dpy, mSlots[buf].mGraphicBuffer);
-            mSlots[buf].mEglImage = image;
-            mSlots[buf].mEglDisplay = dpy;
-            if (image == EGL_NO_IMAGE_KHR) {
-                // NOTE: if dpy was invalid, createImage() is guaranteed to
-                // fail. so we'd end up here.
+    
+            GLint error;
+            while ((error = glGetError()) != GL_NO_ERROR) {
+                ST_LOGW("updateTexImage: clearing GL error: %#04x", error);
+            }
+    
+            glBindTexture(mTexTarget, mTexName);
+            glEGLImageTargetTexture2DOES(mTexTarget, (GLeglImageOES)image);
+    
+            bool failed = false;
+            while ((error = glGetError()) != GL_NO_ERROR) {
+                ST_LOGE("error binding external texture image %p (slot %d): %#04x",
+                        image, buf, error);
+                failed = true;
+            }
+            if (failed) {
                 return -EINVAL;
             }
         }
-
-        GLint error;
-        while ((error = glGetError()) != GL_NO_ERROR) {
-            ST_LOGW("updateTexImage: clearing GL error: %#04x", error);
-        }
-
-        glBindTexture(mTexTarget, mTexName);
-        glEGLImageTargetTexture2DOES(mTexTarget, (GLeglImageOES)image);
-
-        bool failed = false;
-        while ((error = glGetError()) != GL_NO_ERROR) {
-            ST_LOGE("error binding external texture image %p (slot %d): %#04x",
-                    image, buf, error);
-            failed = true;
-        }
-        if (failed) {
-            return -EINVAL;
-        }
-}
         if (mCurrentTexture != INVALID_BUFFER_SLOT) {
             if (mUseFenceSync) {
                 EGLSyncKHR fence = eglCreateSyncKHR(dpy, EGL_SYNC_FENCE_KHR,
@@ -841,10 +841,10 @@ if(!isExternalFormat(mPixelFormat)) {
         mQueue.erase(front);
         mDequeueCondition.signal();
     } else {
-if(!isExternalFormat(mPixelFormat)) {
-        // We always bind the texture even if we don't update its contents.
-        glBindTexture(mTexTarget, mTexName);
-}
+        if(!isExternalFormat(mPixelFormat)) {
+            // We always bind the texture even if we don't update its contents.
+            glBindTexture(mTexTarget, mTexName);
+        }
     }
 
     return OK;
