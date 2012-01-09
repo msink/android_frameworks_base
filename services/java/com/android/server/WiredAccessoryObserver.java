@@ -39,16 +39,22 @@ import java.io.FileNotFoundException;
 class WiredAccessoryObserver extends UEventObserver {
     private static final String TAG = WiredAccessoryObserver.class.getSimpleName();
     private static final boolean LOG = true;
-    private static final int MAX_AUDIO_PORTS = 3; /* h2w, USB Audio & hdmi */
-    private static final String uEventInfo[][] = { {"DEVPATH=/devices/virtual/switch/h2w",
-                                                    "/sys/class/switch/h2w/state",
-                                                    "/sys/class/switch/h2w/name"},
+    private static final int MAX_AUDIO_PORTS = 5; /* h2w, USB Audio & hdmi */
+    private static final String uEventInfo[][] = { {"DEVPATH=/devices/platform/imx-3stack-sgtl5000.0",
+                                                    "/sys/devices/platform/imx-3stack-sgtl5000.0/driver/headphone",
+                                                    "headphone"},
+                                                   {"DEVPATH=/devices/platform/imx-sgtl5000.0",
+                                                    "/sys/devices/platform/imx-sgtl5000.0/driver/headphone",
+                                                    "headphone"},
                                                    {"DEVPATH=/devices/virtual/switch/usb_audio",
                                                     "/sys/class/switch/usb_audio/state",
-                                                    "/sys/class/switch/usb_audio/name"},
-                                                   {"DEVPATH=/devices/virtual/switch/hdmi",
-                                                    "/sys/class/switch/hdmi/state",
-                                                    "/sys/class/switch/hdmi/name"} };
+                                                    "usb_audio"},
+                                                   {"DEVPATH=/devices/platform/sii902x.0",
+                                                    "/sys/devices/platform/sii902x.0/cable_state",
+                                                    "hdmi"},
+                                                   {"DEVPATH=/devices/platform/mxc_hdmi",
+                                                    "/sys/devices/platform/mxc_hdmi/cable_state",
+                                                    "hdmi"} };
 
     private static final int BIT_HEADSET = (1 << 0);
     private static final int BIT_HEADSET_NO_MIC = (1 << 1);
@@ -89,18 +95,63 @@ class WiredAccessoryObserver extends UEventObserver {
             startObserving(uEventInfo[i][0]);
         }
       }
-  }
+    }
 
     @Override
     public void onUEvent(UEventObserver.UEvent event) {
-        if (LOG) Slog.v(TAG, "Headset UEVENT: " + event.toString());
+        if (LOG) Slog.i(TAG, "Headset UEVENT: " + event.toString());
+        if(event.get("DEVPATH").equals("/devices/platform/imx-3stack-sgtl5000.0")){
+                try {
+                        String name_headphone = event.get("NAME");
+                        int state_headphone = Integer.parseInt(event.get("STATE"));
+                        updateState(name_headphone, state_headphone);
+                } catch (NumberFormatException e) {
+                        Slog.e(TAG, "Could not parse switch state from event " + event);
+                }
+        }
 
-        try {
-            String name = event.get("SWITCH_NAME");
-            int state = Integer.parseInt(event.get("SWITCH_STATE"));
-            updateState(name, state);
-        } catch (NumberFormatException e) {
-            Slog.e(TAG, "Could not parse switch state from event " + event);
+        if(event.get("DEVPATH").equals("/devices/platform/imx-sgtl5000.0")){
+                try {
+                        String name_headphone = event.get("NAME");
+                        int state_headphone = Integer.parseInt(event.get("STATE"));
+                        updateState(name_headphone, state_headphone);
+                } catch (NumberFormatException e) {
+                        Slog.e(TAG, "Could not parse switch state from event " + event);
+                }
+		}
+
+        if(event.get("DEVPATH").equals("uEventInfo[2][0]")){
+                try {
+                        String name_usb = event.get("SWITCH_NAME");
+                        int state_usb = Integer.parseInt(event.get("SWITCH_STATE"));
+                        updateState(name_usb, state_usb);
+                } catch (NumberFormatException e) {
+                        Slog.e(TAG, "Could not parse switch state from event " + event);
+                }
+        }
+
+        if(event.get("DEVPATH").equals("/devices/platform/sii902x.0")){
+                try {
+                        String name_hdmi = "hdmi";
+                        String state_hdmi = event.get("EVENT");
+                        int state = 0;
+                        if(state_hdmi.equals("plugin")) state = 1;
+                        updateState(name_hdmi, state);
+                } catch (NumberFormatException e) {
+                        Slog.e(TAG, "Could not parse switch state from event " + event);
+                }
+        }
+
+        if(event.get("DEVPATH").equals("/devices/platform/mxc_hdmi")){
+                try {
+                        String name_hdmi = "hdmi";
+                        String state_hdmi = event.get("EVENT");
+                        int state = 0;
+                        if(state_hdmi.equals("plugin")) state = 1;
+                        updateState(name_hdmi, state);
+                } catch (NumberFormatException e) {
+                        Slog.e(TAG, "Could not parse switch state from event " + event);
+                }
         }
     }
 
@@ -125,7 +176,7 @@ class WiredAccessoryObserver extends UEventObserver {
 
     private synchronized final void init() {
         char[] buffer = new char[1024];
-
+        String newState_String;
         String newName = mHeadsetName;
         int newState = mHeadsetState;
         mPrevHeadsetState = mHeadsetState;
@@ -134,15 +185,34 @@ class WiredAccessoryObserver extends UEventObserver {
 
         for (int i = 0; i < MAX_AUDIO_PORTS; i++) {
             try {
+                Log.w(TAG,"i" + i);
                 FileReader file = new FileReader(uEventInfo[i][1]);
                 int len = file.read(buffer, 0, 1024);
                 file.close();
+                /*
                 newState = Integer.valueOf((new String(buffer, 0, len)).trim());
 
                 file = new FileReader(uEventInfo[i][2]);
                 len = file.read(buffer, 0, 1024);
                 file.close();
                 newName = new String(buffer, 0, len).trim();
+                */
+                newState_String =new String(buffer, 0, len).trim();
+                if(i==0 || i== 1){
+                       if (newState_String.equals("headset"))
+                             newState = 1;
+                       else if (newState_String.equals("headphone"))
+                             newState = 2;
+                       else
+                             newState = 0;
+                }else if(i==3 || i==4){
+                       if(newState_String.equals("plugin"))
+                             newState = 1;
+                       else
+                             newState = 0;
+                }else
+                       newState = Integer.valueOf((new String(buffer, 0, len)).trim());
+                newName = uEventInfo[i][2];
 
                 if (newState > 0) {
                     updateState(newName, newState);
