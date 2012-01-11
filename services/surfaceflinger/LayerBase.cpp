@@ -389,7 +389,7 @@ void LayerBase::clearWithOpenGL(const Region& clip, GLclampf red,
     const uint32_t fbHeight = hw.getHeight();
     glColor4f(red,green,blue,alpha);
 
-  //  glDisable(GL_TEXTURE_EXTERNAL_OES);
+    glDisable(GL_TEXTURE_EXTERNAL_OES);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
 
