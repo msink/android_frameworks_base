@@ -764,13 +764,13 @@ status_t SurfaceTexture::updateTexImage() {
         int buf = *front;
         // Update the GL texture object.
         EGLImageKHR image = mSlots[buf].mEglImage;
+        if (mSlots[buf].mGraphicBuffer == 0) {
+             ST_LOGE("buffer at slot %d is null", buf);
+             return BAD_VALUE;
+        }
         EGLDisplay dpy = eglGetCurrentDisplay();
-        if(!isExternalFormat(mPixelFormat)) {
+        if(!(mSlots[buf].mGraphicBuffer->getUsage() & GRALLOC_USAGE_EXTERNAL_DISP)) {
            if (image == EGL_NO_IMAGE_KHR) {
-                if (mSlots[buf].mGraphicBuffer == 0) {
-                    ST_LOGE("buffer at slot %d is null", buf);
-                    return BAD_VALUE;
-                }
                 image = createImage(dpy, mSlots[buf].mGraphicBuffer);
                 mSlots[buf].mEglImage = image;
                 mSlots[buf].mEglDisplay = dpy;
@@ -841,10 +841,8 @@ status_t SurfaceTexture::updateTexImage() {
         mQueue.erase(front);
         mDequeueCondition.signal();
     } else {
-        if(!isExternalFormat(mPixelFormat)) {
-            // We always bind the texture even if we don't update its contents.
-            glBindTexture(mTexTarget, mTexName);
-        }
+        // We always bind the texture even if we don't update its contents.
+        glBindTexture(mTexTarget, mTexName);
     }
 
     return OK;
