@@ -1112,10 +1112,15 @@ public class MediaPlayer
      */
     public native void selectTrack(int Index);
 
+    /* trick mode */
     /**
      * Set play speed.
      *
-     * @param Speed   the speed of playback, from -16 to 16
+     * @param Speed is normalized speed multiplied by 0x10000
+     * Range of normalized speed is:
+     *         [-16,-2] means rewind, [0.1, 16] means forward, step is 0.1
+     * When normalized speed is [0.1, 1.9] audio is outputted, otherwise audio
+     * is not outputted.
      */
     public native void setPlaySpeed(int Speed);
 
