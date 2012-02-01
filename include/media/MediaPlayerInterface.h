@@ -48,7 +48,7 @@ enum player_type {
     // argument to the 'test:' url in the setDataSource call.
     TEST_PLAYER = 5,
     OMX_PLAYER = 6,
-    OMX_FAKE_PLAYER = 7,
+    OMX_FAST_PLAYER = 7,
 };
 
 

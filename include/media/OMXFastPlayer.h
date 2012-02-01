@@ -15,8 +15,8 @@
  */
 /* Copyright 2009-2012 Freescale Semiconductor, Inc. */
 
-#ifndef ANDROID_OMXFAKEPLAYER_H
-#define ANDROID_OMXFAKEPLAYER_H
+#ifndef ANDROID_OMXFASTPLAYER_H
+#define ANDROID_OMXFASTPLAYER_H
 
 #include <utils/Errors.h>
 #include <media/MediaPlayerInterface.h>
@@ -29,11 +29,11 @@ namespace android {
 
 class ISurfaceTexture;
 
-class OMXFakePlayer : public MediaPlayerInterface
+class OMXFastPlayer : public MediaPlayerInterface
 {
 public:
-                        OMXFakePlayer(int nMediaType = 0);
-    virtual             ~OMXFakePlayer();
+                        OMXFastPlayer(int nMediaType = 0);
+    virtual             ~OMXFastPlayer();
 
     virtual status_t    initCheck();
     virtual status_t    setDataSource(const char *url, const KeyedVector<String8, String8> *headers);
@@ -120,4 +120,4 @@ private:
 
 }; // namespace android
 
-#endif // ANDROID_OMXFAKEPLAYER_H
+#endif // ANDROID_OMXFASTPLAYER_H
