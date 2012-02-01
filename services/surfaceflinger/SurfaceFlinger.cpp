@@ -1038,6 +1038,7 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
             mTopOrientation = layer->getOrientation();
 #endif
             layer->draw(clip);
+            mOverlayClear = true;
         }
     }
 }
