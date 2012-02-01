@@ -14,7 +14,7 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+/* Copyright 2009-2012 Freescale Semiconductor, Inc. */
 
 // Proxy for media player implementations
 
@@ -70,6 +70,7 @@
 #include "nuplayer/NuPlayerDriver.h"
 #ifdef FSL_GM_PLAYER
 #include <media/OMXPlayer.h>
+#include <media/OMXFakePlayer.h>
 #endif
 #include <OMX.h>
 
@@ -581,12 +582,19 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
     if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
         char url[128];
         int ret = 0;
+
+        //printf("=======================getPlayerType offset %lld, len %lld===================\n", offset, length);
+        //do not use omxgm when running quadrant (test on quadrant advanced version 1.1.5, 1.1.6, 1.1.7)
+        if(offset != 0 && (length == 17681 || length == 16130))
+                return (player_type)(OMX_FAKE_PLAYER | (ret << 8));
+
         OMXPlayerType *pType = new OMXPlayerType();
         sprintf(url, "sharedfd://%d:%lld:%lld",  fd, offset, length);
         ret = pType->IsSupportedContent(url);
         delete pType;
         if(ret)
             return (player_type)(OMX_PLAYER | (ret << 8));
+
     }
 #endif
     long ident = *((long*)buf);
@@ -690,6 +698,10 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
             p = new NuPlayerDriver;
             break;
 #ifdef FSL_GM_PLAYER
+        case OMX_FAKE_PLAYER:
+            LOGV(" Create OMXFakePlayer.\n");
+            p = new OMXFakePlayer(playerType >> 8);
+            break;
         case OMX_PLAYER:
             LOGV(" Create OMXPlayer.\n");
             p = new OMXPlayer(playerType >> 8);
