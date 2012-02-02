@@ -698,7 +698,7 @@ static sp<MediaPlayerBase> createPlayer(player_type playerType, void* cookie,
             p = new NuPlayerDriver;
             break;
 #ifdef FSL_GM_PLAYER
-        case OMX_FAKE_PLAYER:
+        case OMX_FAST_PLAYER:
             LOGV(" Create OMXFastPlayer.\n");
             p = new OMXFastPlayer(playerType >> 8);
             break;
