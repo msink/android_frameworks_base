@@ -67,6 +67,8 @@ static const extention_map_t sExtentionMap[] = {
             (__eglMustCastToProperFunctionPointerType)&eglCreateImageKHR },
     { "eglDestroyImageKHR",
             (__eglMustCastToProperFunctionPointerType)&eglDestroyImageKHR },
+    { "eglSetSwapRectangleANDROID",
+            (__eglMustCastToProperFunctionPointerType)&eglSetSwapRectangleANDROID },
     { "eglGetSystemTimeFrequencyNV",
             (__eglMustCastToProperFunctionPointerType)&eglGetSystemTimeFrequencyNV },
     { "eglGetSystemTimeNV",
@@ -969,16 +971,6 @@ const char* eglQueryString(EGLDisplay dpy, EGLint name)
     egl_display_t const * const dp = validate_display(dpy);
     if (!dp) return (const char *) NULL;
 
-    for (int i=0 ; i<IMPL_NUM_IMPLEMENTATIONS ; i++) {
-        egl_connection_t* const cnx = &gEGLImpl[i];
-        if (cnx->dso) {
-            if (cnx->egl.eglQueryString) {
-                const char *str = cnx->egl.eglQueryString(
-                        dp->disp[i].dpy, name);
-                if (str) return str;
-            }
-        }
-    }
     switch (name) {
         case EGL_VENDOR:
             return dp->getVendorString();
@@ -1457,6 +1449,26 @@ EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute
 // ----------------------------------------------------------------------------
 
 /* ANDROID extensions entry-point go here */
+
+EGLBoolean eglSetSwapRectangleANDROID(EGLDisplay dpy, EGLSurface draw,
+        EGLint left, EGLint top, EGLint width, EGLint height)
+{
+    clearError();
+
+    egl_display_t const * const dp = validate_display(dpy);
+    if (!dp) return EGL_FALSE;
+
+    SurfaceRef _s(dp, draw);
+    if (!_s.get())
+        return setError(EGL_BAD_SURFACE, EGL_FALSE);
+
+    egl_surface_t const * const s = get_surface(draw);
+    if (s->cnx->egl.eglSetSwapRectangleANDROID) {
+        return s->cnx->egl.eglSetSwapRectangleANDROID(
+                dp->disp[s->impl].dpy, s->surface, left, top, width, height);
+    }
+    return setError(EGL_BAD_DISPLAY, NULL);
+}
 
 EGLClientBuffer eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw)
 {
