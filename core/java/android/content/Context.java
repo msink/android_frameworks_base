@@ -1789,6 +1789,16 @@ public abstract class Context {
     public static final String USB_SERVICE = "usb";
 
     /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.os.DisplayManager} for access to Display devices
+     *
+     * @see #getSystemService
+     * @see android.os.DisplayManager
+     */
+    public static final String DISPLAYMANAGER_SERVICE = "display_manager";
+
+
+    /**
      * Determine whether the given permission is allowed for a particular
      * process and user ID running in the system.
      *

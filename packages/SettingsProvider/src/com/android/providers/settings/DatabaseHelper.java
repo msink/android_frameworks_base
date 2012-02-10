@@ -1340,7 +1340,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "1".equals(SystemProperties.get("ro.kernel.qemu")) ? 1 : 0);
             loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
                     R.integer.def_screen_off_timeout);
-    
+
+            loadStringSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_MODE,
+                    R.string.def_plugged_display_1_mode);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_ENABLE,
+                    R.bool.def_plugged_display_1_enable);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_MIRROR,
+                    R.bool.def_plugged_display_1_mirror);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_ROTATION,
+                    R.bool.def_plugged_display_1_rotation);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_OVERSCAN,
+                    R.integer.def_plugged_display_1_overscan);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_1_COLORDEPTH,
+                    R.integer.def_plugged_display_1_colordepth);
+
+			loadStringSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_MODE,
+                    R.string.def_plugged_display_2_mode);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_ENABLE,
+                    R.bool.def_plugged_display_2_enable);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_MIRROR,
+                    R.bool.def_plugged_display_2_mirror);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_ROTATION,
+                    R.bool.def_plugged_display_2_rotation);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_OVERSCAN,
+                    R.integer.def_plugged_display_2_overscan);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_2_COLORDEPTH,
+                    R.integer.def_plugged_display_2_colordepth);
+
+			loadStringSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_MODE,
+                    R.string.def_plugged_display_3_mode);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_ENABLE,
+                    R.bool.def_plugged_display_3_enable);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_MIRROR,
+                    R.bool.def_plugged_display_3_mirror);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_ROTATION,
+                    R.bool.def_plugged_display_3_rotation);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_OVERSCAN,
+                    R.integer.def_plugged_display_3_overscan);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_3_COLORDEPTH,
+                    R.integer.def_plugged_display_3_colordepth);
+
+			loadStringSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_MODE,
+                    R.string.def_plugged_display_4_mode);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_ENABLE,
+                    R.bool.def_plugged_display_4_enable);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_MIRROR,
+                    R.bool.def_plugged_display_4_mirror);
+            loadBooleanSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_ROTATION,
+                    R.bool.def_plugged_display_4_rotation);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_OVERSCAN,
+                    R.integer.def_plugged_display_4_overscan);
+            loadIntegerSetting(stmt, Settings.System.PLUGGED_DISPLAY_4_COLORDEPTH,
+                    R.integer.def_plugged_display_4_colordepth);
             // Set default cdma emergency tone
             loadSetting(stmt, Settings.System.EMERGENCY_TONE, 0);
 

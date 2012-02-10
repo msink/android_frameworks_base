@@ -5107,6 +5107,7 @@ package android.content {
     field public static final int CONTEXT_INCLUDE_CODE = 1; // 0x1
     field public static final int CONTEXT_RESTRICTED = 4; // 0x4
     field public static final java.lang.String DEVICE_POLICY_SERVICE = "device_policy";
+    field public static final java.lang.String DISPLAYMANAGER_SERVICE = "display_manager";
     field public static final java.lang.String DOWNLOAD_SERVICE = "download";
     field public static final java.lang.String DROPBOX_SERVICE = "dropbox";
     field public static final java.lang.String INPUT_METHOD_SERVICE = "input_method";
@@ -14665,6 +14666,36 @@ package android.os {
     field public int otherSharedDirty;
   }
 
+  public class DisplayManager {
+    method public int getDisplayColorDepth(int);
+    method public boolean getDisplayEnable(int);
+    method public boolean getDisplayMirror(int);
+    method public java.lang.String getDisplayMode(int);
+    method public java.lang.String[] getDisplayModeList(int);
+    method public int getDisplayOverScan(int);
+    method public boolean getDisplayRotation(int);
+    method public boolean rebootSystem();
+    method public boolean setDisplayColorDepth(int, int);
+    method public boolean setDisplayEnable(int, boolean);
+    method public boolean setDisplayMirror(int, boolean);
+    method public boolean setDisplayMode(int, java.lang.String);
+    method public boolean setDisplayOverScan(int, int);
+    method public boolean setDisplayRotation(int, boolean);
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_1_ATTACHED = "android.os.action.DISPLAY_DEVICE_1_ATTACHED";
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_2_ATTACHED = "android.os.action.DISPLAY_DEVICE_2_ATTACHED";
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_3_ATTACHED = "android.os.action.DISPLAY_DEVICE_3_ATTACHED";
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_4_ATTACHED = "android.os.action.DISPLAY_DEVICE_4_ATTACHED";
+    field public static final int DISPLAY_STATE_DISABLED = 1; // 0x1
+    field public static final int DISPLAY_STATE_DISABLING = 0; // 0x0
+    field public static final int DISPLAY_STATE_ENABLED = 3; // 0x3
+    field public static final int DISPLAY_STATE_ENABLING = 2; // 0x2
+    field public static final int DISPLAY_STATE_UNKNOWN = 4; // 0x4
+    field public static final java.lang.String EXTRA_DISPLAY_CONNECT = "display_connect";
+    field public static final java.lang.String EXTRA_DISPLAY_DEVICE = "display_device";
+    field public static final java.lang.String EXTRA_DISPLAY_STATE = "display_state";
+    field public static final java.lang.String EXTRA_PERMISSION_GRANTED = "permission";
+  }
+
   public class DropBoxManager {
     ctor protected DropBoxManager();
     method public void addData(java.lang.String, byte[], int);
@@ -17577,6 +17608,30 @@ package android.provider {
     field public static final deprecated java.lang.String PARENTAL_CONTROL_ENABLED = "parental_control_enabled";
     field public static final deprecated java.lang.String PARENTAL_CONTROL_LAST_UPDATE = "parental_control_last_update";
     field public static final deprecated java.lang.String PARENTAL_CONTROL_REDIRECT_URL = "parental_control_redirect_url";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_COLORDEPTH = "plugged_display_1_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_ENABLE = "plugged_display_1_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_MIRROR = "plugged_display_1_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_MODE = "plugged_display_1_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_OVERSCAN = "plugged_display_1_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_1_ROTATION = "plugged_display_1_rotation";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_COLORDEPTH = "plugged_display_2_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_ENABLE = "plugged_display_2_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_MIRROR = "plugged_display_2_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_MODE = "plugged_display_2_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_OVERSCAN = "plugged_display_2_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_2_ROTATION = "plugged_display_2_rotation";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_COLORDEPTH = "plugged_display_3_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_ENABLE = "plugged_display_3_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_MIRROR = "plugged_display_3_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_MODE = "plugged_display_3_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_OVERSCAN = "plugged_display_3_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_3_ROTATION = "plugged_display_3_rotation";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_COLORDEPTH = "plugged_display_4_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_ENABLE = "plugged_display_4_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_MIRROR = "plugged_display_4_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_MODE = "plugged_display_4_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_OVERSCAN = "plugged_display_4_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_4_ROTATION = "plugged_display_4_rotation";
     field public static final java.lang.String RADIO_BLUETOOTH = "bluetooth";
     field public static final java.lang.String RADIO_CELL = "cell";
     field public static final java.lang.String RADIO_NFC = "nfc";

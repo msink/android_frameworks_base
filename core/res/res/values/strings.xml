@@ -2860,6 +2860,11 @@
     <!-- See USB_PREFERENCES. This is the message. -->
     <string name="usb_notification_message">Touch for other USB options</string>
 
+    <!-- PluggableDisplay_PREFERENCES: Notification for when the user connects the phone to pluggable display device.  This is the title -->
+    <string name="plugged_display_notification_title">Connected as plugged display devices</string>
+    <!-- See Display_PREFERENCES. This is the message. -->
+    <string name="plugged_display_notification_message">Touch for plugged display options</string>
+
     <!-- External media format dialog strings -->
     <!-- This is the label for the activity, and should never be visible to the user. -->
     <!-- See EXTMEDIA_FORMAT.  EXTMEDIA_FORMAT_DIALOG:  After the user selects the notification, a dialog is shown asking if he wants to format the SD card.  This is the title. [CHAR LIMIT=20] -->

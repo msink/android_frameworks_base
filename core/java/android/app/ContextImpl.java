@@ -77,6 +77,8 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.Vibrator;
 import android.os.storage.StorageManager;
+import android.os.DisplayManager;
+import android.os.IDisplayManager;
 import android.telephony.TelephonyManager;
 import android.content.ClipboardManager;
 import android.util.AndroidRuntimeException;
@@ -425,6 +427,12 @@ class ContextImpl extends Context {
                 public Object createService(ContextImpl ctx) {
                     IBinder b = ServiceManager.getService(USB_SERVICE);
                     return new UsbManager(ctx, IUsbManager.Stub.asInterface(b));
+                }});
+
+        registerService(DISPLAYMANAGER_SERVICE, new ServiceFetcher() {
+                public Object createService(ContextImpl ctx) {
+                    IBinder b = ServiceManager.getService(DISPLAYMANAGER_SERVICE);
+                    return new DisplayManager(ctx, IDisplayManager.Stub.asInterface(b));
                 }});
 
         registerService(VIBRATOR_SERVICE, new ServiceFetcher() {

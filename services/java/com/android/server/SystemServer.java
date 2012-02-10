@@ -130,6 +130,7 @@ class ServerThread extends Thread {
         RecognitionManagerService recognition = null;
         ThrottleService throttle = null;
         NetworkTimeUpdateService networkTimeUpdater = null;
+        DisplayManagerService displayManager = null;
 
         // Critical services...
         try {
@@ -552,6 +553,14 @@ class ServerThread extends Thread {
             } catch (Throwable e) {
                 reportWtf("starting NetworkTimeUpdate service", e);
             }
+
+            try {
+                Slog.i(TAG, "DisplayManagerService");
+                displayManager = DisplayManagerService.create(context);
+                ServiceManager.addService(Context.DISPLAYMANAGER_SERVICE, displayManager);
+            } catch (Throwable e) {
+                reportWtf("starting displayManager service", e);
+            }
         }
 
         // Before things start rolling, be sure we have decided whether
@@ -632,6 +641,7 @@ class ServerThread extends Thread {
         final NetworkTimeUpdateService networkTimeUpdaterF = networkTimeUpdater;
         final TextServicesManagerService textServiceManagerServiceF = tsms;
         final StatusBarManagerService statusBarF = statusBar;
+        final DisplayManagerService displayManagerF = displayManager;
 
         // We now tell the activity manager it is okay to run third party
         // code.  It will call back into us once it has gotten to the state
@@ -732,6 +742,11 @@ class ServerThread extends Thread {
                     if (textServiceManagerServiceF != null) textServiceManagerServiceF.systemReady();
                 } catch (Throwable e) {
                     reportWtf("making Text Services Manager Service ready", e);
+                }
+                try {
+                    if (displayManagerF != null) displayManagerF.systemReady();
+                } catch (Throwable e) {
+                    reportWtf("making display Manager Service ready", e);
                 }
             }
         });

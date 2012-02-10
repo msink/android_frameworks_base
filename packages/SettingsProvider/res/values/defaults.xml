@@ -19,6 +19,30 @@
 <resources>
     <bool name="def_dim_screen">true</bool>
     <integer name="def_screen_off_timeout">60000</integer>
+    <string name="def_plugged_display_1_mode">1920x1080p-60</string>
+	<bool name="def_plugged_display_1_enable">true</bool>
+	<bool name="def_plugged_display_1_mirror">true</bool>
+	<bool name="def_plugged_display_1_rotation">true</bool>
+	<integer name="def_plugged_display_1_overscan">0</integer>
+	<integer name="def_plugged_display_1_colordepth">32</integer>
+    <string name="def_plugged_display_2_mode">1920x1080p-60</string>
+	<bool name="def_plugged_display_2_enable">false</bool>
+	<bool name="def_plugged_display_2_mirror">true</bool>
+	<bool name="def_plugged_display_2_rotation">false</bool>
+	<integer name="def_plugged_display_2_overscan">0</integer>
+	<integer name="def_plugged_display_2_colordepth">32</integer>
+    <string name="def_plugged_display_3_mode">1920x1080p-60</string>
+	<bool name="def_plugged_display_3_enable">false</bool>
+	<bool name="def_plugged_display_3_mirror">true</bool>
+	<bool name="def_plugged_display_3_rotation">false</bool>
+	<integer name="def_plugged_display_3_overscan">0</integer>
+	<integer name="def_plugged_display_3_colordepth">32</integer>
+    <string name="def_plugged_display_4_mode">1920x1080p-60</string>
+	<bool name="def_plugged_display_4_enable">false</bool>
+	<bool name="def_plugged_display_4_mirror">true</bool>
+	<bool name="def_plugged_display_4_rotation">false</bool>
+	<integer name="def_plugged_display_4_overscan">0</integer>
+	<integer name="def_plugged_display_4_colordepth">32</integer>
     <bool name="def_airplane_mode_on">false</bool>
     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi,nfc,wimax</string>
