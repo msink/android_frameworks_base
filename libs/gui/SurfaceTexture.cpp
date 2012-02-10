@@ -398,10 +398,10 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
                 // than allowed.
                 const int avail = mBufferCount - (dequeuedCount+1);
                 if (avail < (MIN_UNDEQUEUED_BUFFERS-int(mSynchronousMode))) {
-                    ST_LOGE("dequeueBuffer: MIN_UNDEQUEUED_BUFFERS=%d exceeded "
+                /*    ST_LOGE("dequeueBuffer: MIN_UNDEQUEUED_BUFFERS=%d exceeded "
                             "(dequeued=%d)",
                             MIN_UNDEQUEUED_BUFFERS-int(mSynchronousMode),
-                            dequeuedCount);
+                            dequeuedCount);*/
                     return -EBUSY;
                 }
             }
