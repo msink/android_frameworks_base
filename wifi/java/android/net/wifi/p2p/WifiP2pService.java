@@ -461,6 +461,9 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                 loge("Failed to stop supplicant, issue kill");
                 WifiNative.killSupplicant();
             }
+	    if(WifiNative.unloadDriver()) {
+		if (DBG) logd("Driver unload successful");
+	    }
         }
 
         @Override
