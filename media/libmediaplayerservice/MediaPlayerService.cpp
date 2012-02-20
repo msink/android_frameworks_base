@@ -583,11 +583,6 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         char url[128];
         int ret = 0;
 
-        //printf("=======================getPlayerType offset %lld, len %lld===================\n", offset, length);
-        //do not use omxgm when running quadrant (test on quadrant advanced version 1.1.5, 1.1.6, 1.1.7)
-        if(offset != 0 && (length == 17681 || length == 16130))
-                return (player_type)(OMX_FAST_PLAYER | (ret << 8));
-
         OMXPlayerType *pType = new OMXPlayerType();
         sprintf(url, "sharedfd://%d:%lld:%lld",  fd, offset, length);
         ret = pType->IsSupportedContent(url);

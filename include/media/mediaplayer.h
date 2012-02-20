@@ -115,6 +115,9 @@ enum media_info_type {
     MEDIA_INFO_NOT_SEEKABLE = 801,
     // New media metadata is available.
     MEDIA_INFO_METADATA_UPDATE = 802,
+    // Async seek, seek is done in another thread
+    MEDIA_INFO_ASYNC_SEEK = 803,
+
 };
 
 
