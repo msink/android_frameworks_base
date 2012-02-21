@@ -40,7 +40,7 @@
 
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
-
+#include <hardware/DisplayCommand.h>
 #include <private/ui/android_natives_priv.h>
 
 // ----------------------------------------------------------------------------
@@ -77,6 +77,90 @@ private:
  * back buffer).
  * 
  */
+
+int FramebufferNativeWindow::sendCommand(int operateCode, const configParam& param)
+{
+    if(!mAllocMod || !fbDev) {
+        LOGE("mAllocMod is null in sendCommand");
+        return BAD_VALUE;
+    }
+    return mAllocMod->perform(mAllocMod, param.operateCode, &param, fbDev);
+}
+
+FramebufferNativeWindow::FramebufferNativeWindow(const configParam& param)
+    : BASE(), fbDev(0), grDev(0), mUpdateOnDemand(false)
+{
+    hw_module_t const* module;
+    if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module) == 0) {
+        int stride;
+        int err;
+        int i;
+        err = framebuffer_open_ext(module, &fbDev);
+        LOGE_IF(err, "couldn't open framebuffer HAL (%s)", strerror(-err));
+        mAllocMod = (gralloc_module_t*)(fbDev->common.module);
+        if (!mAllocMod) {
+            LOGE("mAllocMod is null");
+            return;
+        }
+
+        err = gralloc_open((hw_module_t const*)mAllocMod, &grDev);
+        LOGE_IF(err, "couldn't open gralloc HAL (%s)", strerror(-err));
+
+        // bail out if we can't initialize the modules
+        if (!fbDev || !grDev)
+            return;
+        mUpdateOnDemand = (fbDev->setUpdateRect != 0);
+
+        //interact with framebuffer to set parameters.
+        if(!mAllocMod->perform) {
+            LOGE("can not get perform function from framebuffer!");
+            return;
+        }
+
+        err = mAllocMod->perform(mAllocMod, param.operateCode, &param, fbDev);
+        LOGE_IF(err, "perform return error (%s)", strerror(-err));
+
+        // initialize the buffer FIFO
+        mNumBuffers = fbDev->reserved[0];
+        if (mNumBuffers != 3 && mNumBuffers != 2) {
+            LOGE("The framebuffer number got from HAL is not supported(%d)", mNumBuffers);
+            return;
+        }
+        mNumFreeBuffers = mNumBuffers;
+
+        mBufferHead = mNumBuffers-1;
+
+        for (i = 0; i < mNumBuffers; i++)
+            buffers[i] = new NativeBuffer(
+                    fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
+
+        for (i = 0; i < mNumBuffers; i++) {
+            err = grDev->alloc(grDev,
+                    fbDev->width, fbDev->height, fbDev->format,
+                    GRALLOC_USAGE_HW_FB, &buffers[i]->handle, &buffers[i]->stride);
+
+            LOGE_IF(err, "fb buffer %d allocation failed w=%d, h=%d, err=%s",
+                    i, fbDev->width, fbDev->height, strerror(-err));
+        }
+
+        const_cast<uint32_t&>(ANativeWindow::flags) = fbDev->flags;
+        const_cast<float&>(ANativeWindow::xdpi) = fbDev->xdpi;
+        const_cast<float&>(ANativeWindow::ydpi) = fbDev->ydpi;
+        const_cast<int&>(ANativeWindow::minSwapInterval) =
+            fbDev->minSwapInterval;
+        const_cast<int&>(ANativeWindow::maxSwapInterval) =
+            fbDev->maxSwapInterval;
+    } else {
+        LOGE("Couldn't get gralloc module");
+    }
+
+    ANativeWindow::setSwapInterval = setSwapInterval;
+    ANativeWindow::dequeueBuffer = dequeueBuffer;
+    ANativeWindow::lockBuffer = lockBuffer;
+    ANativeWindow::queueBuffer = queueBuffer;
+    ANativeWindow::query = query;
+    ANativeWindow::perform = perform;
+}
 
 FramebufferNativeWindow::FramebufferNativeWindow() 
     : BASE(), fbDev(0), grDev(0), mUpdateOnDemand(false)
@@ -138,6 +222,7 @@ FramebufferNativeWindow::FramebufferNativeWindow()
     ANativeWindow::queueBuffer = queueBuffer;
     ANativeWindow::query = query;
     ANativeWindow::perform = perform;
+    mAllocMod = NULL;
 }
 
 FramebufferNativeWindow::~FramebufferNativeWindow() 

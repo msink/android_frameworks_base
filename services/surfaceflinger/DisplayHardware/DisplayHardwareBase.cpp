@@ -125,13 +125,15 @@ DisplayHardwareBase::DisplayHardwareBase(const sp<SurfaceFlinger>& flinger,
         uint32_t displayIndex) 
     : mScreenAcquired(true)
 {
-    mDisplayEventThread = new DisplayEventThread(flinger);
+    if(displayIndex == 0)
+        mDisplayEventThread = new DisplayEventThread(flinger);
 }
 
 DisplayHardwareBase::~DisplayHardwareBase()
 {
     // request exit
-    mDisplayEventThread->requestExitAndWait();
+    if(mDisplayEventThread != NULL)
+        mDisplayEventThread->requestExitAndWait();
 }
 
 bool DisplayHardwareBase::canDraw() const
@@ -141,6 +143,11 @@ bool DisplayHardwareBase::canDraw() const
 
 void DisplayHardwareBase::releaseScreen() const
 {
+    if(mDisplayEventThread == NULL) {
+        mScreenAcquired = false;
+        return;
+    }
+
     status_t err = mDisplayEventThread->releaseScreen();
     if (err >= 0) {
         mScreenAcquired = false;
@@ -149,6 +156,11 @@ void DisplayHardwareBase::releaseScreen() const
 
 void DisplayHardwareBase::acquireScreen() const
 {
+    if(mDisplayEventThread == NULL) {
+        mScreenAcquired = true;
+        return;
+    }
+
     status_t err = mDisplayEventThread->acquireScreen();
     if (err >= 0) {
         mScreenAcquired = true;

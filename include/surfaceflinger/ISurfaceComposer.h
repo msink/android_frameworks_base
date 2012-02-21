@@ -29,6 +29,7 @@
 
 #include <surfaceflinger/ISurfaceComposerClient.h>
 #include <surfaceflinger/IGraphicBufferAlloc.h>
+#include <hardware/DisplayCommand.h>
 
 namespace android {
 // ----------------------------------------------------------------------------
@@ -110,6 +111,7 @@ public:
     virtual void setTransactionState(const Vector<ComposerState>& state,
             int orientation, uint32_t flags) = 0;
 
+    virtual status_t configDisplay(configParam* param) = 0;
     /* signal that we're done booting.
      * Requires ACCESS_SURFACE_FLINGER permission
      */
@@ -151,6 +153,7 @@ public:
         TURN_ELECTRON_BEAM_OFF,
         TURN_ELECTRON_BEAM_ON,
         AUTHENTICATE_SURFACE,
+        CONFIG_DISPLAY = IBinder::FIRST_CALL_TRANSACTION + 100,
     };
 
     virtual status_t    onTransact( uint32_t code,

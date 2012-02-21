@@ -71,6 +71,11 @@ public:
     void dump(String8& out, char* scratch, size_t SIZE,
             const Vector< sp<LayerBase> >& visibleLayersSortedByZ) const;
 
+public:
+    void adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight, int displayWidth, int displayHeight);
+    void freeAllocatedBuffer();
+    int isAllocated;
+
 private:
     struct cb_context {
         hwc_procs_t procs;

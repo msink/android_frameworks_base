@@ -25,7 +25,7 @@
 namespace android {
 // ---------------------------------------------------------------------------
 
-#define NUM_DISPLAY_MAX 4
+#define NUM_DISPLAY_MAX 6
 /*
  * These classes manage a stack of buffers in shared memory.
  * 

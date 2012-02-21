@@ -38,7 +38,7 @@ namespace android {
 // ---------------------------------------------------------------------------
 
 HWComposer::HWComposer(const sp<SurfaceFlinger>& flinger)
-    : mFlinger(flinger),
+    : isAllocated(0), mFlinger(flinger),
       mModule(0), mHwc(0), mList(0), mCapacity(0),
       mNumOVLayers(0), mNumFBLayers(0),
       mDpy(EGL_NO_DISPLAY), mSur(EGL_NO_SURFACE)
@@ -60,6 +60,7 @@ HWComposer::HWComposer(const sp<SurfaceFlinger>& flinger)
 }
 
 HWComposer::~HWComposer() {
+    freeAllocatedBuffer();
     free(mList);
     if (mHwc) {
         hwc_close(mHwc);
@@ -83,8 +84,72 @@ void HWComposer::setFrameBuffer(EGLDisplay dpy, EGLSurface sur) {
     mSur = (hwc_surface_t)sur;
 }
 
+void HWComposer::freeAllocatedBuffer()
+{
+    if(!mList || !isAllocated)
+        return;
+
+    for (size_t i=0 ; i<mList->numHwLayers ; i++) {
+        hwc_layer_t *layer = &mList->hwLayers[i];
+        if(layer->visibleRegionScreen.rects)
+            free((void *)(layer->visibleRegionScreen.rects));
+    }
+    isAllocated = 0;
+}
+
+void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight, int displayWidth, int displayHeight)
+{
+    if(!mList)
+        return;
+    int dw = displayWidth;
+    int dh = displayHeight;
+    int fw = defaultWidth;
+    int fh = defaultHeight;
+    if(dw >= dh*fw/fh)
+        dw = dh*fw/fh;
+    else
+        dh = dw*fh/fw;
+
+    hwc_rect_t *rect = &layer->displayFrame;
+    rect->left = rect->left * dw/fw;
+    rect->top = rect->top * dh/fh;
+    rect->right = rect->right * dw/fw;
+    rect->bottom = rect->bottom * dh/fh;
+
+    rect->left += (displayWidth - dw) >> 1;
+    rect->top  += (displayHeight - dh) >> 1;
+    rect->right += (displayWidth - dw) >> 1;
+    rect->bottom += (displayHeight - dh) >> 1;
+
+    size_t numRects = 0;
+    hwc_rect_t *rects = NULL;
+
+    numRects = layer->visibleRegionScreen.numRects;
+    rects = (hwc_rect_t *)layer->visibleRegionScreen.rects;
+
+    if(numRects > 0) {
+        layer->visibleRegionScreen.rects = (hwc_rect_t const *)malloc(sizeof(hwc_rect_t) * numRects);
+        memcpy((void *)(layer->visibleRegionScreen.rects), (const void*)(rects), sizeof(hwc_rect_t) * numRects);
+        isAllocated = 1;
+    }
+
+    for(size_t m=0; m<layer->visibleRegionScreen.numRects; m++) {
+        rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;
+        rect->left = rect->left * dw/fw;
+        rect->top = rect->top * dh/fh;
+        rect->right = rect->right * dw/fw;
+        rect->bottom = rect->bottom * dh/fh;
+
+        rect->left += (displayWidth - dw) >> 1;
+        rect->top  += (displayHeight - dh) >> 1;
+        rect->right += (displayWidth - dw) >> 1;
+        rect->bottom += (displayHeight - dh) >> 1;
+    }
+}
+
 status_t HWComposer::createWorkList(size_t numLayers) {
     if (mHwc) {
+        freeAllocatedBuffer();
         if (!mList || mCapacity < numLayers) {
             free(mList);
             size_t size = sizeof(hwc_layer_list) + numLayers*sizeof(hwc_layer_t);

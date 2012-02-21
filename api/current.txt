@@ -21885,6 +21885,31 @@ package android.view {
     field public static final int DEFAULT_DISPLAY = 0; // 0x0
   }
 
+  public class DisplayCommand {
+    ctor public DisplayCommand();
+    method public int broadcastEvent();
+    method public int disable(int);
+    method public int enable(int, java.lang.String, int, int, int, int);
+    method public int setColorDepth(int, int);
+    method public int setMirror(int, int);
+    method public int setOverScan(int, int);
+    method public int setResolution(int, java.lang.String);
+    method public int setRotation(int, int);
+    field public static final int OPERATE_CODE_CHANGE = 16384; // 0x4000
+    field public static final int OPERATE_CODE_CHANGE_COLORDEPTH = 8; // 0x8
+    field public static final int OPERATE_CODE_CHANGE_MIRROR = 4; // 0x4
+    field public static final int OPERATE_CODE_CHANGE_OVERSCAN = 2; // 0x2
+    field public static final int OPERATE_CODE_CHANGE_RESOLUTION = 1; // 0x1
+    field public static final int OPERATE_CODE_CHANGE_ROTATION = 16; // 0x10
+    field public static final int OPERATE_CODE_DISABLE = 8192; // 0x2000
+    field public static final int OPERATE_CODE_ENABLE = 4096; // 0x1000
+  }
+
+  public static class DisplayCommand.ConfigParam {
+    ctor public DisplayCommand.ConfigParam();
+    method public void writeToParcel(android.os.Parcel);
+  }
+
   public class DragEvent implements android.os.Parcelable {
     method public int describeContents();
     method public int getAction();

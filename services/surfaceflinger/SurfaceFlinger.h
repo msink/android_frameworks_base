@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* Copyright 2010-2011 Freescale Semiconductor Inc. */
+/* Copyright 2010-2012 Freescale Semiconductor, Inc. */
 
 #ifndef ANDROID_SURFACE_FLINGER_H
 #define ANDROID_SURFACE_FLINGER_H
@@ -110,7 +110,7 @@ public:
             Transform* tr);
 
                                 GraphicPlane();
-                                ~GraphicPlane();
+        virtual                 ~GraphicPlane();
 
         bool                    initialized() const;
 
@@ -125,7 +125,7 @@ public:
         const Transform&        transform() const;
         EGLDisplay              getEGLDisplay() const;
         
-private:
+protected:
                                 GraphicPlane(const GraphicPlane&);
         GraphicPlane            operator = (const GraphicPlane&);
 
@@ -139,11 +139,46 @@ private:
         int                     mHeight;
 };
 
+class ConfigurableGraphicPlane : public GraphicPlane
+{
+public:
+        ConfigurableGraphicPlane()
+             :mTransactionFlags(0)
+             {}
+        ~ConfigurableGraphicPlane() {}
+
+        int getMirror();
+        int getOverScan();
+        status_t sendCommand(int operateCode, const configParam& param);
+        status_t changePlaneSize(SurfaceFlinger* sf);
+
+        void doTransaction(SurfaceFlinger* sf);
+        uint32_t getTransactionFlags(uint32_t flags);
+        uint32_t setTransactionFlags(uint32_t flags);
+        bool setParam(configParam& conParam, const configParam& param);
+        bool setConfigParam(const configParam& param);
+        int initPlane(SurfaceFlinger* sf);
+        int unInitPlane();
+
+public:
+        static int mTransactionReturnValue;
+        static int mUpdateVisibleRegion;
+
+private:
+        ConfigurableGraphicPlane(const ConfigurableGraphicPlane&);
+        ConfigurableGraphicPlane operator = (const ConfigurableGraphicPlane&);
+
+        volatile int32_t mTransactionFlags;
+        configParam mCurrentParam;
+        configParam mConfigParam;
+};
+
 // ---------------------------------------------------------------------------
 
 enum {
     eTransactionNeeded      = 0x01,
-    eTraversalNeeded        = 0x02
+    eTraversalNeeded        = 0x02,
+    eDisplayEventNeeded     = 0x04
 };
 
 class SurfaceFlinger :
@@ -217,6 +252,17 @@ public:
         }
     };
 
+public:
+    virtual status_t configDisplay(configParam* param);
+    void setDisplayCblk(int dpy);
+    void clearDisplayCblk(int dpy);
+    int mActivePlaneIndex;
+private:
+    void handleDisplayTransaction();
+    void resizeSwapRegion();
+
+    mutable Mutex mDisplayStateLock;    
+    Condition mDisplayTransactionCV;
 
 private:
     // DeathRecipient interface
@@ -350,7 +396,7 @@ private:
                 Vector< sp<LayerBase> > mLayersPendingRemoval;
 
                 // protected by mStateLock (but we could use another lock)
-                GraphicPlane                mGraphicPlanes[1];
+                ConfigurableGraphicPlane    mGraphicPlanes[6];
                 bool                        mLayersRemoved;
                 DefaultKeyedVector< wp<IBinder>, wp<Layer> > mLayerMap;
 

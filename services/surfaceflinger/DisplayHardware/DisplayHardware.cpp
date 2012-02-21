@@ -75,11 +75,32 @@ void checkEGLErrors(const char* token)
  */
 
 DisplayHardware::DisplayHardware(
+            const sp<SurfaceFlinger>& flinger,
+            const configParam& param)
+    : DisplayHardwareBase(flinger, param.displayId),
+      mFlinger(flinger), mFlags(0), mHwc(0)
+{
+    mNativeWindow = new FramebufferNativeWindow(param);
+    init(param.displayId);
+}
+
+int DisplayHardware::sendCommand(int operateCode, const configParam& param)
+{
+    return mNativeWindow->sendCommand(operateCode, param);
+}
+
+void DisplayHardware::destroyCurrent() const
+{
+    eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+}
+
+DisplayHardware::DisplayHardware(
         const sp<SurfaceFlinger>& flinger,
         uint32_t dpy)
     : DisplayHardwareBase(flinger, dpy),
       mFlinger(flinger), mFlags(0), mHwc(0)
 {
+    mNativeWindow = new FramebufferNativeWindow();
     init(dpy);
 }
 
@@ -129,7 +150,6 @@ static status_t selectConfigForPixelFormat(
 
 void DisplayHardware::init(uint32_t dpy)
 {
-    mNativeWindow = new FramebufferNativeWindow();
     framebuffer_device_t const * fbDev = mNativeWindow->getDevice();
     if (!fbDev) {
         LOGE("Display subsystem failed to initialize. check logs. exiting...");
@@ -344,7 +364,10 @@ HWComposer& DisplayHardware::getHwComposer() const {
 void DisplayHardware::fini()
 {
     eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglDestroyContext(mDisplay, mContext);
+    eglDestroySurface(mDisplay, mSurface);
     eglTerminate(mDisplay);
+    delete mHwc;
 }
 
 void DisplayHardware::releaseScreen() const

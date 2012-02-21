@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* Copyright (C) 2011 Freescale Semiconductor Inc. */
+/* Copyright (C) 2011-2012 Freescale Semiconductor, Inc. */
 
 #ifndef ANDROID_DISPLAY_HARDWARE_H
 #define ANDROID_DISPLAY_HARDWARE_H
@@ -34,6 +34,7 @@
 #include "GLExtensions.h"
 
 #include "DisplayHardware/DisplayHardwareBase.h"
+#include <hardware/DisplayCommand.h>
 
 namespace android {
 
@@ -97,6 +98,13 @@ public:
 
     // only for debugging
     int getCurrentBufferIndex() const;
+
+public:
+    DisplayHardware(
+            const sp<SurfaceFlinger>& flinger,
+            const configParam& param);
+    int sendCommand(int operateCode, const configParam& param);
+    void destroyCurrent() const;
 
 private:
     void init(uint32_t displayIndex) __attribute__((noinline));
