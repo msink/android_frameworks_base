@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+/* Copyright 2009-2012 Freescale Semiconductor Inc. */
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "OMXCodec"
@@ -126,9 +126,9 @@ static sp<MediaSource> InstantiateSoftwareEncoder(
 #undef FACTORY_CREATE
 
 static const CodecInfo kDecoderInfo[] = {
-    //{ MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_decoder.mpeg4.hw-based" },
-    //{ MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_decoder.h263.hw-based" },
-    //{ MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_decoder.avc.v3.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_decoder.mpeg4.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_decoder.h263.hw-based" },
+    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_decoder.avc.v3.hw-based" },
     { MEDIA_MIMETYPE_IMAGE_JPEG, "OMX.TI.JPEG.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.google.mp3.decoder" },
@@ -1899,11 +1899,30 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
         return err;
     }
 
+    int color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_SP;
+    switch(def.format.video.eColorFormat) {
+        case OMX_COLOR_FormatYUV420SemiPlanar:
+            color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_SP;
+            break;
+        case OMX_COLOR_FormatYUV420Planar:
+            color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_I;
+            break;
+        case OMX_COLOR_Format16bitRGB565:
+            color_fmt = HAL_PIXEL_FORMAT_RGB_565;
+            break;
+        case OMX_COLOR_FormatYUV422Planar:
+            color_fmt = HAL_PIXEL_FORMAT_YCbCr_422_I;
+            break;
+        default:
+            LOGE("Not supported color format %d by surface!");
+            return UNKNOWN_ERROR;
+    }
+
     err = native_window_set_buffers_geometry(
             mNativeWindow.get(),
             def.format.video.nFrameWidth,
             def.format.video.nFrameHeight,
-            def.format.video.eColorFormat);
+            color_fmt);
 
     if (err != 0) {
         LOGE("native_window_set_buffers_geometry failed: %s (%d)",
