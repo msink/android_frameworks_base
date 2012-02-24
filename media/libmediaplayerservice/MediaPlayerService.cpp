@@ -624,6 +624,9 @@ player_type getPlayerType(const char* url)
         return TEST_PLAYER;
     }
 
+    if (!strncasecmp("widevine://", url, 11))
+        return STAGEFRIGHT_PLAYER;
+
 #ifdef FSL_GM_PLAYER
     int lenURL = strlen(url);
     char value[PROPERTY_VALUE_MAX];
