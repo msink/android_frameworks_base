@@ -185,6 +185,17 @@ void Layer::setGeometry(hwc_layer_t* hwcl)
 
     // we do alpha-fade with the hwc HAL
     const State& s(drawingState());
+    if (s.alpha < 0xFF) {
+        hwcl->blending = mPremultipliedAlpha ?
+                       HWC_BLENDING_PREMULT : HWC_BLENDING_COVERAGE;
+    } else {
+        if (!isOpaque()) {
+            hwcl->blending = mPremultipliedAlpha ?
+                           HWC_BLENDING_PREMULT : HWC_BLENDING_COVERAGE;
+        } else {
+            hwcl->blending = HWC_BLENDING_NONE;
+        }
+     }
     hwcl->blending |= (s.alpha << 16);
 
     /*
