@@ -883,7 +883,12 @@ public class MediaPlayer
      *
      * @throws IllegalStateException if it is called in an invalid state
      */
-    public native void prepare() throws IOException, IllegalStateException;
+    public void prepare() throws IOException, IllegalStateException {
+       mUseFslSeek = false;
+       _prepare();
+   }
+
+    private native void _prepare() throws IOException, IllegalStateException;
 
     /**
      * Prepares the player for playback, asynchronously.
@@ -895,7 +900,12 @@ public class MediaPlayer
      *
      * @throws IllegalStateException if it is called in an invalid state
      */
-    public native void prepareAsync() throws IllegalStateException;
+    public void prepareAsync() throws IllegalStateException {
+       mUseFslSeek = false;
+       _prepareAsync();
+   }
+
+    private native void _prepareAsync() throws IllegalStateException;
 
     /**
      * Starts or resumes playback. If playback had previously been paused,
@@ -1047,7 +1057,28 @@ public class MediaPlayer
      * @throws IllegalStateException if the internal player engine has not been
      * initialized
      */
-    public native void seekTo(int msec) throws IllegalStateException;
+   public void seekTo(int msec) throws IllegalStateException {
+       if(mUseFslSeek) {
+
+           int duration = getDuration();
+
+           if(duration > 0 && msec >= 0 && msec <= duration) // block invalid seek target
+               _seekTo(msec);
+
+           if(mOnSeekCompleteListener != null && mEventHandler != null) {
+               // the seek may fail; application need query position to check the result
+               Message m = mEventHandler.obtainMessage(MEDIA_SEEK_COMPLETE, -1, 0, null);
+               mEventHandler.sendMessage(m);
+           }
+       }
+       else {
+           _seekTo(msec);
+       }
+   }
+
+   private boolean    mUseFslSeek = false;
+
+    private native void _seekTo(int msec) throws IllegalStateException;
 
     /**
      * Gets the current playback position.
@@ -1620,6 +1651,10 @@ public class MediaPlayer
                 return;
 
             case MEDIA_INFO:
+                if (msg.arg1 == MEDIA_INFO_ASYNC_SEEK) {
+                    mUseFslSeek = true;
+                    return;
+                }
                 if (msg.arg1 != MEDIA_INFO_VIDEO_TRACK_LAGGING) {
                     Log.i(TAG, "Info (" + msg.arg1 + "," + msg.arg2 + ")");
                 }
@@ -1950,6 +1985,8 @@ public class MediaPlayer
      * @see android.media.MediaPlayer.OnInfoListener
      */
     public static final int MEDIA_INFO_METADATA_UPDATE = 802;
+
+    public static final int MEDIA_INFO_ASYNC_SEEK = 803;
 
     /**
      * Interface definition of a callback to be invoked to communicate some
