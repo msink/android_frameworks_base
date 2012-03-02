@@ -753,18 +753,20 @@ bool SurfaceFlinger::threadLoop()
     for (size_t i=0; i<DISPLAY_COUNT; i++) {
         if(mServerCblk->connected & (1<<i)) {
             mDirtyRegion = temRegion;
-            mActivePlaneIndex = i;
             ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(i);
             if(!plane.initialized()) continue;
 
             int mirror = plane.getMirror();
             if((i!=0) && !mirror) continue;
 
+            mActivePlaneIndex = i;
 	    const DisplayHardware& hw(graphicPlane(i).displayHardware());
 	    if (LIKELY(hw.canDraw())) {
 		// repaint the framebuffer (if needed)
-                hw.destroyCurrent();
-                hw.makeCurrent();
+                if(i != 0) {
+                    hw.destroyCurrent();
+                    hw.makeCurrent();
+                }
                
                 int err = eglGetError();
 		const int index = hw.getCurrentBufferIndex();
@@ -786,7 +788,9 @@ bool SurfaceFlinger::threadLoop()
 		}
 
 		logger.log(GraphicLog::SF_REPAINT_DONE, index);
-                hw.destroyCurrent();
+                if(i != 0) {
+                    hw.destroyCurrent();
+                }
 	    } else {
 		// pretend we did the post
 		// comment out the compisitionComplete() due to clock on in early suspend
@@ -795,9 +799,12 @@ bool SurfaceFlinger::threadLoop()
 	    }
         }
     }
-    const DisplayHardware& dh(graphicPlane(0).displayHardware());
-    dh.makeCurrent();
-    mActivePlaneIndex = 0;
+
+    if(mActivePlaneIndex != 0) {
+        const DisplayHardware& dh(graphicPlane(0).displayHardware());
+        dh.makeCurrent();
+        mActivePlaneIndex = 0;
+    }
 
     return true;
 }
