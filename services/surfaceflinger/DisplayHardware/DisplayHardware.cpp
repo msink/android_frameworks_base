@@ -78,10 +78,11 @@ DisplayHardware::DisplayHardware(
             const sp<SurfaceFlinger>& flinger,
             const configParam& param)
     : DisplayHardwareBase(flinger, param.displayId),
-      mFlinger(flinger), mFlags(0), mHwc(0)
+      mFlinger(flinger), mFlags(0), mHwc(0), intialized(0)
 {
     mNativeWindow = new FramebufferNativeWindow(param);
     init(param.displayId);
+    intialized = 1;
 }
 
 int DisplayHardware::sendCommand(int operateCode, const configParam& param)
@@ -98,7 +99,7 @@ DisplayHardware::DisplayHardware(
         const sp<SurfaceFlinger>& flinger,
         uint32_t dpy)
     : DisplayHardwareBase(flinger, dpy),
-      mFlinger(flinger), mFlags(0), mHwc(0)
+      mFlinger(flinger), mFlags(0), mHwc(0), intialized(0)
 {
     mNativeWindow = new FramebufferNativeWindow();
     init(dpy);
@@ -405,7 +406,14 @@ void DisplayHardware::flip(const Region& dirty) const
 #ifdef EGL_ANDROID_swap_rectangle    
     if (mFlags & SWAP_RECTANGLE) {
         const Region newDirty(dirty.intersect(bounds()));
-        const Rect b(newDirty.getBounds());
+        Rect b(newDirty.getBounds());
+        if(intialized == 1) {
+            intialized = 0;
+            b.left = 0;
+            b.top = 0;
+            b.right = mWidth;
+            b.bottom = mHeight;
+        }
         eglSetSwapRectangleANDROID(dpy, surface,
                 b.left, b.top, b.width(), b.height());
     } 

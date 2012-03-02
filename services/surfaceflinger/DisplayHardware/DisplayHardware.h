@@ -105,6 +105,7 @@ public:
             const configParam& param);
     int sendCommand(int operateCode, const configParam& param);
     void destroyCurrent() const;
+    mutable int intialized;
 
 private:
     void init(uint32_t displayIndex) __attribute__((noinline));

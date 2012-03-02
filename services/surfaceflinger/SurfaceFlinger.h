@@ -143,7 +143,7 @@ class ConfigurableGraphicPlane : public GraphicPlane
 {
 public:
         ConfigurableGraphicPlane()
-             :mTransactionFlags(0)
+             :mTransactionFlags(0), mClearPlane(0)
              {}
         ~ConfigurableGraphicPlane() {}
 
@@ -159,10 +159,12 @@ public:
         bool setConfigParam(const configParam& param);
         int initPlane(SurfaceFlinger* sf);
         int unInitPlane();
+        void clearPlane();
 
 public:
         static int mTransactionReturnValue;
         static int mUpdateVisibleRegion;
+        int mClearPlane;
 
 private:
         ConfigurableGraphicPlane(const ConfigurableGraphicPlane&);

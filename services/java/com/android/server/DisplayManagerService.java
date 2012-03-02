@@ -858,7 +858,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
     public boolean commandDisplayEnable(int dispid, int save, boolean enable) {
         int fbid = mdispstate.getfbid(dispid);
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayEnable "+ enable );
-        mDisplay_enable[dispid] = enable?1:0;
+        if(save==1) mDisplay_enable[dispid] = enable?1:0;
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_ENABLE_MSG;

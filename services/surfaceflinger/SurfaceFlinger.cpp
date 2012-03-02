@@ -195,16 +195,26 @@ int ConfigurableGraphicPlane::unInitPlane()
     return NO_ERROR;
 }
 
+void ConfigurableGraphicPlane::clearPlane()
+{
+    mCurrentParam.operateCode = OPERATE_CODE_CHANGE | OPERATE_CODE_CHANGE_OVERSCAN;
+    mHw->sendCommand(mCurrentParam.operateCode, mCurrentParam);
+    mHw->intialized = 1;
+}
+
 status_t ConfigurableGraphicPlane::sendCommand(int operateCode, const configParam& param)
 {
     int err = NO_ERROR;
 
+    ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
     if(param.operateCode & OPERATE_CODE_CHANGE_ROTATION) {
+        mClearPlane = 1;
         return setOrientation(param.rotation);
     }
 
     if(param.operateCode & OPERATE_CODE_CHANGE_OVERSCAN) {
-        return err;
+        mClearPlane = 1;
+        return err;//mHw->sendCommand(operateCode, param);
     }
 
     return BAD_VALUE;
@@ -431,16 +441,11 @@ void SurfaceFlinger::resizeSwapRegion()
 
     Rect rect_t(mSwapRegion.getBounds());
     Rect *rect = &rect_t;
-    rect->left = rect->left * dw/fw;
-    rect->top = rect->top * dh/fh;
-    rect->right = rect->right * dw/fw;
-    rect->bottom = rect->bottom * dh/fh;
 
-    rect->left += (displayWidth - dw) >> 1;
-    rect->top  += (displayHeight - dh) >> 1;
-    rect->right += (displayWidth - dw) >> 1;
-    rect->bottom += (displayHeight - dh) >> 1;
-
+    ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(mActivePlaneIndex);
+    HWComposer& hwc(plane.displayHardware().getHwComposer());
+    int scaleRate = plane.getOverScan();
+    hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, fw, fh, scaleRate);
     mSwapRegion.set(rect_t);
 }
 
@@ -784,6 +789,10 @@ bool SurfaceFlinger::threadLoop()
 
 		    logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
                     resizeSwapRegion();
+                    if(plane.mClearPlane == 1) {
+                        plane.mClearPlane = 0;
+                        plane.clearPlane();
+                    }
 		    postFramebuffer();
 		}
 
@@ -933,7 +942,8 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
             const int dpy = 0;
             const int orientation = mCurrentState.orientation;
             // Currently unused: const uint32_t flags = mCurrentState.orientationFlags;
-            GraphicPlane& plane(graphicPlane(dpy));
+            ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)(graphicPlane(dpy));
+            plane.mClearPlane = 1;
             plane.setOrientation(orientation);
 
             // update the shared control block
@@ -1181,7 +1191,7 @@ void SurfaceFlinger::unlockPageFlip(const LayerVector& currentLayers)
 void SurfaceFlinger::handleWorkList()
 {
     mHwWorkListDirty = false;
-    for (size_t k=0; k<DISPLAY_COUNT; k++) {
+    for (int k=DISPLAY_COUNT-1; k>=0; k--) {
         if(mServerCblk->connected & (1<<k)) {
 	    HWComposer& hwc(graphicPlane(k).displayHardware().getHwComposer());
 	    if (hwc.initCheck() == NO_ERROR) {
@@ -1191,10 +1201,20 @@ void SurfaceFlinger::handleWorkList()
 		hwc_layer_t* const cur(hwc.getLayers());
 		for (size_t i=0 ; cur && i<count ; i++) {
 		    currentLayers[i]->setGeometry(&cur[i]);
+                    ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(k);
+                    int scaleRate = plane.getOverScan();
+
                     if(k != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
+                        int swidth = graphicPlane(k).getWidth();
+                        int sheight = graphicPlane(k).getHeight();
                         hwc.adjustGeometry(&cur[i], graphicPlane(0).getWidth(),
-                               graphicPlane(0).getHeight(), graphicPlane(k).getWidth(),
-                               graphicPlane(k).getHeight());
+                               graphicPlane(0).getHeight(), swidth,
+                               sheight, scaleRate);
+                    }
+
+                    if(k == 0 && scaleRate != 0) {
+                        hwc.adjustOverScan(&cur[i], graphicPlane(0).getWidth(), 
+                                graphicPlane(0).getHeight(), scaleRate);
                     }
 
 		    if (mDebugDisableHWC || mDebugRegion) {

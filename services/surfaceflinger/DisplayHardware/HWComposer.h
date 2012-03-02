@@ -72,7 +72,11 @@ public:
             const Vector< sp<LayerBase> >& visibleLayersSortedByZ) const;
 
 public:
-    void adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight, int displayWidth, int displayHeight);
+    void adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight,
+                   int displayWidth, int displayHeight, int scale);
+    void adjustRect(hwc_rect_t *rect, int displayWidth, int displayHeight,
+                     int dw, int dh, int fw, int fh, int scale);
+    void adjustOverScan(hwc_layer_t *layer, int displayWidth, int displayHeight, int scale);
     void freeAllocatedBuffer();
     int isAllocated;
 

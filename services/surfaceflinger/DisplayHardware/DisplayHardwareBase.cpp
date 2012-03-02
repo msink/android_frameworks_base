@@ -127,6 +127,8 @@ DisplayHardwareBase::DisplayHardwareBase(const sp<SurfaceFlinger>& flinger,
 {
     if(displayIndex == 0)
         mDisplayEventThread = new DisplayEventThread(flinger);
+    else
+        mScreenAcquired = true;
 }
 
 DisplayHardwareBase::~DisplayHardwareBase()

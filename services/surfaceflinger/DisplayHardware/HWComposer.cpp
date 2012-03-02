@@ -97,7 +97,47 @@ void HWComposer::freeAllocatedBuffer()
     isAllocated = 0;
 }
 
-void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight, int displayWidth, int displayHeight)
+void HWComposer::adjustRect(hwc_rect_t *rect, int displayWidth, int displayHeight,
+                           int dw, int dh, int fw, int fh, int scale)
+{
+    rect->left = rect->left * dw/fw;
+    rect->top = rect->top * dh/fh;
+    rect->right = rect->right * dw/fw;
+    rect->bottom = rect->bottom * dh/fh;
+
+    rect->left += (displayWidth - dw) >> 1;
+    rect->top  += (displayHeight - dh) >> 1;
+    rect->right += (displayWidth - dw) >> 1;
+    rect->bottom += (displayHeight - dh) >> 1;
+
+    if (scale == 0)
+        return;
+
+    int dw2 = dw * (100 - scale) / 100;
+    int dh2 = dh * (100 - scale) / 100;
+
+    adjustRect(rect, dw, dh, dw2, dh2, dw, dh, 0);
+}
+
+void HWComposer::adjustOverScan(hwc_layer_t *layer, int displayWidth, int displayHeight, int scale)
+{
+    if (scale == 0)
+        return;
+    
+    int dw = displayWidth * (100 - scale) / 100;
+    int dh = displayHeight * (100 - scale) / 100;
+
+    hwc_rect_t *rect = &layer->displayFrame;
+    adjustRect(rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, scale);
+
+    for(size_t m=0; m<layer->visibleRegionScreen.numRects; m++) {
+        rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;
+        adjustRect(rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, scale);
+    }
+}
+
+void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight,
+                         int displayWidth, int displayHeight, int scale)
 {
     if(!mList)
         return;
@@ -111,15 +151,7 @@ void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaul
         dh = dw*fh/fw;
 
     hwc_rect_t *rect = &layer->displayFrame;
-    rect->left = rect->left * dw/fw;
-    rect->top = rect->top * dh/fh;
-    rect->right = rect->right * dw/fw;
-    rect->bottom = rect->bottom * dh/fh;
-
-    rect->left += (displayWidth - dw) >> 1;
-    rect->top  += (displayHeight - dh) >> 1;
-    rect->right += (displayWidth - dw) >> 1;
-    rect->bottom += (displayHeight - dh) >> 1;
+    adjustRect(rect, displayWidth, displayHeight, dw, dh, fw, fh, scale);
 
     size_t numRects = 0;
     hwc_rect_t *rects = NULL;
@@ -135,16 +167,13 @@ void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaul
 
     for(size_t m=0; m<layer->visibleRegionScreen.numRects; m++) {
         rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;
-        rect->left = rect->left * dw/fw;
-        rect->top = rect->top * dh/fh;
-        rect->right = rect->right * dw/fw;
-        rect->bottom = rect->bottom * dh/fh;
-
-        rect->left += (displayWidth - dw) >> 1;
-        rect->top  += (displayHeight - dh) >> 1;
-        rect->right += (displayWidth - dw) >> 1;
-        rect->bottom += (displayHeight - dh) >> 1;
+        adjustRect(rect, displayWidth, displayHeight, dw, dh, fw, fh, scale);
     }
+
+    //rect = &layer->sourceCrop;
+    //adjustRect(rect, displayWidth, displayHeight, dw, dh, fw, fh, scale);
+
+    layer->transform = 0;
 }
 
 status_t HWComposer::createWorkList(size_t numLayers) {
