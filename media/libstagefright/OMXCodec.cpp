@@ -1968,7 +1968,7 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
 
     LOGV("native_window_set_usage usage=0x%lx", usage);
     err = native_window_set_usage(
-            mNativeWindow.get(), usage | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_EXTERNAL_DISP);
+            mNativeWindow.get(), usage | GRALLOC_USAGE_HW_TEXTURE);
     if (err != 0) {
         LOGE("native_window_set_usage failed: %s (%d)", strerror(-err), -err);
         return err;
