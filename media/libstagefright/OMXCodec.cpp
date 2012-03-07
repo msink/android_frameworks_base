@@ -181,6 +181,9 @@ static const CodecInfo kDecoderInfo[] = {
 };
 
 static const CodecInfo kEncoderInfo[] = {
+	{ MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.Freescale.std.video_encoder.mpeg4.hw-based" },
+	{ MEDIA_MIMETYPE_VIDEO_H263, "OMX.Freescale.std.video_encoder.h263.hw-based" },
+	{ MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Freescale.std.video_encoder.avc.hw-based" },
     { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.TI.AMR.encode" },
     { MEDIA_MIMETYPE_AUDIO_AMR_NB, "AMRNBEncoder" },
     { MEDIA_MIMETYPE_AUDIO_AMR_WB, "OMX.TI.WBAMR.encode" },
@@ -358,6 +361,13 @@ uint32_t OMXCodec::getComponentQuirks(
     }
     if (!strncmp(componentName, "OMX.qcom.7x30.video.encoder.", 28)) {
     }
+
+	if (!strncmp(componentName, "OMX.Freescale.std.video_encoder.",32))        {
+	    quirks |= kRequiresAllocateBufferOnInputPorts;
+	    quirks |= kRequiresAllocateBufferOnOutputPorts;
+	    quirks |= kDefersOutputBufferAllocation;
+	}
+
     if (!strncmp(componentName, "OMX.qcom.video.decoder.", 23)) {
         quirks |= kRequiresAllocateBufferOnOutputPorts;
         quirks |= kDefersOutputBufferAllocation;
@@ -1080,7 +1090,7 @@ void OMXCodec::setVideoInputFormat(
 
     video_def->nFrameWidth = width;
     video_def->nFrameHeight = height;
-    video_def->xFramerate = 0;      // No need for output port
+	video_def->xFramerate = (frameRate << 16);  // Q16 format
     video_def->nBitrate = bitRate;  // Q16 format
     video_def->eCompressionFormat = compressionFormat;
     video_def->eColorFormat = OMX_COLOR_FormatUnused;
