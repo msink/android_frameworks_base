@@ -1385,6 +1385,8 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
 {
     const DisplayHardware& hw(graphicPlane(mActivePlaneIndex).displayHardware());
     HWComposer& hwc(hw.getHwComposer());
+    if(mActivePlaneIndex != 0)
+        return;
 
     const size_t fbLayerCount = hwc.getLayerCount(HWC_FRAMEBUFFER);
     if (UNLIKELY(fbLayerCount && !mWormholeRegion.isEmpty())) {
