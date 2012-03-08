@@ -184,6 +184,9 @@ int ConfigurableGraphicPlane::initPlane(SurfaceFlinger* sf)
     ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
     DisplayHardware* const hw = new DisplayHardware(sf, mCurrentParam);
     setDisplayHardware(hw);
+    const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
+    dh.makeCurrent();
+
     return NO_ERROR;
 }
 
@@ -768,12 +771,6 @@ bool SurfaceFlinger::threadLoop()
 	    const DisplayHardware& hw(graphicPlane(i).displayHardware());
 	    if (LIKELY(hw.canDraw())) {
 		// repaint the framebuffer (if needed)
-                if(i != 0) {
-                    hw.destroyCurrent();
-                    hw.makeCurrent();
-                }
-               
-                int err = eglGetError();
 		const int index = hw.getCurrentBufferIndex();
 		GraphicLog& logger(GraphicLog::getInstance());
 
@@ -797,9 +794,6 @@ bool SurfaceFlinger::threadLoop()
 		}
 
 		logger.log(GraphicLog::SF_REPAINT_DONE, index);
-                if(i != 0) {
-                    hw.destroyCurrent();
-                }
 	    } else {
 		// pretend we did the post
 		// comment out the compisitionComplete() due to clock on in early suspend
@@ -809,11 +803,7 @@ bool SurfaceFlinger::threadLoop()
         }
     }
 
-    if(mActivePlaneIndex != 0) {
-        const DisplayHardware& dh(graphicPlane(0).displayHardware());
-        dh.makeCurrent();
-        mActivePlaneIndex = 0;
-    }
+    mActivePlaneIndex = 0;
 
     return true;
 }
