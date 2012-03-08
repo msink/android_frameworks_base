@@ -158,7 +158,7 @@ public:
         bool setParam(configParam& conParam, const configParam& param);
         bool setConfigParam(const configParam& param);
         int initPlane(SurfaceFlinger* sf);
-        int unInitPlane();
+        int unInitPlane(SurfaceFlinger* sf);
         void clearPlane();
 
 public:

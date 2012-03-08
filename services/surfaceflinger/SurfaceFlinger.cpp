@@ -190,10 +190,12 @@ int ConfigurableGraphicPlane::initPlane(SurfaceFlinger* sf)
     return NO_ERROR;
 }
 
-int ConfigurableGraphicPlane::unInitPlane()
+int ConfigurableGraphicPlane::unInitPlane(SurfaceFlinger* sf)
 {
     delete mHw;
     mHw = NULL;
+    const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
+    dh.makeCurrent();
 
     return NO_ERROR;
 }
@@ -232,7 +234,7 @@ status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
 
         mCurrentParam.operateCode = OPERATE_CODE_ENABLE;
         sf->clearDisplayCblk(mCurrentParam.displayId);
-        err = unInitPlane();
+        err = unInitPlane(sf);
         if(err != NO_ERROR) {
             LOGE("<%s, %d> unInitPlane %d failed!", __FUNCTION__, __LINE__, mCurrentParam.displayId);
             return err;
@@ -365,7 +367,7 @@ void ConfigurableGraphicPlane::doTransaction(SurfaceFlinger* sf)
 
             sf->clearDisplayCblk(mCurrentParam.displayId);
 
-            err = unInitPlane();
+            err = unInitPlane(sf);
             if(err != NO_ERROR) {
                 LOGE("<%s, %d> unInitPlane %d failed!", __FUNCTION__, __LINE__, mCurrentParam.displayId);
                 mTransactionReturnValue = err;
