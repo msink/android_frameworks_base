@@ -65,6 +65,10 @@ ifeq ($(findstring x4.,x$(PLATFORM_VERSION)), x4.)
 LOCAL_CFLAGS += -DICS
 endif
 
+ifeq ($(TARGET_BOARD_PLATFORM), imx6)
+	LOCAL_CFLAGS += -DMX6X
+endif
+
 LOCAL_MODULE:= libmediaplayerservice
 
 include $(BUILD_SHARED_LIBRARY)
