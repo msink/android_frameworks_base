@@ -169,11 +169,6 @@ void HWComposer::adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaul
         rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;
         adjustRect(rect, displayWidth, displayHeight, dw, dh, fw, fh, scale);
     }
-
-    //rect = &layer->sourceCrop;
-    //adjustRect(rect, displayWidth, displayHeight, dw, dh, fw, fh, scale);
-
-    layer->transform = 0;
 }
 
 status_t HWComposer::createWorkList(size_t numLayers) {
