@@ -459,7 +459,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private UEventObserver mHDMIObserver = new UEventObserver() {
         @Override
         public void onUEvent(UEventObserver.UEvent event) {
-            setHdmiPlugged("1".equals(event.get("SWITCH_STATE")));
+            setHdmiPlugged("plugin".equals(event.get("EVENT")));
         }
     };
 
@@ -2567,17 +2567,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     void initializeHdmiState() {
         boolean plugged = false;
         // watch for HDMI plug messages if the hdmi switch exists
-        if (new File("/sys/devices/virtual/switch/hdmi/state").exists()) {
-            mHDMIObserver.startObserving("DEVPATH=/devices/virtual/switch/hdmi");
+        if (new File("/sys/devices/platform/mxc_hdmi/cable_state").exists()) {
+            mHDMIObserver.startObserving("DEVPATH=/devices/platform/mxc_hdmi");
 
-            final String filename = "/sys/class/switch/hdmi/state";
+            final String filename = "/sys/devices/platform/mxc_hdmi/cable_state";
             FileReader reader = null;
             try {
                 reader = new FileReader(filename);
                 char[] buf = new char[15];
                 int n = reader.read(buf);
                 if (n > 1) {
-                    plugged = 0 != Integer.parseInt(new String(buf, 0, n-1));
+                    String cableState = new String(buf, 0, n-1);
+                    plugged = cableState.contains("plugin");
+                    //plugged = 0 != Integer.parseInt(new String(buf, 0, n-1));
                 }
             } catch (IOException ex) {
                 Slog.w(TAG, "Couldn't read hdmi state from " + filename + ": " + ex);
