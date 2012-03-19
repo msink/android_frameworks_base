@@ -140,7 +140,7 @@ SurfaceTexture::SurfaceTexture(GLuint tex, bool allowSynchronousMode,
     mUseFenceSync(false),
 #endif
     mTexTarget(texTarget),
-    mFrameCounter(0) {
+    mFrameCounter(0), mFrameLost(0) {
     // Choose a name using the PID and a process-unique ID.
     mName = String8::format("unnamed-%d-%d", getpid(), createProcessUniqueId());
 
@@ -238,6 +238,7 @@ status_t SurfaceTexture::setBufferCount(int bufferCount) {
     mBufferCount = bufferCount;
     mClientBufferCount = bufferCount;
     mCurrentTexture = INVALID_BUFFER_SLOT;
+    mFrameLost = 0;
     mQueue.clear();
     mDequeueCondition.signal();
     return OK;
@@ -588,6 +589,7 @@ status_t SurfaceTexture::queueBuffer(int buf, int64_t timestamp,
                 mSlots[*front].mBufferState = BufferSlot::FREE;
                 // and we record the new buffer index in the queued list
                 *front = buf;
+                mFrameLost ++;
             }
         }
 
@@ -1110,6 +1112,9 @@ int SurfaceTexture::query(int what, int* outValue)
         value = mSynchronousMode ?
                 (MIN_UNDEQUEUED_BUFFERS-1) : MIN_UNDEQUEUED_BUFFERS;
         break;
+    case NATIVE_WINDOW_GET_FRAME_LOST:
+        *outValue = mFrameLost;
+        return NO_ERROR;
     default:
         return BAD_VALUE;
     }

@@ -508,7 +508,7 @@ private:
     // with the surface Texture.
     uint64_t mFrameCounter;
 
-
+    uint32_t mFrameLost;
 };
 
 // ----------------------------------------------------------------------------
