@@ -364,6 +364,8 @@ FontRenderer::~FontRenderer() {
     mCacheLines.clear();
 
     if (mInitialized) {
+        glDeleteBuffers(1, &mIndexBufferID);
+
         delete[] mTextMeshPtr;
         delete[] mTextTexture;
     }
