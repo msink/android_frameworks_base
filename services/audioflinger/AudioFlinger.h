@@ -61,7 +61,7 @@ class AudioResampler;
 
 // ----------------------------------------------------------------------------
 
-static const nsecs_t kStandbyTimeInNsecs = seconds(3);
+static const nsecs_t kStandbyTimeInNsecs = seconds(1);
 
 class AudioFlinger :
     public BinderService<AudioFlinger>,
