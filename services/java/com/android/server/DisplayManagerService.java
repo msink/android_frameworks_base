@@ -143,7 +143,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
      */
     private NativeDaemonConnector mConnector;
 
-    private Thread mThread;
+    private Thread mThread = null;
     private final CountDownLatch mConnectedSignal = new CountDownLatch(1);
 
     private Object mQuotaLock = new Object();
@@ -263,7 +263,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
     private DisplayManagerService(Context context) {
         mContext = context;
 
-        if ("simulator".equals(SystemProperties.get("ro.product.device"))) {
+        if("1".equals(SystemProperties.get("ro.kernel.qemu", "0"))) {
             return;
         }
 
@@ -283,7 +283,11 @@ class DisplayManagerService extends IDisplayManager.Stub {
     public static DisplayManagerService create(Context context) throws InterruptedException {
         DisplayManagerService service = new DisplayManagerService(context);
         if (DBG) Slog.d(TAG, "Creating DisplayManagerService");
-        service.mThread.start();
+
+        if("1".equals(SystemProperties.get("ro.kernel.qemu", "0"))) {
+            return service;
+        }
+        if(service.mThread != null) service.mThread.start();
         if (DBG) Slog.d(TAG, "Awaiting socket connection");
         service.mConnectedSignal.await();
         if (DBG) Slog.d(TAG, "Connected");
