@@ -246,6 +246,7 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
         // or if we ran out of memory. In that case, don't let
         // HWC handle it.
         hwcl->flags |= HWC_SKIP_LAYER;
+        hwcl->flags |= HWC_DRAW_HOLE;
         hwcl->handle = NULL;
     } else {
         hwcl->handle = buffer->handle;
