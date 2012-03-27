@@ -74,6 +74,7 @@ void checkEGLErrors(const char* token)
  *
  */
 
+#ifdef FSL_IMX_DISPLAY
 DisplayHardware::DisplayHardware(
             const sp<SurfaceFlinger>& flinger,
             const configParam& param)
@@ -94,14 +95,22 @@ void DisplayHardware::destroyCurrent() const
 {
     eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 }
+#endif
+
 
 DisplayHardware::DisplayHardware(
         const sp<SurfaceFlinger>& flinger,
         uint32_t dpy)
     : DisplayHardwareBase(flinger, dpy),
-      mFlinger(flinger), mFlags(0), mHwc(0), intialized(0)
+#ifdef FSL_IMX_DISPLAY
+      intialized(0),
+#endif
+      mFlinger(flinger), mFlags(0), mHwc(0)
+     
 {
+#ifdef FSL_IMX_DISPLAY
     mNativeWindow = new FramebufferNativeWindow();
+#endif
     init(dpy);
 }
 
@@ -151,6 +160,9 @@ static status_t selectConfigForPixelFormat(
 
 void DisplayHardware::init(uint32_t dpy)
 {
+#ifndef FSL_IMX_DISPLAY
+    mNativeWindow = new FramebufferNativeWindow();
+#endif
     framebuffer_device_t const * fbDev = mNativeWindow->getDevice();
     if (!fbDev) {
         LOGE("Display subsystem failed to initialize. check logs. exiting...");
@@ -365,10 +377,14 @@ HWComposer& DisplayHardware::getHwComposer() const {
 void DisplayHardware::fini()
 {
     eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+#ifdef FSL_IMX_DISPLAY
     eglDestroyContext(mDisplay, mContext);
     eglDestroySurface(mDisplay, mSurface);
+#endif
     eglTerminate(mDisplay);
+#ifdef FSL_IMX_DISPLAY
     delete mHwc;
+#endif
 }
 
 void DisplayHardware::releaseScreen() const
@@ -406,6 +422,7 @@ void DisplayHardware::flip(const Region& dirty) const
 #ifdef EGL_ANDROID_swap_rectangle    
     if (mFlags & SWAP_RECTANGLE) {
         const Region newDirty(dirty.intersect(bounds()));
+#ifdef FSL_IMX_DISPLAY
         Rect b(newDirty.getBounds());
         if(intialized == 1) {
             intialized = 0;
@@ -414,6 +431,9 @@ void DisplayHardware::flip(const Region& dirty) const
             b.right = mWidth;
             b.bottom = mHeight;
         }
+#else
+        const Rect b(newDirty.getBounds());
+#endif
         eglSetSwapRectangleANDROID(dpy, surface,
                 b.left, b.top, b.width(), b.height());
     } 
@@ -436,7 +456,7 @@ void DisplayHardware::flip(const Region& dirty) const
     //glClearColor(1,0,0,0);
     //glClear(GL_COLOR_BUFFER_BIT);
 }
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
 void DisplayHardware::flip(const Region& dirty, int secRotation) const
 {
     mNativeWindow->setSecRotation(secRotation);

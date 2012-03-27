@@ -93,7 +93,7 @@ public:
         data.writeInt32(flags);
         remote()->transact(BnSurfaceComposer::SET_TRANSACTION_STATE, data, &reply);
     }
-
+#ifdef FSL_IMX_DISPLAY
     virtual status_t configDisplay(configParam* param)
     {
         Parcel data, reply;
@@ -102,7 +102,7 @@ public:
         remote()->transact(BnSurfaceComposer::CONFIG_DISPLAY, data, &reply);
         return reply.readInt32();
     }
-
+#endif
     virtual void bootFinished()
     {
         Parcel data, reply;
@@ -217,6 +217,7 @@ status_t BnSurfaceComposer::onTransact(
             uint32_t flags = data.readInt32();
             setTransactionState(state, orientation, flags);
         } break;
+#ifdef FSL_IMX_DISPLAY
         case CONFIG_DISPLAY: {
             CHECK_INTERFACE(ISurfaceComposer, data, reply);
             configParam param;
@@ -224,6 +225,7 @@ status_t BnSurfaceComposer::onTransact(
             status_t res = configDisplay(&param);
             reply->writeInt32(res);
         } break;
+#endif
         case BOOT_FINISHED: {
             CHECK_INTERFACE(ISurfaceComposer, data, reply);
             bootFinished();

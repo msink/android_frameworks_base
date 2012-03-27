@@ -78,6 +78,7 @@ private:
  * 
  */
 
+#ifdef FSL_IMX_DISPLAY
 int FramebufferNativeWindow::sendCommand(int operateCode, const configParam& param)
 {
     if(!mAllocMod || !fbDev) {
@@ -161,6 +162,7 @@ FramebufferNativeWindow::FramebufferNativeWindow(const configParam& param)
     ANativeWindow::query = query;
     ANativeWindow::perform = perform;
 }
+#endif
 
 FramebufferNativeWindow::FramebufferNativeWindow() 
     : BASE(), fbDev(0), grDev(0), mUpdateOnDemand(false)
@@ -181,7 +183,8 @@ FramebufferNativeWindow::FramebufferNativeWindow()
             return;
         
         mUpdateOnDemand = (fbDev->setUpdateRect != 0);
-        
+
+#ifdef FSL_IMX_DISPLAY
         // initialize the buffer FIFO
         mNumBuffers = fbDev->reserved[0];
         if (mNumBuffers != 3 && mNumBuffers != 2) {
@@ -215,18 +218,60 @@ FramebufferNativeWindow::FramebufferNativeWindow()
     } else {
         LOGE("Couldn't get gralloc module");
     }
+#else
+       mNumBuffers = NUM_FRAME_BUFFERS;
+        mNumFreeBuffers = NUM_FRAME_BUFFERS;
+        mBufferHead = mNumBuffers-1;
 
+        for (i = 0; i < mNumBuffers; i++)
+        {
+                buffers[i] = new NativeBuffer(
+                        fbDev->width, fbDev->height, fbDev->format, GRALLOC_USAGE_HW_FB);
+        }
+
+        for (i = 0; i < mNumBuffers; i++)
+        {
+                err = grDev->alloc(grDev,
+                        fbDev->width, fbDev->height, fbDev->format,
+                        GRALLOC_USAGE_HW_FB, &buffers[i]->handle, &buffers[i]->stride);
+
+                LOGE_IF(err, "fb buffer %d allocation failed w=%d, h=%d, err=%s",
+                        i, fbDev->width, fbDev->height, strerror(-err));
+
+                if (err)
+                {
+                        mNumBuffers = i;
+                        mNumFreeBuffers = i;
+                        mBufferHead = mNumBuffers-1;
+                        break;
+                }
+        }
+
+        const_cast<uint32_t&>(ANativeWindow::flags) = fbDev->flags;
+        const_cast<float&>(ANativeWindow::xdpi) = fbDev->xdpi;
+        const_cast<float&>(ANativeWindow::ydpi) = fbDev->ydpi;
+        const_cast<int&>(ANativeWindow::minSwapInterval) =
+            fbDev->minSwapInterval;
+        const_cast<int&>(ANativeWindow::maxSwapInterval) =
+            fbDev->maxSwapInterval;
+    } else {
+        LOGE("Couldn't get gralloc module");
+    }
+#endif
     ANativeWindow::setSwapInterval = setSwapInterval;
     ANativeWindow::dequeueBuffer = dequeueBuffer;
     ANativeWindow::lockBuffer = lockBuffer;
     ANativeWindow::queueBuffer = queueBuffer;
     ANativeWindow::query = query;
     ANativeWindow::perform = perform;
+#ifdef FSL_IMX_DISPLAY
     mAllocMod = NULL;
+#endif
 }
 
 FramebufferNativeWindow::~FramebufferNativeWindow() 
 {
+#ifdef FSL_IMX_DISPLAY
     if (grDev) {
         int i;
         for (i = 0; i < mNumBuffers; i++)
@@ -234,6 +279,15 @@ FramebufferNativeWindow::~FramebufferNativeWindow()
                 grDev->free(grDev, buffers[i]->handle);
         gralloc_close(grDev);
     }
+#else
+    if (grDev) {
+        if (buffers[0] != NULL)
+            grDev->free(grDev, buffers[0]->handle);
+        if (buffers[1] != NULL)
+            grDev->free(grDev, buffers[1]->handle);
+        gralloc_close(grDev);
+    }
+#endif
 
     if (fbDev) {
         framebuffer_close(fbDev);
@@ -247,7 +301,7 @@ status_t FramebufferNativeWindow::setUpdateRectangle(const Rect& r)
     }
     return fbDev->setUpdateRect(fbDev, r.left, r.top, r.width(), r.height());
 }
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
 status_t FramebufferNativeWindow::setSecRotation(int secRotation) 
 {
     if(fbDev->setSecRotation != NULL) {

@@ -139,11 +139,12 @@ protected:
         int                     mHeight;
 };
 
+#ifdef FSL_IMX_DISPLAY
 class ConfigurableGraphicPlane : public GraphicPlane
 {
 public:
         ConfigurableGraphicPlane()
-             :mTransactionFlags(0), mClearPlane(0)
+		: mClearPlane(0), mTransactionFlags(0)
              {}
         ~ConfigurableGraphicPlane() {}
 
@@ -174,7 +175,7 @@ private:
         configParam mCurrentParam;
         configParam mConfigParam;
 };
-
+#endif
 // ---------------------------------------------------------------------------
 
 enum {
@@ -255,6 +256,7 @@ public:
     };
 
 public:
+#ifdef FSL_IMX_DISPLAY
     virtual status_t configDisplay(configParam* param);
     void setDisplayCblk(int dpy);
     void clearDisplayCblk(int dpy);
@@ -265,6 +267,7 @@ private:
 
     mutable Mutex mDisplayStateLock;    
     Condition mDisplayTransactionCV;
+#endif
 
 private:
     // DeathRecipient interface
@@ -398,7 +401,11 @@ private:
                 Vector< sp<LayerBase> > mLayersPendingRemoval;
 
                 // protected by mStateLock (but we could use another lock)
+#ifdef FSL_IMX_DISPLAY
                 ConfigurableGraphicPlane    mGraphicPlanes[6];
+#else
+		GraphicPlane		    mGraphicPlanes[1];
+#endif
                 bool                        mLayersRemoved;
                 DefaultKeyedVector< wp<IBinder>, wp<Layer> > mLayerMap;
 
@@ -456,10 +463,11 @@ private:
 
    // only written in the main thread, only read in other threads
    volatile     int32_t                     mSecureFrameBuffer;
-   #ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
    int                                      mTopOrientation;
-   #endif
-   bool mOverlayClear;
+   bool                                     mOverlayClear;
+#endif
+
 };
 
 // ---------------------------------------------------------------------------

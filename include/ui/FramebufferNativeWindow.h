@@ -60,7 +60,7 @@ public:
 
     bool isUpdateOnDemand() const { return mUpdateOnDemand; }
     status_t setUpdateRectangle(const Rect& updateRect);
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
     status_t setSecRotation(int secRotation);
 #endif
     status_t compositionComplete();

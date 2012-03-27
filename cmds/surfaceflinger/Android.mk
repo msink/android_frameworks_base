@@ -9,8 +9,13 @@ LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	libutils
 
+
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../../services/surfaceflinger
+
+ifeq ($(HAVE_FSL_IMX_IPU),true)
+LOCAL_CFLAGS += -DFSL_IMX_DISPLAY
+endif
 
 LOCAL_MODULE:= surfaceflinger
 

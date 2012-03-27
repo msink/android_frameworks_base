@@ -102,9 +102,13 @@ SurfaceFlinger::SurfaceFlinger()
         mLastTransactionTime(0),
         mBootFinished(false),
         mConsoleSignals(0),
+#ifdef FSL_IMX_DISPLAY
         mSecureFrameBuffer(0),
-        mOverlayClear(false),
-        mActivePlaneIndex(0)
+        mActivePlaneIndex(0),
+        mOverlayClear(false)
+#else
+        mSecureFrameBuffer(0)
+#endif
 {
     init();
 }
@@ -176,6 +180,7 @@ GraphicPlane& SurfaceFlinger::graphicPlane(int dpy)
         const_cast<SurfaceFlinger const *>(this)->graphicPlane(dpy));
 }
 
+#ifdef FSL_IMX_DISPLAY
 int ConfigurableGraphicPlane::mTransactionReturnValue = 0;
 int ConfigurableGraphicPlane::mUpdateVisibleRegion = 0;
 
@@ -506,6 +511,7 @@ status_t SurfaceFlinger::configDisplay(configParam* param)
 
     return err;
 }
+#endif
 
 void SurfaceFlinger::bootFinished()
 {
@@ -740,7 +746,11 @@ bool SurfaceFlinger::threadLoop()
     }
 
     // if we're in a global transaction, don't do anything.
+#ifdef FSL_IMX_DISPLAY
     const uint32_t mask = eTransactionNeeded | eTraversalNeeded | eDisplayEventNeeded;
+#else
+    const uint32_t mask = eTransactionNeeded | eTraversalNeeded;
+#endif
     uint32_t transactionFlags = peekTransactionFlags(mask);
     if (UNLIKELY(transactionFlags)) {
         handleTransaction(transactionFlags);
@@ -758,7 +768,7 @@ bool SurfaceFlinger::threadLoop()
         // build the h/w work list
         handleWorkList();
     }
-
+#ifdef FSL_IMX_DISPLAY
     Region temRegion = mDirtyRegion;
     for (size_t i=0; i<DISPLAY_COUNT; i++) {
         if(mServerCblk->connected & (1<<i)) {
@@ -806,12 +816,37 @@ bool SurfaceFlinger::threadLoop()
     }
 
     mActivePlaneIndex = 0;
+#else
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    if (LIKELY(hw.canDraw())) {
+        // repaint the framebuffer (if needed)
 
+        const int index = hw.getCurrentBufferIndex();
+        GraphicLog& logger(GraphicLog::getInstance());
+
+        logger.log(GraphicLog::SF_REPAINT, index);
+        handleRepaint();
+
+        // inform the h/w that we're done compositing
+        logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
+        hw.compositionComplete();
+
+        logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
+        postFramebuffer();
+
+        logger.log(GraphicLog::SF_REPAINT_DONE, index);
+    } else {
+        // pretend we did the post
+        hw.compositionComplete();
+        usleep(16667); // 60 fps period
+    }
+#endif
     return true;
 }
 
 void SurfaceFlinger::postFramebuffer()
 {
+#ifdef FSL_IMX_DISPLAY
     if (!mSwapRegion.isEmpty()) {
 
         if (UNLIKELY(mDebugFps)) {
@@ -824,7 +859,6 @@ void SurfaceFlinger::postFramebuffer()
         const DisplayHardware& hw(graphicPlane(mActivePlaneIndex).displayHardware());
         const nsecs_t now = systemTime();
         mDebugInSwapBuffers = now;
-#ifdef SECOND_DISPLAY_SUPPORT
         //Set orientation to second display flip usage
         int secRotation = 0;
         switch(mTopOrientation)
@@ -846,13 +880,22 @@ void SurfaceFlinger::postFramebuffer()
              break;
         }
         hw.flip(mSwapRegion,secRotation);
-#else
-        hw.flip(mSwapRegion);
-#endif
         mLastSwapBufferTime = systemTime() - now;
         mDebugInSwapBuffers = 0;
         mSwapRegion.clear();
     }
+#else
+    // this should never happen. we do the flip anyways so we don't
+    // risk to cause a deadlock with hwc
+    LOGW_IF(mSwapRegion.isEmpty(), "mSwapRegion is empty");
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    const nsecs_t now = systemTime();
+    mDebugInSwapBuffers = now;
+    hw.flip(mSwapRegion);
+    mLastSwapBufferTime = systemTime() - now;
+    mDebugInSwapBuffers = 0;
+    mSwapRegion.clear();
+#endif
 }
 
 void SurfaceFlinger::handleConsoleEvents()
@@ -889,7 +932,11 @@ void SurfaceFlinger::handleTransaction(uint32_t transactionFlags)
     // with mStateLock held to guarantee that mCurrentState won't change
     // until the transaction is committed.
 
+#ifdef FSL_IMX_DISPLAY
     const uint32_t mask = eTransactionNeeded | eTraversalNeeded | eDisplayEventNeeded;
+#else
+    const uint32_t mask = eTransactionNeeded | eTraversalNeeded;
+#endif
     transactionFlags = getTransactionFlags(mask);
     handleTransactionLocked(transactionFlags);
 
@@ -934,8 +981,12 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
             const int dpy = 0;
             const int orientation = mCurrentState.orientation;
             // Currently unused: const uint32_t flags = mCurrentState.orientationFlags;
+#ifdef FSL_IMX_DISPLAY
             ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)(graphicPlane(dpy));
             plane.mClearPlane = 1;
+#else
+            GraphicPlane& plane(graphicPlane(dpy));
+#endif
             plane.setOrientation(orientation);
 
             // update the shared control block
@@ -971,9 +1022,11 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
         }
     }
 
+#ifdef FSL_IMX_DISPLAY
     if(transactionFlags & eDisplayEventNeeded) {
         handleDisplayTransaction();
     }
+#endif
 
     commitTransaction();
 }
@@ -1051,6 +1104,7 @@ void SurfaceFlinger::computeVisibleRegions(
         // subtract the opaque region covered by the layers above us
         visibleRegion.subtractSelf(aboveOpaqueLayers);
 
+#ifdef FSL_IMX_DISPLAY
 	// compute this layer's dirty region
 	if (layer->contentDirty) {
 	    // we need to invalidate the whole region
@@ -1081,6 +1135,41 @@ void SurfaceFlinger::computeVisibleRegions(
 
 	// accumulate to the screen dirty region
 	dirtyRegion.orSelf(dirty);
+#else
+                // compute this layer's dirty region
+        if (layer->contentDirty) {
+            // we need to invalidate the whole region
+            dirty = visibleRegion;
+            // as well, as the old visible region
+            dirty.orSelf(layer->visibleRegionScreen);
+            layer->contentDirty = false;
+        } else {
+            /* compute the exposed region:
+             *   the exposed region consists of two components:
+             *   1) what's VISIBLE now and was COVERED before
+             *   2) what's EXPOSED now less what was EXPOSED before
+             *
+             * note that (1) is conservative, we start with the whole
+             * visible region but only keep what used to be covered by
+             * something -- which mean it may have been exposed.
+             *
+             * (2) handles areas that were not covered by anything but got
+             * exposed because of a resize.
+             */
+            const Region newExposed = visibleRegion - coveredRegion;
+            const Region oldVisibleRegion = layer->visibleRegionScreen;
+            const Region oldCoveredRegion = layer->coveredRegionScreen;
+            const Region oldExposed = oldVisibleRegion - oldCoveredRegion;
+            dirty = (visibleRegion&oldCoveredRegion) | (newExposed-oldExposed);
+        }
+        dirty.subtractSelf(aboveOpaqueLayers);
+
+        // accumulate to the screen dirty region
+        dirtyRegion.orSelf(dirty);
+
+        // Update aboveOpaqueLayers for next (lower) layer
+        aboveOpaqueLayers.orSelf(opaqueRegion);
+#endif
         // Store the visible region is screen space
         layer->setVisibleRegion(visibleRegion);
         layer->setCoveredRegion(coveredRegion);
@@ -1124,8 +1213,10 @@ void SurfaceFlinger::handlePageFlip()
         const DisplayHardware& hw = graphicPlane(0).displayHardware();
         const Region screenRegion(hw.bounds());
         if (visibleRegions) {
+#ifdef FSL_IMX_DISPLAY
             mOverlayClear = true;
             ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
+#endif
             Region opaqueRegion;
             computeVisibleRegions(currentLayers, mDirtyRegion, opaqueRegion);
 
@@ -1183,6 +1274,7 @@ void SurfaceFlinger::unlockPageFlip(const LayerVector& currentLayers)
 void SurfaceFlinger::handleWorkList()
 {
     mHwWorkListDirty = false;
+#ifdef FSL_IMX_DISPLAY
     for (int k=DISPLAY_COUNT-1; k>=0; k--) {
         if(mServerCblk->connected & (1<<k)) {
 	    HWComposer& hwc(graphicPlane(k).displayHardware().getHwComposer());
@@ -1218,6 +1310,22 @@ void SurfaceFlinger::handleWorkList()
         }
     }//end for
     ConfigurableGraphicPlane::mUpdateVisibleRegion = 0;
+#else
+    HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+    if (hwc.initCheck() == NO_ERROR) {
+        const Vector< sp<LayerBase> >& currentLayers(mVisibleLayersSortedByZ);
+        const size_t count = currentLayers.size();
+        hwc.createWorkList(count);
+        hwc_layer_t* const cur(hwc.getLayers());
+        for (size_t i=0 ; cur && i<count ; i++) {
+            currentLayers[i]->setGeometry(&cur[i]);
+            if (mDebugDisableHWC || mDebugRegion) {
+                cur[i].compositionType = HWC_FRAMEBUFFER;
+                cur[i].flags |= HWC_SKIP_LAYER;
+            }
+        }
+    }
+#endif
 }
 
 void SurfaceFlinger::handleRepaint()
@@ -1230,7 +1338,11 @@ void SurfaceFlinger::handleRepaint()
     }
 
     // set the frame buffer
+#ifdef FSL_IMX_DISPLAY
     const DisplayHardware& hw(graphicPlane(mActivePlaneIndex).displayHardware());
+#else
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+#endif
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -1275,7 +1387,11 @@ void SurfaceFlinger::handleRepaint()
 
 void SurfaceFlinger::setupHardwareComposer(Region& dirtyInOut)
 {
+#ifdef FSL_IMX_DISPLAY
     const DisplayHardware& hw(graphicPlane(mActivePlaneIndex).displayHardware());
+#else
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+#endif
     HWComposer& hwc(hw.getHwComposer());
     hwc_layer_t* const cur(hwc.getLayers());
     if (!cur) {
@@ -1375,19 +1491,28 @@ void SurfaceFlinger::setupHardwareComposer(Region& dirtyInOut)
 
 void SurfaceFlinger::composeSurfaces(const Region& dirty)
 {
+#ifdef FSL_IMX_DISPLAY
     const DisplayHardware& hw(graphicPlane(mActivePlaneIndex).displayHardware());
+#else
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+#endif
     HWComposer& hwc(hw.getHwComposer());
+
+#ifdef FSL_IMX_DISPLAY
     if(mActivePlaneIndex != 0)
         return;
+#endif
 
     const size_t fbLayerCount = hwc.getLayerCount(HWC_FRAMEBUFFER);
     if (UNLIKELY(fbLayerCount && !mWormholeRegion.isEmpty())) {
         // should never happen unless the window manager has a bug
         // draw something...
         drawWormhole();
+#ifdef FSL_IMX_DISPLAY
         mWormholeRegion.clear();
+#endif
     }
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
     mTopOrientation = 0;
 #endif
     /*
@@ -1398,6 +1523,7 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
     size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
         if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
+#ifdef FSL_IMX_DISPLAY
             if(mOverlayClear) {
                 mOverlayClear = false;
                 const sp<LayerBase>& layer(layers[i]);
@@ -1406,16 +1532,19 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
                     layer->clearWithOpenGL(clip);
                 }
             }
+#endif
             continue;
         }
         const sp<LayerBase>& layer(layers[i]);
         const Region clip(dirty.intersect(layer->visibleRegionScreen));
         if (!clip.isEmpty()) {
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
             mTopOrientation = layer->getOrientation();
 #endif
             layer->draw(clip);
+#ifdef FSL_IMX_DISPLAY
             mOverlayClear = true;
+#endif
         }
     }
 }
@@ -1770,6 +1899,7 @@ sp<Layer> SurfaceFlinger::createNormalSurface(
         format = PIXEL_FORMAT_RGBA_8888;
         break;
     case PIXEL_FORMAT_OPAQUE:
+#ifdef FSL_IMX_DISPLAY
         const DisplayHardware& dispHardware = graphicPlane(0).displayHardware();
         LOGI("mHw->getFormat() %d",dispHardware.getFormat());
         if((dispHardware.getFormat() == PIXEL_FORMAT_RGBA_8888)||
@@ -1780,6 +1910,13 @@ sp<Layer> SurfaceFlinger::createNormalSurface(
         else{
             format = PIXEL_FORMAT_RGB_565;
         }
+#else
+#ifdef NO_RGBX_8888
+        format = PIXEL_FORMAT_RGB_565;
+#else
+        format = PIXEL_FORMAT_RGBX_8888;
+#endif	// No_RGBX_8888
+#endif
         break;
     }
 

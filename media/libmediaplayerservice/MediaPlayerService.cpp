@@ -661,13 +661,21 @@ player_type getPlayerType(const char* url)
         }
     }
 
+#ifdef FSL_GM_PLAYER
     bool useStagefrightForHTTP = false;
     if (property_get("media.stagefright.enable-http", value, NULL)
         && (!strcmp(value, "1") || !strcasecmp(value, "true"))) {
         useStagefrightForHTTP = true;
     }
-
+#else
+    if (!strncasecmp("rtsp://", url, 7)) {
+        return NU_PLAYER;
+    }
+#endif
     // use MidiFile for MIDI extensions
+#ifndef FSL_GM_PLAYER
+    int lenURL = strlen(url);
+#endif
     for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
         int len = strlen(FILE_EXTS[i].extension);
         int start = lenURL - len;

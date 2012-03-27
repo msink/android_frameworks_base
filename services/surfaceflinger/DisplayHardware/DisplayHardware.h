@@ -65,7 +65,7 @@ public:
     // be instantaneous, might involve copying the frame buffer around.
     void flip(const Region& dirty) const;
 
-#ifdef SECOND_DISPLAY_SUPPORT
+#ifdef FSL_IMX_DISPLAY
     void flip(const Region& dirty, int secRotation) const;
 #endif    
     
@@ -100,12 +100,14 @@ public:
     int getCurrentBufferIndex() const;
 
 public:
+#ifdef FSL_IMX_DISPLAY
     DisplayHardware(
             const sp<SurfaceFlinger>& flinger,
             const configParam& param);
     int sendCommand(int operateCode, const configParam& param);
     void destroyCurrent() const;
     mutable int intialized;
+#endif
 
 private:
     void init(uint32_t displayIndex) __attribute__((noinline));
