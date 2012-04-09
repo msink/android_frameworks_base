@@ -2070,7 +2070,9 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
     for (OMX_U32 i = cancelStart; i < cancelEnd; i++) {
         BufferInfo *info = &mPortBuffers[kPortIndexOutput].editItemAt(i);
         cancelBufferToNativeWindow(info);
-    }
+	}
+
+	initNativeWindowCrop();
 
     return err;
 }
