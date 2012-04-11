@@ -521,6 +521,8 @@ public final class WebViewCore {
      */
     private native boolean nativeUpdateLayers(int nativeClass, int baseLayer);
 
+	private native void nativeCommitLayers();
+
     /**
      * Notify webkit that animations have begun (on the hardware accelerated content)
      */
@@ -1003,6 +1005,8 @@ public final class WebViewCore {
         static final int REQUEST_EXT_REPRESENTATION = 160;
         static final int REQUEST_DOC_AS_TEXT = 161;
 
+		static final int WEBKIT_COMMIT_LAYERS = 165;
+
         // debugging
         static final int DUMP_DOMTREE = 170;
         static final int DUMP_RENDERTREE = 171;
@@ -1110,6 +1114,10 @@ public final class WebViewCore {
                         case WEBKIT_DRAW_LAYERS:
                             webkitDrawLayers();
                             break;
+
+						case WEBKIT_COMMIT_LAYERS:
+							webkitCommitLayers();
+							break;
 
                         case DESTROY:
                             // Time to take down the world. Cancel all pending
@@ -1972,6 +1980,8 @@ public final class WebViewCore {
     private boolean mDrawIsScheduled;
     private boolean mDrawLayersIsScheduled;
 
+	private boolean mCommitIsScheduled;
+
     // Used to avoid posting more than one split picture message.
     private boolean mSplitPictureIsScheduled;
 
@@ -2034,6 +2044,12 @@ public final class WebViewCore {
         mWebView.mPrivateHandler.sendMessageAtFrontOfQueue(mWebView.mPrivateHandler
                 .obtainMessage(WebView.INVAL_RECT_MSG_ID));
     }
+
+	// Commit layers
+	private void webkitCommitLayers() {
+		mCommitIsScheduled = false;
+		nativeCommitLayers();
+	}
 
     private void webkitDraw() {
         mDrawIsScheduled = false;
@@ -2187,6 +2203,15 @@ public final class WebViewCore {
             mEventHub.sendMessage(Message.obtain(null, EventHub.WEBKIT_DRAW_LAYERS));
         }
     }
+
+	// called from JNI
+	void layersCommit() {
+        synchronized (this) {
+            if (mCommitIsScheduled) return;
+            mCommitIsScheduled = true;
+            mEventHub.sendMessage(Message.obtain(null, EventHub.WEBKIT_COMMIT_LAYERS));
+        }
+	}
 
     // called by JNI
     private void contentScrollTo(int x, int y, boolean animate,

@@ -666,7 +666,7 @@ public class WebView extends AbsoluteLayout
     // the paint for the touch highlight
     private Paint mTouchHightlightPaint;
     // debug only
-    private static final boolean DEBUG_TOUCH_HIGHLIGHT = true;
+    private static final boolean DEBUG_TOUCH_HIGHLIGHT = false;
     private static final int TOUCH_HIGHLIGHT_ELAPSE_TIME = 2000;
     private Paint mTouchCrossHairColor;
     private int mTouchHighlightX;
