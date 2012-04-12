@@ -116,7 +116,8 @@ public:
             void setOverlay(bool inOverlay);
             bool isOverlay() const;
 
-
+    virtual void createOpenglContext() {}
+    virtual void destroyOpenglContext() {}
     /**
      * draw - performs some global clipping optimizations
      * and calls onDraw().

@@ -60,6 +60,7 @@ interface IWindowManager
     int getMaximumSizeDimension();
 
     void setForcedDisplaySize(int longDimen, int shortDimen);
+    void setDisplayMode(String mode);
     void clearForcedDisplaySize();
 
     // Is device configured with a hideable status bar or a tablet system bar?

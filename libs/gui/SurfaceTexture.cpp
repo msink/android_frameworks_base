@@ -1122,6 +1122,22 @@ int SurfaceTexture::query(int what, int* outValue)
     return NO_ERROR;
 }
 
+void SurfaceTexture::setOpenglContext(GLuint texName)
+{
+    Mutex::Autolock lock(mMutex);
+
+    mTexName = texName;
+}
+
+void SurfaceTexture::destroyOpenglContext()
+{
+    Mutex::Autolock lock(mMutex);
+    mQueue.clear();
+    mCurrentTextureBuf.clear();
+    freeAllBuffersLocked();
+    mDequeueCondition.signal();
+}
+
 void SurfaceTexture::abandon() {
     Mutex::Autolock lock(mMutex);
     mQueue.clear();

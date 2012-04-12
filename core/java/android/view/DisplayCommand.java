@@ -20,6 +20,13 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.ServiceManager;
 import android.os.RemoteException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import android.view.IWindowManager;
+import android.content.Context;
+import android.util.AndroidException;
 
 public class DisplayCommand {
     static final String TAG = "Display";
@@ -34,6 +41,7 @@ public class DisplayCommand {
     public static final int OPERATE_CODE_CHANGE_ROTATION = 0x10;
 
     IBinder mSurfaceFlinger = null;
+    IWindowManager mWindowManager;
     ConfigParam mCfgParam = new ConfigParam();
 
     public DisplayCommand() {
@@ -41,18 +49,20 @@ public class DisplayCommand {
         if (surfaceFlinger != null) {
             mSurfaceFlinger = surfaceFlinger;
         }
+        mWindowManager = IWindowManager.Stub.asInterface(ServiceManager.checkService(
+                Context.WINDOW_SERVICE));
     }
  
     public static class ConfigParam {
-        int displayId;
-        int operateCode; //operate code: enable, change or disable display.
+        public int displayId;
+        public int operateCode; //operate code: enable, change or disable display.
         //int width;
         //int height;
-        int rotation;
-        int overScan;
-        int mirror;
-        int colorDepth;
-        String mode;
+        public int rotation;
+        public int overScan;
+        public int mirror;
+        public int colorDepth;
+        public String mode;
 
         public ConfigParam() {
             displayId = -1;
@@ -96,6 +106,88 @@ public class DisplayCommand {
             data.recycle();
         } catch(RemoteException ex) {
             Slog.e(TAG, "DisplayCommand catch exception!");
+        }
+
+        return ret;
+    }
+
+    private int setMainDisplay(String mode) {
+        int ret = 0;
+        int width_startIndex =0;
+        int width_endIndex   =0;
+        int height_startIndex=0;
+        int height_endIndex  =0;
+        int width = 0;
+        int height = 0;
+        /*
+         * file /data/misc/display.conf format:
+         * mode=S1920:x1080p-60
+         * colordepth=32
+         * usage: change fb display mode.
+        */
+        File file = new File("/data/misc/display.conf");
+        char[] buffer = new char[1024];
+        int colordepth = 0;
+
+        try {
+            if(mWindowManager == null) {
+                Slog.e(TAG, "mWindowManager invalidate!");
+                return -1;
+            }
+
+            if(file.exists()) {
+                try {
+                    FileReader rfile = new FileReader(file);
+                    int len = rfile.read(buffer, 0 , 1024);
+                    rfile.close();
+
+		    String configs = new String(buffer);
+		    String[] tokens = configs.split("\n");
+		    Slog.w(TAG,"tokens[0] " + tokens[0] + " " + tokens[0].length() +" tokens[1] " + tokens[1]+ " " + tokens[1].length());
+		    if(tokens[0].length() > 5 && tokens[1].length() > 11 ) {
+			String modes  = tokens[0].substring(5, tokens[0].length());
+			String depths = tokens[1].substring(11,tokens[1].length());
+			colordepth = Integer.parseInt(depths);
+		    }
+                } catch (FileNotFoundException e) {
+                    Slog.w(TAG, "file not find");
+                } catch (Exception e) {
+                    Slog.e(TAG, "" , e);
+                }
+            }
+
+            String config = String.format("mode=%s\ncolordepth=%d\n", mode, colordepth);
+            try {
+                FileWriter out = new FileWriter("/data/misc/display.conf");
+                out.write(config);
+                out.close();
+            } catch (Exception e) {
+                Slog.e(TAG, "" , e);
+            }
+ 
+            for(int i=0; i<mode.length(); i++) {
+                if(mode.charAt(i) == ':') {
+                    width_startIndex = i + 1;
+                }
+                if(mode.charAt(i) == 'x') {
+                    width_endIndex = i - 1;
+                    height_startIndex = i + 1;
+                }
+                if(mode.charAt(i) == 'p' || mode.charAt(i) =='i') {
+                    height_endIndex = i - 1;
+                }
+            }
+
+            width = Integer.parseInt(mode.substring(width_startIndex,width_endIndex+1));
+            height = Integer.parseInt(mode.substring(height_startIndex,height_endIndex+1));
+            if (width >= 0 && height >= 0) {
+                mWindowManager.setDisplayMode(mode);
+            } else {
+                Slog.e(TAG, "setMainDisplay invalidate:width=" + width + " height=" + height);
+            }
+
+        } catch(RemoteException ex) {
+            Slog.e(TAG, "DisplayCommand setMainDisplay exception!");
         }
 
         return ret;
@@ -147,6 +239,10 @@ public class DisplayCommand {
         if (mSurfaceFlinger == null) {
             Slog.e(TAG, "DisplayCommand: mSurfaceFlinger=null!");
             return -1;
+        }
+
+        if(displayId == 0) {
+            return setMainDisplay(mode);
         }
 
         mCfgParam.displayId = displayId;

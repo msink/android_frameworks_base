@@ -135,7 +135,7 @@ DisplayHardwareBase::~DisplayHardwareBase()
 {
     // request exit
     if(mDisplayEventThread != NULL)
-        mDisplayEventThread->requestExitAndWait();
+        mDisplayEventThread->requestExit();
 }
 
 bool DisplayHardwareBase::canDraw() const

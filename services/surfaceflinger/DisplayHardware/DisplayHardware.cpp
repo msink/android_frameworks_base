@@ -264,7 +264,13 @@ void DisplayHardware::init(uint32_t dpy)
     if (property_get("qemu.sf.lcd_density", property, NULL) <= 0) {
         if (property_get("ro.sf.lcd_density", property, NULL) <= 0) {
             LOGW("ro.sf.lcd_density not defined, using 160 dpi by default.");
-            strcpy(property, "160");
+            //due to different display type has its own density.
+            //according test, if resolution width or height less than 600
+            // the density low than 160. here use 120.
+            if(mWidth < 600 || mHeight < 600)
+                strcpy(property, "120");
+            else 
+                strcpy(property, "160");
         }
     } else {
         /* for the emulator case, reset the dpi values too */

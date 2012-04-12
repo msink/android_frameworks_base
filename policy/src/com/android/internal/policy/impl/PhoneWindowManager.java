@@ -875,7 +875,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         int shortSizeDp = shortSize
                 * DisplayMetrics.DENSITY_DEFAULT
                 / DisplayMetrics.DENSITY_DEVICE;
-        mStatusBarCanHide = shortSizeDp < 600;
+
+        //tablet resolution width or height may define >= 480
+        //system according it to use system_bar or status_bar.
+        //and properity sys.devicy.type used to distinguish tablet and phone.
+        int standDp;
+        String deviceType = SystemProperties.get("sys.devicy.type");
+        if(! "".equals(deviceType) && deviceType.equals("tablet")) {
+            standDp = 480;
+        } else {
+            standDp = 600;
+        }
+
+        mStatusBarCanHide = shortSizeDp < standDp;
         mStatusBarHeight = mContext.getResources().getDimensionPixelSize(
                 mStatusBarCanHide
                 ? com.android.internal.R.dimen.status_bar_height

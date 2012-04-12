@@ -181,13 +181,88 @@ GraphicPlane& SurfaceFlinger::graphicPlane(int dpy)
 }
 
 #ifdef FSL_IMX_DISPLAY
+static inline uint16_t pack565(int r, int g, int b) {
+    return (r<<11)|(g<<5)|b;
+}
+
+void SurfaceFlinger::unInitContext()
+{
+    glDeleteTextures(1, &mWormholeTexName);
+    glDeleteTextures(1, &mProtectedTexName);
+
+    const LayerVector& currentLayers(mCurrentState.layersSortedByZ);
+    size_t count = currentLayers.size();
+    sp<LayerBase> const* layers = currentLayers.array();
+    for (size_t i=0 ; i<count ; i++) {
+        const sp<LayerBase>& layer(layers[i]);
+        layer->destroyOpenglContext();
+    }
+}
+
+void SurfaceFlinger::initContext()
+{
+    const GraphicPlane& plane(graphicPlane(0));
+    const DisplayHardware& hw = plane.displayHardware();
+
+    const uint32_t w = hw.getWidth();
+    const uint32_t h = hw.getHeight();
+    // Initialize OpenGL|ES
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnable(GL_SCISSOR_TEST);
+    glShadeModel(GL_FLAT);
+    glDisable(GL_DITHER);
+    glDisable(GL_CULL_FACE);
+
+    const uint16_t g0 = pack565(0x0F,0x1F,0x0F);
+    const uint16_t g1 = pack565(0x17,0x2f,0x17);
+    const uint16_t wormholeTexData[4] = { g0, g1, g1, g0 };
+    glGenTextures(1, &mWormholeTexName);
+    glBindTexture(GL_TEXTURE_2D, mWormholeTexName);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0,
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, wormholeTexData);
+
+    const uint16_t protTexData[] = { pack565(0x03, 0x03, 0x03) };
+    glGenTextures(1, &mProtectedTexName);
+    glBindTexture(GL_TEXTURE_2D, mProtectedTexName);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0,
+            GL_RGB, GL_UNSIGNED_SHORT_5_6_5, protTexData);
+
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    // put the origin in the left-bottom corner
+    glOrthof(0, w, 0, h, 0, 1); // l=0, r=w ; b=0, t=h
+
+    const LayerVector& currentLayers(mCurrentState.layersSortedByZ);
+    size_t count = currentLayers.size();
+    sp<LayerBase> const* layers = currentLayers.array();
+    for (size_t i=0 ; i<count ; i++) {
+        const sp<LayerBase>& layer(layers[i]);
+        layer->createOpenglContext();
+    }
+}
+
 int ConfigurableGraphicPlane::mTransactionReturnValue = 0;
 int ConfigurableGraphicPlane::mUpdateVisibleRegion = 0;
 
 int ConfigurableGraphicPlane::initPlane(SurfaceFlinger* sf)
 {
+    DisplayHardware* hw = NULL;
     ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
-    DisplayHardware* const hw = new DisplayHardware(sf, mCurrentParam);
+    if(mCurrentParam.displayId != 0)
+        hw = new DisplayHardware(sf, mCurrentParam);
+    else
+        hw = new DisplayHardware(sf, mCurrentParam.displayId);
     setDisplayHardware(hw);
     const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
     dh.makeCurrent();
@@ -199,8 +274,10 @@ int ConfigurableGraphicPlane::unInitPlane(SurfaceFlinger* sf)
 {
     delete mHw;
     mHw = NULL;
-    const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
-    dh.makeCurrent();
+    if(sf->graphicPlane(0).initialized()) {
+        const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
+        dh.makeCurrent();
+    }
 
     return NO_ERROR;
 }
@@ -233,12 +310,14 @@ status_t ConfigurableGraphicPlane::sendCommand(int operateCode, const configPara
 status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
 {
     int err = NO_ERROR;
-
     if(mCurrentParam.operateCode & OPERATE_CODE_CHANGE_RESOLUTION ||
                mCurrentParam.operateCode & OPERATE_CODE_CHANGE_COLORDEPTH) {
-
         mCurrentParam.operateCode = OPERATE_CODE_ENABLE;
         sf->clearDisplayCblk(mCurrentParam.displayId);
+
+        if(mCurrentParam.displayId == 0) {
+            sf->unInitContext();
+        }
         err = unInitPlane(sf);
         if(err != NO_ERROR) {
             LOGE("<%s, %d> unInitPlane %d failed!", __FUNCTION__, __LINE__, mCurrentParam.displayId);
@@ -250,9 +329,12 @@ status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
             LOGE("<%s, %d> initPlane %d failed!", __FUNCTION__, __LINE__, mCurrentParam.displayId);
             return err;
         }
-
         sf->setDisplayCblk(mCurrentParam.displayId);
-        ;
+
+        if(mCurrentParam.displayId == 0) {
+            sf->initContext();
+        }
+
         return err;
     }
     else {
@@ -293,27 +375,27 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_RESOLUTION) {
+    if(operation & OPERATE_CODE_CHANGE_RESOLUTION && conParam.mode != param.mode) {
         conParam.mode = param.mode;
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_ROTATION) {
+    if(operation & OPERATE_CODE_CHANGE_ROTATION && conParam.rotation != param.rotation) {
         conParam.rotation = param.rotation;
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_OVERSCAN) {
+    if(operation & OPERATE_CODE_CHANGE_OVERSCAN && conParam.overScan != param.overScan) {
         conParam.overScan = param.overScan;
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_MIRROR) {
+    if(operation & OPERATE_CODE_CHANGE_MIRROR && conParam.mirror != param.mirror) {
         conParam.mirror = param.mirror;
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_COLORDEPTH) {
+    if(operation & OPERATE_CODE_CHANGE_COLORDEPTH && conParam.colorDepth != param.colorDepth) {
         conParam.colorDepth = param.colorDepth;
         change = true;
     }
@@ -330,7 +412,6 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
 void ConfigurableGraphicPlane::doTransaction(SurfaceFlinger* sf)
 {
     int err = NO_ERROR;
-
     setParam(mCurrentParam, mConfigParam);
     switch(mCurrentParam.operateCode & 0xf000) {
         case OPERATE_CODE_ENABLE:
@@ -387,7 +468,6 @@ void ConfigurableGraphicPlane::doTransaction(SurfaceFlinger* sf)
                 mTransactionReturnValue = BAD_VALUE;
                 return;
             }
-
             err = changePlaneSize(sf);
             break;
         default:
@@ -482,7 +562,6 @@ status_t SurfaceFlinger::configDisplay(configParam* param)
         LOGE("%s, %d invalid DisplayID %d", __FUNCTION__, __LINE__, dpy);
         return BAD_VALUE;
     }
-
     Mutex::Autolock _l(mDisplayStateLock);
     uint32_t flags = 0;
     ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(dpy);
@@ -495,13 +574,14 @@ status_t SurfaceFlinger::configDisplay(configParam* param)
 		return BAD_VALUE;
 	    }
         case OPERATE_CODE_CHANGE:
-            if(plane.setConfigParam(*param)) 
+            if(plane.setConfigParam(*param)) { 
                 flags |= eDisplayEventNeeded;
-            setTransactionFlags(flags);
-            signalEvent();
+                setTransactionFlags(flags);
+                signalEvent();
 
-            mDisplayTransactionCV.wait(mDisplayStateLock);
-            err = ConfigurableGraphicPlane::mTransactionReturnValue;
+                mDisplayTransactionCV.wait(mDisplayStateLock);
+                err = ConfigurableGraphicPlane::mTransactionReturnValue;
+            }
             break;
         default:
             LOGE("<%s, %d> invalide operate code %d!", __FUNCTION__, __LINE__, (int)param->operateCode);
@@ -549,11 +629,11 @@ void SurfaceFlinger::onFirstRef()
     // Wait for the main thread to be done with its initialization
     mReadyToRunBarrier.wait();
 }
-
+#if 0
 static inline uint16_t pack565(int r, int g, int b) {
     return (r<<11)|(g<<5)|b;
 }
-
+#endif
 status_t SurfaceFlinger::readyToRun()
 {
     LOGI(   "SurfaceFlinger's main thread ready to run. "

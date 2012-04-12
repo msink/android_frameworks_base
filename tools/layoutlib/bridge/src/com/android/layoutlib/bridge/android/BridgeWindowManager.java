@@ -81,6 +81,9 @@ public class BridgeWindowManager implements IWindowManager {
     public void getRealDisplaySize(Point arg0) throws RemoteException {
     }
 
+    public void setDisplayMode(String mode) {
+    }
+
     // ---- unused implementation of IWindowManager ----
 
     public boolean canStatusBarHide() throws RemoteException {

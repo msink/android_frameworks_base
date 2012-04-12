@@ -122,10 +122,12 @@ import android.view.WindowManagerPolicy.FakeWindow;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Transformation;
+import android.view.DisplayCommand;
 
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -646,6 +648,7 @@ public class WindowManagerService extends IWindowManager.Stub
 
     final Configuration mTempConfiguration = new Configuration();
 
+    String mDisplayMode = null;
     // The desired scaling factor for compatible apps.
     float mCompatibleScreenScale;
 
@@ -6511,6 +6514,7 @@ public class WindowManagerService extends IWindowManager.Stub
         public static final int REPORT_HARD_KEYBOARD_STATUS_CHANGE = 22;
         public static final int BOOT_TIMEOUT = 23;
         public static final int WAITING_FOR_DRAWN_TIMEOUT = 24;
+        public static final int SEND_NEW_CONFIGURATION_EX = 118;
 
         private Session mLastReportedHold;
 
@@ -6852,6 +6856,40 @@ public class WindowManagerService extends IWindowManager.Stub
                     break;
                 }
 
+                case SEND_NEW_CONFIGURATION_EX: {
+                    removeMessages(SEND_NEW_CONFIGURATION_EX);
+
+                    String mode = (String)msg.obj;
+                    if(mode != null && !mode.equalsIgnoreCase(mDisplayMode)) {
+                        mDisplayMode = mode;
+                        try {
+				IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+				if (surfaceFlinger != null) {
+				    Parcel data = Parcel.obtain();
+				    Parcel reply = Parcel.obtain();
+				    DisplayCommand.ConfigParam mCfgParam = new DisplayCommand.ConfigParam();
+				    mCfgParam.displayId = 0;
+				    mCfgParam.operateCode = DisplayCommand.OPERATE_CODE_CHANGE | DisplayCommand.OPERATE_CODE_CHANGE_RESOLUTION;
+				    mCfgParam.mode = mode;
+				    data.writeInterfaceToken("android.ui.ISurfaceComposer");
+				    mCfgParam.writeToParcel(data);
+				    surfaceFlinger.transact(IBinder.FIRST_CALL_TRANSACTION + 100,
+							    data, reply, 0);
+				    data.recycle();
+				    reply.recycle();
+				}
+			} catch(RemoteException ex) {
+			    Log.e(TAG, "transact to surfaceflinger failed!");
+			}
+
+                        WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
+                        mDisplay = wm.getDefaultDisplay();
+                        sendNewConfiguration();
+                    }
+
+                    break;
+                }
+
                 case REPORT_WINDOWS_CHANGE: {
                     if (mWindowsChanged) {
                         synchronized (mWindowMap) {
@@ -7102,15 +7140,47 @@ public class WindowManagerService extends IWindowManager.Stub
         setForcedDisplaySizeLocked(width, height);
     }
 
-    private void setForcedDisplaySizeLocked(int width, int height) {
-        Slog.i(TAG, "Using new display size: " + width + "x" + height);
+    public void setDisplayMode(String mode) {
+        Slog.i(TAG, "Using new display mode: " + mode);
+
+        int width_startIndex =0;
+        int width_endIndex   =0;
+        int height_startIndex=0;
+        int height_endIndex  =0;
+        int width = 0;
+        int height = 0;
+
+        for(int i=0; i<mode.length(); i++) {
+            if(mode.charAt(i) == ':') {
+                width_startIndex = i + 1;
+            }
+            if(mode.charAt(i) == 'x') {
+                width_endIndex = i - 1;
+                height_startIndex = i + 1;
+            }
+            if(mode.charAt(i) == 'p' || mode.charAt(i) =='i') {
+                height_endIndex = i - 1;
+            }
+        }
+
+        width = Integer.parseInt(mode.substring(width_startIndex,width_endIndex+1));
+        height = Integer.parseInt(mode.substring(height_startIndex,height_endIndex+1));
+        if (width <= 0 || height <= 0) {
+            Slog.e(TAG, "setDisplayMode invalidate:width=" + width + " height=" + height);
+            return;
+        }
 
         synchronized(mDisplaySizeLock) {
             mBaseDisplayWidth = width;
             mBaseDisplayHeight = height;
         }
-        mPolicy.setInitialDisplaySize(mBaseDisplayWidth, mBaseDisplayHeight);
 
+        WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
+        mDisplay = wm.getDefaultDisplay();
+        mInputManager.setDisplaySize(Display.DEFAULT_DISPLAY,
+                    width, height, width, height);
+
+        mPolicy.setInitialDisplaySize(mBaseDisplayWidth, mBaseDisplayHeight);
         mLayoutNeeded = true;
 
         boolean configChanged = updateOrientationFromAppTokensLocked(false);
@@ -7121,15 +7191,44 @@ public class WindowManagerService extends IWindowManager.Stub
                 configChanged = true;
             }
         }
+        if (configChanged) {
+            mWaitingForConfig = true;
+            startFreezingDisplayLocked(false);
+            Message msg = mH.obtainMessage(H.SEND_NEW_CONFIGURATION_EX, mode);
+            mH.sendMessage(msg);
+        }
+        rebuildBlackFrame(false);
+        performLayoutAndPlaceSurfacesLocked();
 
+        Settings.Secure.putString(mContext.getContentResolver(),
+                Settings.Secure.DISPLAY_SIZE_FORCED, width + "," + height);
+
+    }
+
+    private void setForcedDisplaySizeLocked(int width, int height) {
+        Slog.i(TAG, "Using new display size: " + width + "x" + height);
+
+        synchronized(mDisplaySizeLock) {
+            mBaseDisplayWidth = width;
+            mBaseDisplayHeight = height;
+        }
+        mPolicy.setInitialDisplaySize(mBaseDisplayWidth, mBaseDisplayHeight);
+        mLayoutNeeded = true;
+
+        boolean configChanged = updateOrientationFromAppTokensLocked(false);
+        mTempConfiguration.setToDefaults();
+        mTempConfiguration.fontScale = mCurConfiguration.fontScale;
+        if (computeNewConfigurationLocked(mTempConfiguration)) {
+            if (mCurConfiguration.diff(mTempConfiguration) != 0) {
+                configChanged = true;
+            }
+        }
         if (configChanged) {
             mWaitingForConfig = true;
             startFreezingDisplayLocked(false);
             mH.sendEmptyMessage(H.SEND_NEW_CONFIGURATION);
         }
-
         rebuildBlackFrame(false);
-
         performLayoutAndPlaceSurfacesLocked();
     }
 

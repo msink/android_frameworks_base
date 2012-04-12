@@ -256,7 +256,11 @@ public:
     };
 
 public:
+    GLuint  mWormholeTexName;
+    GLuint  mProtectedTexName;
 #ifdef FSL_IMX_DISPLAY
+    void unInitContext();
+    void initContext();
     virtual status_t configDisplay(configParam* param);
     void setDisplayCblk(int dpy);
     void clearDisplayCblk(int dpy);
@@ -416,8 +420,8 @@ private:
                 // constant members (no synchronization needed for access)
                 sp<IMemoryHeap>             mServerHeap;
                 surface_flinger_cblk_t*     mServerCblk;
-                GLuint                      mWormholeTexName;
-                GLuint                      mProtectedTexName;
+                //GLuint                      mWormholeTexName;
+                //GLuint                      mProtectedTexName;
                 nsecs_t                     mBootTime;
 
                 // Can only accessed from the main thread, these members

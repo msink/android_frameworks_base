@@ -21964,6 +21964,13 @@ package android.view {
   public static class DisplayCommand.ConfigParam {
     ctor public DisplayCommand.ConfigParam();
     method public void writeToParcel(android.os.Parcel);
+    field public int colorDepth;
+    field public int displayId;
+    field public int mirror;
+    field public java.lang.String mode;
+    field public int operateCode;
+    field public int overScan;
+    field public int rotation;
   }
 
   public class DragEvent implements android.os.Parcelable {

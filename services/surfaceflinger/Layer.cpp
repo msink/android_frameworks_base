@@ -98,6 +98,19 @@ void Layer::onFrameQueued() {
     mFlinger->signalEvent();
 }
 
+void Layer::createOpenglContext()
+{
+    glGenTextures(1, &mTextureName);
+    mSurfaceTexture->setOpenglContext(mTextureName);
+}
+
+void Layer::destroyOpenglContext()
+{
+    mQueuedFrames = 0; 
+    mSurfaceTexture->destroyOpenglContext();
+    glDeleteTextures(1, &mTextureName);
+}
+
 // called with SurfaceFlinger::mStateLock as soon as the layer is entered
 // in the purgatory list
 void Layer::onRemoved()

@@ -79,6 +79,8 @@ public:
     // LayerBaseClient interface
     virtual wp<IBinder> getSurfaceTextureBinder() const;
 
+    virtual void createOpenglContext();
+    virtual void destroyOpenglContext();
     // only for debugging
     inline const sp<GraphicBuffer>& getActiveBuffer() const { return mActiveBuffer; }
 

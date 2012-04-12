@@ -223,6 +223,8 @@ public:
     // by OpenGL ES as a texture) then those buffer will remain allocated.
     void abandon();
 
+    void setOpenglContext(GLuint texName);
+    void destroyOpenglContext();
     // set the name of the SurfaceTexture that will be used to identify it in
     // log messages.
     void setName(const String8& name);
@@ -444,7 +446,7 @@ private:
     // mTexName is the name of the OpenGL texture to which streamed images will
     // be bound when updateTexImage is called. It is set at construction time
     // changed with a call to setTexName.
-    const GLuint mTexName;
+    GLuint mTexName;
 
     // mGraphicBufferAlloc is the connection to SurfaceFlinger that is used to
     // allocate new GraphicBuffer objects.
