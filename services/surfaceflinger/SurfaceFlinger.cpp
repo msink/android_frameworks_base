@@ -849,7 +849,7 @@ void SurfaceFlinger::postFramebuffer()
 #ifdef FSL_IMX_DISPLAY
     if (!mSwapRegion.isEmpty()) {
 
-        if (UNLIKELY(mDebugFps)) {
+        if (UNLIKELY(mDebugFps && !mActivePlaneIndex)) {
             debugShowFPS();
         }
 
