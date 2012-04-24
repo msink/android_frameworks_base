@@ -180,11 +180,11 @@ GraphicPlane& SurfaceFlinger::graphicPlane(int dpy)
         const_cast<SurfaceFlinger const *>(this)->graphicPlane(dpy));
 }
 
-#ifdef FSL_IMX_DISPLAY
 static inline uint16_t pack565(int r, int g, int b) {
     return (r<<11)|(g<<5)|b;
 }
 
+#ifdef FSL_IMX_DISPLAY
 void SurfaceFlinger::unInitContext()
 {
     glDeleteTextures(1, &mWormholeTexName);
