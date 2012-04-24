@@ -1610,6 +1610,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadBooleanSetting(stmt, Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD,
                     R.bool.def_accessibility_speak_password);
+
+            loadSetting(stmt, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, "");
         } finally {
             if (stmt != null) stmt.close();
         }
