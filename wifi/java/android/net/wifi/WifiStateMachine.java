@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright 2009-2011 Freescale Semiconductor Inc. */
+/* Copyright 2012 Freescale Semiconductor Inc. */
 
 package android.net.wifi;
 
@@ -111,7 +111,7 @@ public class WifiStateMachine extends StateMachine {
     private static final boolean DBG = false;
 
     /* TODO: This is no more used with the hostapd code. Clean up */
-    private String SOFTAP_IFACE = SystemProperties.get("wifi.ap.interface", "wl0.1");
+    private static final String SOFTAP_IFACE = "wlan0";
 
     private WifiMonitor mWifiMonitor;
     private INetworkManagementService mNwService;
@@ -1958,19 +1958,10 @@ public class WifiStateMachine extends StateMachine {
                             setWifiApState(WIFI_AP_STATE_ENABLING);
                             break;
                     }
-		    Log.d(TAG,"Begin to load driver message="+message.arg1);
-		    boolean ret = false;
-                    // Since Atheros WIFI driver need a different API,
-                    // we call AP driver and WIFI driver in different
-                    // API
-                    //if (message.arg1 == WIFI_STATE_ENABLING) {
-                        ret = WifiNative.loadDriver();
-			//} else if (message.arg1 == WIFI_AP_STATE_ENABLING) {
-                        //ret = true;//WifiNative.loadApDriver();
-			// }
-                    if(ret) {
-			Log.d(TAG, "Driver load successful");
-		        sendMessage(CMD_LOAD_DRIVER_SUCCESS);
+
+                    if(WifiNative.loadDriver()) {
+                        if (DBG) log("Driver load successful");
+                        sendMessage(CMD_LOAD_DRIVER_SUCCESS);
                     } else {
                         loge("Failed to load driver!");
                         switch(message.arg1) {
@@ -1984,8 +1975,8 @@ public class WifiStateMachine extends StateMachine {
                         sendMessage(CMD_LOAD_DRIVER_FAILURE);
                     }
                     mWakeLock.release();
-                    }
-		}).start();
+                }
+            }).start();
         }
 
         @Override
@@ -2208,6 +2199,7 @@ public class WifiStateMachine extends StateMachine {
             switch(message.what) {
                 case WifiMonitor.SUP_CONNECTION_EVENT:
                     if (DBG) log("Supplicant connection established");
+                    WifiNative.setP2pDisable(1);
                     setWifiState(WIFI_STATE_ENABLED);
                     mSupplicantRestartCount = 0;
                     /* Reset the supplicant state to indicate the supplicant
@@ -2870,6 +2862,7 @@ public class WifiStateMachine extends StateMachine {
 
                     //TODO: make supplicant modification to push this in events
                     mWifiInfo.setSSID(fetchSSID());
+                    fetchRssiAndLinkSpeedNative();
                     mWifiInfo.setBSSID(mLastBssid);
                     mWifiInfo.setNetworkId(mLastNetworkId);
                     if (mNextWifiActionExplicit &&

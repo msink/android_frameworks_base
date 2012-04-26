@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright 2012 Freescale Semiconductor Inc. */
 
 package android.net.wifi.p2p;
 
@@ -72,6 +73,11 @@ public class WifiP2pDeviceList implements Parcelable {
                 d.wpsConfigMethodsSupported = device.wpsConfigMethodsSupported;
                 d.deviceCapability = device.deviceCapability;
                 d.groupCapability = device.groupCapability;
+                if (d.status == WifiP2pDevice.FAILED)
+                {
+                    d.status = WifiP2pDevice.AVAILABLE;
+                }
+
                 return;
             }
         }

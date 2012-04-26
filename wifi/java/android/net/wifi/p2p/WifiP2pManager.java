@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright 2012 Freescale Semiconductor Inc. */
 
 package android.net.wifi.p2p;
 
@@ -262,6 +263,11 @@ public class WifiP2pManager {
     /** @hide */
     public static final int RESPONSE_GROUP_INFO                     = BASE + 27;
 
+    /** @hide */
+    public static final int REQUEST_CUSTOM_STRING                   = BASE + 28;
+    /** @hide */
+    public static final int RESPONSE_CUSTOM_STRING                  = BASE + 29;
+
     /**
      * Create a new WifiP2pManager instance. Applications use
      * {@link android.content.Context#getSystemService Context.getSystemService()} to retrieve
@@ -321,6 +327,18 @@ public class WifiP2pManager {
          * @param peers List of available peers
          */
         public void onPeersAvailable(WifiP2pDeviceList peers);
+    }
+
+    /** Interface for callback invocation when a custom string
+     *  response is available
+     * @hide
+     */
+    public interface StringResponseListener {
+        /**
+         * The requested string response is available
+         * @param string The response string
+         */
+        public void onResponseAvailable(String string);
     }
 
     /** Interface for callback invocation when connection info is available */
@@ -398,6 +416,15 @@ public class WifiP2pManager {
                         WifiP2pDeviceList peers = (WifiP2pDeviceList) message.obj;
                         if (listener != null) {
                             ((PeerListListener) listener).onPeersAvailable(peers);
+                        }
+                        break;
+                    case WifiP2pManager.RESPONSE_CUSTOM_STRING:
+                        WifiP2pConfig config = (WifiP2pConfig)message.obj;
+                        Log.d(TAG, "Custom Command Response received");
+                        String stringResp = config.deviceAddress;
+                        Log.d(TAG, "Custom Command Response received" + stringResp);
+                        if(listener != null) {
+                            ((StringResponseListener) listener).onResponseAvailable(stringResp);
                         }
                         break;
                     case WifiP2pManager.RESPONSE_CONNECTION_INFO:
@@ -631,6 +658,29 @@ public class WifiP2pManager {
         } catch (RemoteException e) {
             return null;
         }
+    }
+
+    /**
+     * Send a custom string command to Wifi Supplicant.
+     *
+     * <p> The function call immediately returns after sending the
+     * custom command to the framework. The application is notified
+     * when the string response is available callbacks {@link
+     * StringResponseListener}
+     *
+
+     * @param c is the channel created at {@link #initialize}
+     * @param command is the custom string command to be executed
+     * @param listener for callbacks for string response
+     * @hide
+     */
+    public void sendCustomStringCommand(Channel c, String command, StringResponseListener listener) {
+        if (c == null) return;
+        if (command == null) return;
+        WifiP2pConfig config = new  WifiP2pConfig();
+        config.deviceAddress = command;//Pass string command using device address
+
+        c.mAsyncChannel.sendMessage(REQUEST_CUSTOM_STRING, 0, c.putListener(listener), config);
     }
 
 }

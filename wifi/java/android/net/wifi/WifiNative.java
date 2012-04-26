@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* Copyright 2012 Freescale Semiconductor Inc. */
 
 package android.net.wifi;
 
@@ -221,6 +222,10 @@ public class WifiNative {
         return doBooleanCommand("WPS_PIN any " + pin);
     }
 
+    public static boolean setP2pDisable (int value) {
+        return WifiNative.doBooleanCommand("P2P_SET disabled " + value);
+    }
+
     public static boolean setPersistentReconnect(boolean enabled) {
         int value = (enabled == true) ? 1 : 0;
         return WifiNative.doBooleanCommand("SET persistent_reconnect " + value);
@@ -381,5 +386,13 @@ public class WifiNative {
 
     public static String p2pPeer(String deviceAddress) {
         return doStringCommand("P2P_PEER " + deviceAddress);
+    }
+
+    public static String bssInfo(String deviceAddress) {
+        return doStringCommand("BSS p2p_dev_addr=" + deviceAddress);
+    }
+
+    public static String p2pCustomCommand(String command) {
+        return doStringCommand(command);
     }
 }
