@@ -1915,13 +1915,13 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
             color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_SP;
             break;
         case OMX_COLOR_FormatYUV420Planar:
-            color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_I;
+            color_fmt = HAL_PIXEL_FORMAT_YCbCr_420_P;
             break;
         case OMX_COLOR_Format16bitRGB565:
             color_fmt = HAL_PIXEL_FORMAT_RGB_565;
             break;
         case OMX_COLOR_FormatYUV422Planar:
-            color_fmt = HAL_PIXEL_FORMAT_YCbCr_422_I;
+            color_fmt = HAL_PIXEL_FORMAT_YCbCr_422_P;
             break;
         default:
             LOGE("Not supported color format %d by surface!");
