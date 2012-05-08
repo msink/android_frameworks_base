@@ -1454,6 +1454,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
 
+
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -1612,6 +1613,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.bool.def_accessibility_speak_password);
 
             loadSetting(stmt, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, "");
+
+            //Init data stall alarm
+            loadIntegerSetting(stmt, Settings.Secure.DATA_STALL_ALARM_NON_AGGRESSIVE_DELAY_IN_MS,
+                            R.integer.def_data_stall_alarm_non_aggressive_delay);
+
         } finally {
             if (stmt != null) stmt.close();
         }

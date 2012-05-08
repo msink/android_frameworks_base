@@ -161,4 +161,7 @@
     <bool name="def_dtmf_tones_enabled">true</bool>
     <!-- Default for UI touch sounds enabled -->
     <bool name="def_sound_effects_enabled">true</bool>
+
+    <!-- Default for data stall non aggressive delay -->
+    <integer name="def_data_stall_alarm_non_aggressive_delay">36000000</integer>
 </resources>
