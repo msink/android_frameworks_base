@@ -1651,6 +1651,7 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
     private void startDataStallAlarm(boolean suspectedStall) {
         int nextAction = getRecoveryAction();
         int delayInMs;
+        int alarmType = AlarmManager.ELAPSED_REALTIME_WAKEUP;
 
         // If screen is on or data stall is currently suspected, set the alarm
         // with an aggresive timeout.
@@ -1658,6 +1659,7 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
             delayInMs = Settings.Secure.getInt(mResolver,
                                        Settings.Secure.DATA_STALL_ALARM_AGGRESSIVE_DELAY_IN_MS,
                                        DATA_STALL_ALARM_AGGRESSIVE_DELAY_IN_MS_DEFAULT);
+            alarmType = AlarmManager.ELAPSED_REALTIME;
         } else {
             delayInMs = Settings.Secure.getInt(mResolver,
                                        Settings.Secure.DATA_STALL_ALARM_NON_AGGRESSIVE_DELAY_IN_MS,
@@ -1676,7 +1678,7 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
         intent.putExtra(DATA_STALL_ALARM_TAG_EXTRA, mDataStallAlarmTag);
         mDataStallAlarmIntent = PendingIntent.getBroadcast(mPhone.getContext(), 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+        am.set(alarmType,
                 SystemClock.elapsedRealtime() + delayInMs, mDataStallAlarmIntent);
     }
 
