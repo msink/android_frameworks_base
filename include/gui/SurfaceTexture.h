@@ -511,6 +511,7 @@ private:
     uint64_t mFrameCounter;
 
     uint32_t mFrameLost;
+    int mIsRecreated;
 };
 
 // ----------------------------------------------------------------------------

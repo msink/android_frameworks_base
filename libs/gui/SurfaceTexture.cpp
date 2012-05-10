@@ -140,7 +140,7 @@ SurfaceTexture::SurfaceTexture(GLuint tex, bool allowSynchronousMode,
     mUseFenceSync(false),
 #endif
     mTexTarget(texTarget),
-    mFrameCounter(0), mFrameLost(0) {
+    mFrameCounter(0), mFrameLost(0), mIsRecreated(0) {
     // Choose a name using the PID and a process-unique ID.
     mName = String8::format("unnamed-%d-%d", getpid(), createProcessUniqueId());
 
@@ -296,6 +296,7 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
         int foundSync = -1;
         int dequeuedCount = 0;
         bool tryAgain = true;
+        mIsRecreated = 0;
         while (tryAgain) {
             if (mAbandoned) {
                 ST_LOGE("dequeueBuffer: SurfaceTexture has been abandoned!");
@@ -550,6 +551,11 @@ status_t SurfaceTexture::queueBuffer(int buf, int64_t timestamp,
             ST_LOGE("queueBuffer: SurfaceTexture has been abandoned!");
             return NO_INIT;
         }
+        if(mIsRecreated) {
+            ST_LOGW("queueBuffer: opengl context is freed and require dequeue buffer first");
+            return 0;
+        }
+
         if (buf < 0 || buf >= mBufferCount) {
             ST_LOGE("queueBuffer: slot index out of range [0, %d]: %d",
                     mBufferCount, buf);
@@ -1132,6 +1138,7 @@ void SurfaceTexture::setOpenglContext(GLuint texName)
 void SurfaceTexture::destroyOpenglContext()
 {
     Mutex::Autolock lock(mMutex);
+    mIsRecreated = 1;
     mQueue.clear();
     mCurrentTextureBuf.clear();
     freeAllBuffersLocked();
