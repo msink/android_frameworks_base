@@ -7199,10 +7199,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
         rebuildBlackFrame(false);
         performLayoutAndPlaceSurfacesLocked();
-
-        Settings.Secure.putString(mContext.getContentResolver(),
-                Settings.Secure.DISPLAY_SIZE_FORCED, width + "," + height);
-
     }
 
     private void setForcedDisplaySizeLocked(int width, int height) {

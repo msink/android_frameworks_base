@@ -347,7 +347,6 @@ class DisplayManagerService extends IDisplayManager.Stub {
     private void readConfigFile() {
 
         File file1 = new File("/data/misc/display.conf");
-        File file2 = new File("/system/etc/display.conf");
         char[] buffer = new char[1024];
 
         if(file1.exists()) {
@@ -360,31 +359,19 @@ class DisplayManagerService extends IDisplayManager.Stub {
             } catch (Exception e) {
                 Log.e(TAG, "" , e);
             }
-        }else {
-            if(file2.exists()) {
-                try {
-                    FileReader file = new FileReader(file2);
-                    int len = file.read(buffer, 0 , 1024);
-                    file.close();
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "file not find");
-                } catch (Exception e) {
-                    Log.e(TAG, "" , e);
-                }
-            }else {
-                Log.w(TAG,"no configuration file found!");
-            }
         }
 
-        if(file1.exists() || file2.exists()) {
+        if(file1.exists()) {
             String config = new String(buffer);
             String[] tokens = config.split("\n");
             Log.w(TAG,"tokens[0] " + tokens[0] + " " + tokens[0].length() +" tokens[1] " + tokens[1]+ " " + tokens[1].length());
-            if(tokens[0].length() < 5 || tokens[1].length() < 11 ) {
+            if(tokens[0].length() > 5) {
                 String mode  = tokens[0].substring(5, tokens[0].length());
+                setDisplayDefaultMode(0, mode);
+            }
+            if(tokens[1].length() > 11 ) {
                 String depth = tokens[1].substring(11,tokens[1].length());
                 int colordepth = Integer.parseInt(depth);
-                setDisplayDefaultMode(0, mode);
                 setDisplayDefaultdepth(0,colordepth);
             }
         }
