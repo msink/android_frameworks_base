@@ -125,7 +125,7 @@ public class KeyguardViewManager implements KeyguardWindowController {
             }
             if (ActivityManager.isHighEndGfx(((WindowManager)mContext.getSystemService(
                     Context.WINDOW_SERVICE)).getDefaultDisplay())) {
-                flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+//                flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
             }
             WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
                     stretch, stretch, WindowManager.LayoutParams.TYPE_KEYGUARD,
@@ -134,7 +134,7 @@ public class KeyguardViewManager implements KeyguardWindowController {
             lp.windowAnimations = com.android.internal.R.style.Animation_LockScreen;
             if (ActivityManager.isHighEndGfx(((WindowManager)mContext.getSystemService(
                     Context.WINDOW_SERVICE)).getDefaultDisplay())) {
-                lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+//                lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
                 lp.privateFlags |=
                         WindowManager.LayoutParams.PRIVATE_FLAG_FORCE_HARDWARE_ACCELERATED;
             }

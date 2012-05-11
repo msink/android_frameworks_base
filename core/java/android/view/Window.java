@@ -475,7 +475,7 @@ public abstract class Window {
     private class LocalWindowManager extends WindowManagerImpl.CompatModeWrapper {
         private static final String PROPERTY_HARDWARE_UI = "persist.sys.ui.hw";
 
-        private final boolean mHardwareAccelerated;
+        private boolean mHardwareAccelerated = false;
 
         LocalWindowManager(WindowManager wm, boolean hardwareAccelerated) {
             super(wm, getCompatInfo(mContext));
@@ -533,6 +533,11 @@ public abstract class Window {
             }
             if (mHardwareAccelerated) {
                 wp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+                if((wp.packageName != null) && ((wp.packageName.compareTo("com.android.systemui") == 0) || (wp.packageName.compareTo("com.android.music") == 0)))
+                {
+                   wp.flags &= ~WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+                   mHardwareAccelerated = false;
+                }
             }
             super.addView(view, params);
         }
