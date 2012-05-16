@@ -860,38 +860,41 @@ bool SurfaceFlinger::threadLoop()
             if((i!=0) && !mirror) continue;
 
             mActivePlaneIndex = i;
-	    const DisplayHardware& hw(graphicPlane(i).displayHardware());
-	    if (LIKELY(hw.canDraw())) {
-		// repaint the framebuffer (if needed)
-		const int index = hw.getCurrentBufferIndex();
-		GraphicLog& logger(GraphicLog::getInstance());
+            const DisplayHardware& hw(graphicPlane(i).displayHardware());
+            const DisplayHardware& hw0(graphicPlane(0).displayHardware());
+            //Only check the hw0's screen state, once it is been release
+            //all screen's update should be stopped
+            if (LIKELY(hw0.canDraw())) {
+                 // repaint the framebuffer (if needed)
+                 const int index = hw.getCurrentBufferIndex();
+                 GraphicLog& logger(GraphicLog::getInstance());
+    
+                 logger.log(GraphicLog::SF_REPAINT, index);
+                 handleRepaint();
+    
+                 // call glFinish and postfb only when actual repaint is done
+                 if (!mSwapRegion.isEmpty()) {
+                     // inform the h/w that we're done compositing
+                     logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
+                     hw.compositionComplete();
+                     // release the clients before we flip ('cause flip might block)
+    
+                     logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
+                             resizeSwapRegion();
+                     if(plane.mClearPlane == 1) {
+                                 plane.mClearPlane = 0;
+                                 plane.clearPlane();
+                     }
+                     postFramebuffer();
+                 }
 
-		logger.log(GraphicLog::SF_REPAINT, index);
-		handleRepaint();
-
-		// call glFinish and postfb only when actual repaint is done
-		if (!mSwapRegion.isEmpty()) {
-		    // inform the h/w that we're done compositing
-		    logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
-		    hw.compositionComplete();
-		    // release the clients before we flip ('cause flip might block)
-
-		    logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
-                    resizeSwapRegion();
-                    if(plane.mClearPlane == 1) {
-                        plane.mClearPlane = 0;
-                        plane.clearPlane();
-                    }
-		    postFramebuffer();
-		}
-
-		logger.log(GraphicLog::SF_REPAINT_DONE, index);
-	    } else {
-		// pretend we did the post
-		// comment out the compisitionComplete() due to clock on in early suspend
-		//hw.compositionComplete();
-		usleep(16667); // 60 fps period
-	    }
+                 logger.log(GraphicLog::SF_REPAINT_DONE, index);
+	        } else {
+		        // pretend we did the post
+		        // comment out the compisitionComplete() due to clock on in early suspend
+		        //hw.compositionComplete();
+		        usleep(16667); // 60 fps period
+	        }
         }
     }
 
