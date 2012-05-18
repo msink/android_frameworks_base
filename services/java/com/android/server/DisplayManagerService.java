@@ -675,11 +675,24 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 case DISPLAY_ENABLE_MSG: {
                     int fbid = msg.arg1;
                     int dispid = mdispstate.getdispid(msg.arg1);
-                    if(Integer.parseInt(msg.obj.toString()) == 1)
+                    Intent intent;
+                    if(Integer.parseInt(msg.obj.toString()) == 1) {
                         mDispCommand.enable(fbid, mDisplay_mode[dispid], mDisplay_rotation[dispid], mDisplay_overscan[dispid], mDisplay_mirror[dispid], mDisplay_colordepth[dispid]);
-                    else
-                        mDispCommand.disable(fbid);
 
+                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                        intent.putExtra("state", 1);
+                        intent.putExtra("name", "hdmi");
+                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                    }
+                    else {
+                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                        intent.putExtra("state", 0);
+                        intent.putExtra("name", "hdmi");
+                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                        mDispCommand.disable(fbid);
+                    }
                     if(msg.arg2 == 1){
                         Settings.System.putInt(mContext.getContentResolver(), mSettings_enable[dispid], Integer.parseInt(msg.obj.toString()));
                         Settings.System.putInt(mContext.getContentResolver(), mSettings_mirror[dispid], mDisplay_mirror[dispid]);
