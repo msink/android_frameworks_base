@@ -515,8 +515,25 @@ void SurfaceFlinger::clearDisplayCblk(int dpy)
 
 void SurfaceFlinger::resizeSwapRegion()
 {
-    if(mActivePlaneIndex == 0)
+    if(mActivePlaneIndex == 0) {
+        ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(mActivePlaneIndex);
+        HWComposer& hwc(plane.displayHardware().getHwComposer());
+        int scaleRate = plane.getOverScan();
+        if(scaleRate == 0) {
+            return;
+        }
+
+        int displayWidth = graphicPlane(mActivePlaneIndex).getWidth();
+        int displayHeight = graphicPlane(mActivePlaneIndex).getHeight();
+        int dw = displayWidth * (100 - scaleRate) / 100;
+        int dh = displayHeight * (100 - scaleRate) / 100;
+        Rect rect_t(mSwapRegion.getBounds());
+        Rect *rect = &rect_t;
+
+        hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, scaleRate);
+        mSwapRegion.set(rect_t);
         return;
+    }
 
     int dw = graphicPlane(mActivePlaneIndex).getWidth();
     int dh = graphicPlane(mActivePlaneIndex).getHeight();
@@ -1379,7 +1396,7 @@ void SurfaceFlinger::handleWorkList()
                                sheight, scaleRate);
                     }
 
-                    if(k == 0 && scaleRate != 0) {
+                    if(k == 0 && scaleRate != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
                         hwc.adjustOverScan(&cur[i], graphicPlane(0).getWidth(), 
                                 graphicPlane(0).getHeight(), scaleRate);
                     }

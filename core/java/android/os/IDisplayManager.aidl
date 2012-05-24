@@ -42,6 +42,7 @@ interface IDisplayManager
     boolean getDisplayMirror(int dispid);
     boolean getDisplayRotation(int dispid);
     String getDisplayMode(int dispid);
+    String getDisplayName(int dispid);
     int getDisplayOverScan(int dispid);
     int getDisplayColorDepth(int dispid);
 

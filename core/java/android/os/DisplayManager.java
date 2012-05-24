@@ -60,9 +60,11 @@ public class DisplayManager {
      * for the attached device
      * </ul>
      */
+    public static final String ACTION_DISPLAY_DEVICE_0_ATTACHED =
+            "android.os.action.DISPLAY_DEVICE_0_ATTACHED";
+
     public static final String ACTION_DISPLAY_DEVICE_1_ATTACHED =
             "android.os.action.DISPLAY_DEVICE_1_ATTACHED";
-
 
    /**
      * Broadcast Action:  A broadcast for Display device attached event.
@@ -99,6 +101,8 @@ public class DisplayManager {
     public static final String ACTION_DISPLAY_DEVICE_4_ATTACHED =
             "android.os.action.DISPLAY_DEVICE_4_ATTACHED";
 
+    public static final String ACTION_DISPLAY_DEVICE_5_ATTACHED =
+            "android.os.action.DISPLAY_DEVICE_5_ATTACHED";
 
     /**
      * Boolean extra indicating whether Display is connected or disconnected.
@@ -227,6 +231,15 @@ public class DisplayManager {
             return mService.getDisplayMode(dispid);
         }catch (RemoteException e) {
             Log.e(TAG, "RemoteException in getDisplayMode", e);
+            return null;
+        }
+    }
+
+    public String getDisplayName(int dispid) {
+        try {
+            return mService.getDisplayName(dispid);
+        }catch (RemoteException e) {
+            Log.e(TAG, "RemoteException in getDisplayName", e);
             return null;
         }
     }

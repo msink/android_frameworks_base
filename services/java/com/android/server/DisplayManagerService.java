@@ -17,6 +17,12 @@
 
 package com.android.server;
 
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_MODE;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_ENABLE;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_MIRROR;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_ROTATION;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_OVERSCAN;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_0_COLORDEPTH;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_1_MODE;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_1_ENABLE;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_1_MIRROR;
@@ -41,6 +47,12 @@ import static android.provider.Settings.System.PLUGGED_DISPLAY_4_MIRROR;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_4_ROTATION;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_4_OVERSCAN;
 import static android.provider.Settings.System.PLUGGED_DISPLAY_4_COLORDEPTH;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_MODE;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_ENABLE;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_MIRROR;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_ROTATION;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_OVERSCAN;
+import static android.provider.Settings.System.PLUGGED_DISPLAY_5_COLORDEPTH;
 
 
 import android.app.PendingIntent;
@@ -87,7 +99,7 @@ import com.google.android.collect.Sets;
  */
 class DisplayManagerService extends IDisplayManager.Stub {
     private static final String TAG = "DisplayManagerService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String DISPD_TAG = "DispdConnector";
     private static final String DISPLAY_DAEMON = "dispd";
 
@@ -103,8 +115,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
     private static final int UPDATE_DELAY = 1000;
 
-    private static final int MAX_FB_DEVICE      = 10;
-    private static final int MAX_DISPLAY_DEVICE = 4;
+    private static final int MAX_DISPLAY_DEVICE = 6;
 
     private static final int DISPLAY_ENABLE_MSG = 1;
     private static final int DISPLAY_MIRROR_MSG = 2;
@@ -161,100 +172,185 @@ class DisplayManagerService extends IDisplayManager.Stub {
     private DisplayHandler mHandler;
     private boolean mBootCompleted;
 
-    private String[]   mSettings_enable    = {PLUGGED_DISPLAY_1_ENABLE, PLUGGED_DISPLAY_2_ENABLE, PLUGGED_DISPLAY_3_ENABLE, PLUGGED_DISPLAY_4_ENABLE };
-    private String[]   mSettings_mirror    = {PLUGGED_DISPLAY_1_MIRROR, PLUGGED_DISPLAY_2_MIRROR, PLUGGED_DISPLAY_3_MIRROR, PLUGGED_DISPLAY_4_MIRROR };
-    private String[]   mSettings_rotation  = {PLUGGED_DISPLAY_1_ROTATION, PLUGGED_DISPLAY_2_ROTATION, PLUGGED_DISPLAY_3_ROTATION, PLUGGED_DISPLAY_4_ROTATION };
-    private String[]   mSettings_overscan    = {PLUGGED_DISPLAY_1_OVERSCAN, PLUGGED_DISPLAY_2_OVERSCAN, PLUGGED_DISPLAY_3_OVERSCAN, PLUGGED_DISPLAY_4_OVERSCAN };
-    private String[]   mSettings_mode        = {PLUGGED_DISPLAY_1_MODE, PLUGGED_DISPLAY_2_MODE, PLUGGED_DISPLAY_3_MODE, PLUGGED_DISPLAY_4_MODE };
-    private String[]   mSettings_colordepth  = {PLUGGED_DISPLAY_1_COLORDEPTH, PLUGGED_DISPLAY_2_COLORDEPTH, PLUGGED_DISPLAY_3_COLORDEPTH, PLUGGED_DISPLAY_4_COLORDEPTH };
-
-    private int[]    mDisplay_enable       = new int[MAX_DISPLAY_DEVICE];
-    private int[]    mDisplay_mirror       = new int[MAX_DISPLAY_DEVICE];
-    private int[]    mDisplay_rotation     = new int[MAX_DISPLAY_DEVICE];
-    private int[]    mDisplay_overscan     = new int[MAX_DISPLAY_DEVICE];
-    private String[] mDisplay_mode         = new String[MAX_DISPLAY_DEVICE];
-    private int[]    mDisplay_colordepth   = new int[MAX_DISPLAY_DEVICE];
-
-    private String[][] mDisplay_modes = new String[MAX_DISPLAY_DEVICE][];
-
     private DisplayCommand mDispCommand;
+    int mConnectCount = 0;
     /*
-      display_state : record the state of the display and fb
-      The display id is 0~3, max support 4 display
-      The fb id is 0~9, max support 9 fb
-      if one fb is used, there will be a new display setting in the Settigng.apk
+      DisplayDevice : record the state of the display and fb
+      if one fb is connected, there will be a new display setting in the Settigng.apk
     */
-    class display_state {
-        //dispid correspond to fb
-        int[] display_fb=new int[MAX_FB_DEVICE];
-        //fb state, connected or not;
-        int[] state_fb=new int[MAX_FB_DEVICE];
-        // display ui id state, enabled or not;
-        int[] state_display=new int[MAX_DISPLAY_DEVICE];
+    class DisplayDevice {
+        public DisplayDevice(int fbid) {
+            mIsConnected = false;
+            mDeviceName = null;
+            mFbid = fbid;
+            mIsPlugable = false;
 
-        int connect_count;
+            mIsEnable = 0;
+            mIsMirror = 0;
+            mRotation = 0;
+            mXOverScan = mYOverScan = 0;
+            mColorDepth = 0;
+            mCurrentMode = null;
+            mSupportModes = null;
+        }
 
-        // reserve the display 0 for fb0, main screen;
-        display_state()
-        {
-            for(int i=0;i<MAX_FB_DEVICE;i++)
-            {
-                state_fb[i]   =  0;
-                display_fb[i] = -1;
+        public void connectDevice(int fbid, String name) {
+            if(mFbid != fbid) {
+                Log.w(TAG,"connectDevice: invalidate fbid=" + fbid + " mFbid=" + mFbid);
+                return;
             }
-            connect_count = 0;
 
-            for(int j=0; j<MAX_DISPLAY_DEVICE; j++)
-            {
-                state_display[j] = 0;
+            mDeviceName = name;
+            if(name.contains("hdmi")) {
+                mIsPlugable = true;
             }
+            //mFbid = fbid;
+            mIsConnected = true;
+            mConnectCount ++;
         }
 
-        void connect(int fbid){
-            state_fb[fbid]   = 1;
-            for(int j=0; j<MAX_DISPLAY_DEVICE; j++)
-            {
-                if(state_display[j] == 0) {
-                    display_fb[fbid] = j;
-                    state_display[j] = 1;
-                    break;
-                }
+        public void removeDevice() {
+            mIsPlugable = false;
+            mDeviceName = null;
+            mIsConnected = false;
+            mConnectCount --;
+        }
+
+        public void readDefaultValueFromDatabase() {
+            if(mFbid == 0) {
+                mIsEnable = 1;
+            } else {
+                mIsEnable = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("enable", this), 0);
             }
-            connect_count ++ ;
+
+            mIsMirror = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("mirror", this), 1);
+            mRotation = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("rotation", this), 0);
+            //mXOverScan = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("Xoverscan", this), 0);
+            //mYOverScan = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("Yoverscan", this), 0);
+            mColorDepth = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("colordepth", this), 32);
+            mCurrentMode = Settings.System.getString(mContext.getContentResolver(), makeDeviceKey("mode", this));
+            Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " mXOverScan" + mXOverScan);
         }
 
-        void remove(int fbid){
-            if(state_fb[fbid] == 1)
-            {
-                state_fb[fbid]           = 0;
-                state_display[display_fb[fbid]] = 0 ;
-                display_fb[fbid]         = -1;
-                connect_count --;
-            }
+        public boolean isconnect() {
+            return mIsConnected;
         }
 
-        boolean isconnect(int fbid) {
-            return state_fb[fbid]==1? true:false;
-        }
-        // get the count, not count the fb0;
-        int getcount() {
-            return connect_count-1;
+        public int getCount() {
+            //not count fb0
+            return mConnectCount - 1;
         }
 
-        int getfbid(int dispid){
-            for(int i=0;i<MAX_FB_DEVICE;i++)
-            {
-                if(display_fb[i] == dispid)  return i;
-            }
-            return -1;
+        public int getFbid() {
+            return mFbid;
         }
 
-        int getdispid(int fbid){
-            return display_fb[fbid];
+        public boolean isFbidValide() {
+            return (mFbid >= 0 && mFbid < MAX_DISPLAY_DEVICE);
         }
 
+        public String getDisplayName() {
+            return mDeviceName;
+        }
+
+        public void setPlugable(boolean plug) {
+            mIsPlugable = plug;
+        }
+
+        public boolean getPlugable() {
+            return mIsPlugable;
+        }
+
+        public void setDisplayEnable(int enable) {
+            mIsEnable = enable;
+        }
+
+        public int getDisplayEnable() {
+            return mIsEnable;
+        }
+
+        public void setDisplayMirror(int mirror) {
+            mIsMirror = mirror;
+        }
+
+        public int getDisplayMirror() {
+            return mIsMirror;
+        }
+
+        public void setDisplayRotation(int rotation) {
+            mRotation = rotation;
+        }
+
+        public int getDisplayRotation() {
+            return mRotation;
+        }
+
+        public void setDisplayXOverScan(int xOverScan) {
+            mXOverScan = xOverScan;
+        }
+
+        public int getDisplayXOverScan() {
+            return mXOverScan;
+        }
+
+        public void setDisplayYOverScan(int yOverScan) {
+            mYOverScan = yOverScan;
+        }
+
+        public int getDisplayYOverScan() {
+            return mYOverScan;
+        }
+
+        public void setDisplayColorDepth(int colorDepth) {
+            mColorDepth = colorDepth;
+        }
+
+        public int getDisplayColorDepth() {
+            return mColorDepth;
+        }
+
+        public void setDisplayCurrentMode(String mode) {
+            mCurrentMode = mode;
+        }
+
+        public String getDisplayCurrentMode() {
+            return mCurrentMode;
+        }
+
+        public void setDisplaySupportModes(String[] modes) {
+            mSupportModes = modes;
+        }
+
+        public String[] getDisplaySupportModes() {
+            return mSupportModes;
+        }
+
+        boolean mIsConnected;
+        String mDeviceName;
+        int mFbid;
+        boolean mIsPlugable;
+
+        int mIsEnable;
+        int mIsMirror;
+        int mRotation;
+        int mXOverScan;
+        int mYOverScan;
+        int mColorDepth;
+        String mCurrentMode;
+        String[] mSupportModes;
     }
-    display_state mdispstate = new display_state();
+
+    private String makeDeviceKey(String part, DisplayDevice dispDev) {
+        if(dispDev == null || !dispDev.isFbidValide()) {
+            Log.w(TAG,"makeDeviceKey: invalidate fbid");
+            return null;
+        }
+
+        int fbid = dispDev.getFbid();
+        return part + "_graphic_fb" + fbid;
+    }
+
+    DisplayDevice[] mDisplayDevice = new DisplayDevice[MAX_DISPLAY_DEVICE];
     /**
      * Constructs a new DisplayManagerService instance
      *
@@ -277,7 +373,12 @@ class DisplayManagerService extends IDisplayManager.Stub {
         thread.start();
         mHandler = new DisplayHandler(thread.getLooper());
         mDispCommand = new DisplayCommand();
-        getDefaultValue();
+
+        for(int i=0; i<MAX_DISPLAY_DEVICE; i++) {
+            mDisplayDevice[i] = new DisplayDevice(i);
+            mDisplayDevice[i].readDefaultValueFromDatabase();
+        }
+        readDefaultValue();
     }
 
     public static DisplayManagerService create(Context context) throws InterruptedException {
@@ -304,54 +405,14 @@ class DisplayManagerService extends IDisplayManager.Stub {
         mHandler.sendEmptyMessage(MSG_SYSTEM_READY);
     }
 
-    private void getDefaultValue() {
-
-        for(int i=0; i<MAX_DISPLAY_DEVICE; i++)
-        {
-            try {
-                mDisplay_enable[i] = Settings.System.getInt(mContext.getContentResolver(), mSettings_enable[i]);
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG,"read setting init error");
-            }
-            try {
-                mDisplay_mirror[i] = Settings.System.getInt(mContext.getContentResolver(), mSettings_mirror[i]);
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG,"read setting init error");
-            }
-            try {
-                mDisplay_rotation[i] = Settings.System.getInt(mContext.getContentResolver(), mSettings_rotation[i]);
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG,"read setting init error");
-            }
-            try {
-                mDisplay_overscan[i] = Settings.System.getInt(mContext.getContentResolver(), mSettings_overscan[i]);
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG,"read setting init error");
-            }
-
-            mDisplay_mode[i] = Settings.System.getString(mContext.getContentResolver(), mSettings_mode[i]);
-
-            try {
-                mDisplay_colordepth[i] = Settings.System.getInt(mContext.getContentResolver(), mSettings_colordepth[i]);
-            } catch (Settings.SettingNotFoundException e) {
-                Log.w(TAG,"read setting init error");
-            }
-            Log.w(TAG,"mDisplay_mode " + i + " " +mDisplay_mode[i]);
-        }
-
-        // read config file for disp 0;
-        readConfigFile();
-    }
-
     //read config for display 0
-    private void readConfigFile() {
-
-        File file1 = new File("/data/misc/display.conf");
+    private void readDefaultValue() {
+        File modeFile = new File("/sys/class/graphics/fb0/mode");
         char[] buffer = new char[1024];
 
-        if(file1.exists()) {
+        if(modeFile.exists()) {
             try {
-                FileReader file = new FileReader(file1);
+                FileReader file = new FileReader(modeFile);
                 int len = file.read(buffer, 0 , 1024);
                 file.close();
             } catch (FileNotFoundException e) {
@@ -359,21 +420,36 @@ class DisplayManagerService extends IDisplayManager.Stub {
             } catch (Exception e) {
                 Log.e(TAG, "" , e);
             }
+
+            String mode = new String(buffer);
+            String[] tokens = mode.split("\n");
+            if (DBG) Log.w(TAG, "mode:" + tokens[0]);
+            setDisplayDefaultMode(0, tokens[0]);
+        } else {
+            Log.w(TAG, "/sys/class/graphics/fb0/mode not find");
         }
 
-        if(file1.exists()) {
-            String config = new String(buffer);
-            String[] tokens = config.split("\n");
-            Log.w(TAG,"tokens[0] " + tokens[0] + " " + tokens[0].length() +" tokens[1] " + tokens[1]+ " " + tokens[1].length());
-            if(tokens[0].length() > 5) {
-                String mode  = tokens[0].substring(5, tokens[0].length());
-                setDisplayDefaultMode(0, mode);
+        File colordepthFile = new File("/sys/class/graphics/fb0/bits_per_pixel");
+        char[] buffer2 = new char[1024];
+
+        if(colordepthFile.exists()) {
+            try {
+                FileReader file2 = new FileReader(colordepthFile);
+                int len = file2.read(buffer2, 0 , 1024);
+                file2.close();
+            } catch (FileNotFoundException e) {
+                Log.w(TAG, "file not find");
+            } catch (Exception e) {
+                Log.e(TAG, "" , e);
             }
-            if(tokens[1].length() > 11 ) {
-                String depth = tokens[1].substring(11,tokens[1].length());
-                int colordepth = Integer.parseInt(depth);
-                setDisplayDefaultdepth(0,colordepth);
-            }
+
+            String colorDepth = new String(buffer2);
+            String[] itokens = colorDepth.split("\n");
+            if (DBG) Log.w(TAG, "colordepth:" + itokens[0]);
+            int colordepth = Integer.parseInt(itokens[0]);
+            setDisplayDefaultdepth(0,colordepth);
+        } else {
+            Log.w(TAG, "/sys/class/graphics/fb0/bits_per_pixel not find");
         }
     }
 
@@ -419,23 +495,28 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
         /** {@inheritDoc} */
         public boolean onEvent(int code, String raw, String[] cooked) {
+            if (DBG) Slog.d(TAG, "Dispdcallback OnEvent raw " + raw);
             if (DBG) Slog.d(TAG, "Dispdcallback OnEvent "+ cooked[0] + " " +cooked[1] +" "+cooked[2]);
             boolean ret =  false;
             int     fbid = Integer.parseInt(cooked[2]);
             switch (code) {
             case DispdResponseCode.InterfaceConnected:
                     // need to remove, when the driver add event for each fb
-                    mdispstate.connect(fbid);
+                    //mdispstate.connect(fbid, cooked[3]);
+                    mDisplayDevice[fbid].connectDevice(fbid, cooked[3]);
                     if(fbid != 0) mHandler.updateState("CONNECTED");
                     setDisplayConnectState(fbid, true);
                     ret = true;
                     break;
             case DispdResponseCode.InterfaceDisconnected:
                     // need to remove, when the driver add event for each fb
-                    if(mdispstate.isconnect(fbid)) {
+                    //if(mdispstate.isconnect(fbid)) 
+                    if(mDisplayDevice[fbid].isconnect()){
                         setDisplayConnectState(fbid, false);
-                        mdispstate.remove(fbid);
-                        if(mdispstate.getcount() <= 1) mHandler.updateState("DISCONNECTED");
+                        //mdispstate.remove(fbid);
+                        mDisplayDevice[fbid].removeDevice();
+                        //if(mdispstate.getcount() <= 1) mHandler.updateState("DISCONNECTED");
+                        if(mDisplayDevice[fbid].getCount() <= 1) mHandler.updateState("DISCONNECTED");
                     }
                     ret = true;
                     break;
@@ -450,13 +531,18 @@ class DisplayManagerService extends IDisplayManager.Stub {
         // read the display mode list
         String[] display_modes;
         String currentDisplayMode = getDisplayMode(dispid);
+
+        display_modes = getDisplayModeListFromDispd(dispid);
+        //mDisplay_modes[dispid] = display_modes;
+        mDisplayDevice[dispid].setDisplaySupportModes(display_modes);
+
+        if(currentDisplayMode == null) {
+            currentDisplayMode = display_modes[0];
+        }
+
         boolean found = false;
         int[] request_resolution  = getResolutionInString(currentDisplayMode);
         int[] actual_resolution;
-
-        display_modes = getDisplayModeListFromDispd(dispid);
-        mDisplay_modes[dispid] = display_modes;
-
             // compare the default display mode
             // desend sort
             if(DBG) Log.w(TAG,"request " + request_resolution[0] + " " +request_resolution[1] + " "+ request_resolution[2] );
@@ -496,7 +582,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
 
     private void setDisplayDefaultMode(int dispid, String mode) {
-        mDisplay_mode[dispid] = mode;
+        mDisplayDevice[dispid].setDisplayCurrentMode(mode);
     /*
         Message msg = Message.obtain();
         msg.what = DISPLAY_MODE_MSG;
@@ -507,7 +593,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     private void setDisplayDefaultdepth(int dispid, int colordepth) {
-        mDisplay_colordepth[dispid] = colordepth;
+        mDisplayDevice[dispid].setDisplayColorDepth(colordepth);
     /*
         Message msg = Message.obtain();
         msg.what = DISPLAY_COLORDEPTH_MSG;
@@ -518,9 +604,23 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     private void setDisplayConnectState(int fbid, boolean connectState) {
-        int dispid = mdispstate.getdispid(fbid);
+        int dispid = fbid;
 
         if(connectState) selectDisplayDefaultMode(dispid);
+        if (DBG) Log.w(TAG, "setDisplayConnectState: dispid=" + dispid);
+/*        final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_1_ATTACHED);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
+        intent.putExtra(DisplayManager.EXTRA_DISPLAY_CONNECT, connectState);
+        mContext.sendStickyBroadcast(intent);
+*/
+          if(dispid == 1) {
+                final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_0_ATTACHED);
+                intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
+                intent.putExtra(DisplayManager.EXTRA_DISPLAY_CONNECT, connectState);
+                mContext.sendStickyBroadcast(intent);
+            }
 
             if(dispid == 0) {
                 final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_1_ATTACHED);
@@ -530,35 +630,24 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 mContext.sendStickyBroadcast(intent);
             }
             if(dispid == 0) {
-                try {
-                    char[] buffer = new char[1024];
-                    FileReader file = new FileReader("/sys/class/graphics/fb0/fsl_disp_dev_property");
-                    int len = file.read(buffer, 0, 1024);
-                    file.close();
-                    Intent intent;
-                    String dev_name=new String(buffer, 0, len).trim();
-		    if(connectState && dev_name.contains("hdmi")) {
-                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-                        intent.putExtra("state", 1);
-                        intent.putExtra("name", "hdmi");
-                        ActivityManagerNative.broadcastStickyIntent(intent, null);
-                    }else if(!connectState && dev_name.contains("hdmi"))
-                    {
-                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-                        intent.putExtra("state", 0);
-                        intent.putExtra("name", "hdmi");
-                        ActivityManagerNative.broadcastStickyIntent(intent, null);
-                    }
-                } catch (FileNotFoundException e) {
-                    Slog.w(TAG, "This kernel does not have display dev property");
-                } catch (Exception e) {
-                    Slog.e(TAG, "" , e);
+                Intent intent;
+                if(connectState && mDisplayDevice[dispid].getPlugable()) {
+                    intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                    intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                    intent.putExtra("state", 1);
+                    intent.putExtra("name", "hdmi");
+                    ActivityManagerNative.broadcastStickyIntent(intent, null);
+                } else if(!connectState && mDisplayDevice[dispid].getPlugable())
+                {
+                    intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                    intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                    intent.putExtra("state", 0);
+                    intent.putExtra("name", "hdmi");
+                    ActivityManagerNative.broadcastStickyIntent(intent, null);
                 }
             }
 
-            if(dispid == 1) {
+            if(dispid == 2) {
                 final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_2_ATTACHED);
                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                 intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
@@ -566,7 +655,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 mContext.sendStickyBroadcast(intent);
             }
 
-            if(dispid == 2) {
+            if(dispid == 3) {
                 final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_3_ATTACHED);
                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                 intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
@@ -574,7 +663,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 mContext.sendStickyBroadcast(intent);
             }
 
-            if(dispid == 3) {
+            if(dispid == 4) {
                 final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_4_ATTACHED);
                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                 intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
@@ -582,11 +671,20 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 mContext.sendStickyBroadcast(intent);
             }
 
-        if(dispid > 0 && mDisplay_enable[dispid] == 1) {
+            if(dispid == 5) {
+                final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_5_ATTACHED);
+                intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                intent.putExtra(DisplayManager.EXTRA_DISPLAY_DEVICE,  dispid);
+                intent.putExtra(DisplayManager.EXTRA_DISPLAY_CONNECT, connectState);
+                mContext.sendStickyBroadcast(intent);
+            }
+
+        if(dispid > 0 && mDisplayDevice[dispid].getDisplayEnable() == 1) {
             if(connectState) commandDisplayEnable(dispid, 0, true);
             else             commandDisplayEnable(dispid, 0, false);
+        } else if(dispid == 0 && connectState) {
+            //do some additional things;
         }
-
     }
 
     private final class DisplayHandler extends Handler {
@@ -702,68 +800,86 @@ class DisplayManagerService extends IDisplayManager.Stub {
             switch (msg.what){
                 case DISPLAY_ENABLE_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
+                    int dispid = fbid;
+                    if(fbid == 0) {
+                        return;
+                    }
+
                     Intent intent;
                     if(Integer.parseInt(msg.obj.toString()) == 1) {
-                        mDispCommand.enable(fbid, mDisplay_mode[dispid], mDisplay_rotation[dispid], mDisplay_overscan[dispid], mDisplay_mirror[dispid], mDisplay_colordepth[dispid]);
-
-                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-                        intent.putExtra("state", 1);
-                        intent.putExtra("name", "hdmi");
-                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                        mDispCommand.enable(fbid, mDisplayDevice[dispid].getDisplayCurrentMode(), mDisplayDevice[dispid].getDisplayRotation(),
+                                             mDisplayDevice[dispid].getDisplayXOverScan(), mDisplayDevice[dispid].getDisplayMirror(),
+                                             mDisplayDevice[dispid].getDisplayColorDepth());
+                        if(mDisplayDevice[dispid].getPlugable()) {
+                            intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                            intent.putExtra("state", 1);
+                            intent.putExtra("name", "hdmi");
+                            ActivityManagerNative.broadcastStickyIntent(intent, null);
+                        }
                     }
                     else {
-                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
-                        intent.putExtra("state", 0);
-                        intent.putExtra("name", "hdmi");
-                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                        if(mDisplayDevice[dispid].getPlugable()) {
+                            intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                            intent.putExtra("state", 0);
+                            intent.putExtra("name", "hdmi");
+                            ActivityManagerNative.broadcastStickyIntent(intent, null);
+                        }
                         mDispCommand.disable(fbid);
                     }
                     if(msg.arg2 == 1){
-                        Settings.System.putInt(mContext.getContentResolver(), mSettings_enable[dispid], Integer.parseInt(msg.obj.toString()));
-                        Settings.System.putInt(mContext.getContentResolver(), mSettings_mirror[dispid], mDisplay_mirror[dispid]);
-                        Settings.System.putInt(mContext.getContentResolver(), mSettings_rotation[dispid], mDisplay_rotation[dispid]);
-                        Settings.System.putInt(mContext.getContentResolver(), mSettings_overscan[dispid], mDisplay_overscan[dispid]);
-                        Settings.System.putString(mContext.getContentResolver(), mSettings_mode[dispid], mDisplay_mode[dispid]);
-                        Settings.System.putInt(mContext.getContentResolver(), mSettings_colordepth[dispid], mDisplay_colordepth[dispid]);
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("enable", mDisplayDevice[dispid]),
+                                                Integer.parseInt(msg.obj.toString()));
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("mirror", mDisplayDevice[dispid]), 
+                                               mDisplayDevice[dispid].getDisplayMirror());
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("rotation", mDisplayDevice[dispid]),
+                                               mDisplayDevice[dispid].getDisplayRotation());
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("Xoverscan", mDisplayDevice[dispid]),
+                                               mDisplayDevice[dispid].getDisplayXOverScan());
+                        Settings.System.putString(mContext.getContentResolver(), makeDeviceKey("mode", mDisplayDevice[dispid]),
+                                               mDisplayDevice[dispid].getDisplayCurrentMode());
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("colordepth", mDisplayDevice[dispid]),
+                                               mDisplayDevice[dispid].getDisplayColorDepth());
                     }
                     break;
                 }
                 case DISPLAY_MIRROR_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
-                    if(mDisplay_enable[dispid] == 1) mDispCommand.setMirror(fbid, Integer.parseInt(msg.obj.toString()));
-                    Settings.System.putInt(mContext.getContentResolver(), mSettings_mirror[dispid], Integer.parseInt(msg.obj.toString()));
+                    int dispid = fbid;
+                    if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setMirror(fbid, Integer.parseInt(msg.obj.toString()));
+                    Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("mirror", mDisplayDevice[dispid]),
+                                           Integer.parseInt(msg.obj.toString()));
                     break;
                 }
                 case DISPLAY_ROTATION_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
-                    if(mDisplay_enable[dispid] == 1) mDispCommand.setRotation(fbid, Integer.parseInt(msg.obj.toString()));
-                    Settings.System.putInt(mContext.getContentResolver(), mSettings_rotation[dispid], Integer.parseInt(msg.obj.toString()));
+                    int dispid = fbid;
+                    if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setRotation(fbid, Integer.parseInt(msg.obj.toString()));
+                    Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("rotation", mDisplayDevice[dispid]),
+                                           Integer.parseInt(msg.obj.toString()));
                     break;
                 }
                 case DISPLAY_OVERSCAN_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
-                    if(mDisplay_enable[dispid] == 1) mDispCommand.setOverScan(fbid, Integer.parseInt(msg.obj.toString()));
-                    Settings.System.putInt(mContext.getContentResolver(), mSettings_overscan[dispid], Integer.parseInt(msg.obj.toString()));
+                    int dispid = fbid;
+                    Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("Xoverscan", mDisplayDevice[dispid]),
+                                           Integer.parseInt(msg.obj.toString()));
                     break;
                 }
                 case DISPLAY_MODE_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
-                    if(mDisplay_enable[dispid] == 1) mDispCommand.setResolution(fbid, (String)msg.obj);
-                    Settings.System.putString(mContext.getContentResolver(), mSettings_mode[dispid], (String)msg.obj);
+                    int dispid = fbid;
+                    if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setResolution(fbid, (String)msg.obj);
+                    Settings.System.putString(mContext.getContentResolver(), makeDeviceKey("mode", mDisplayDevice[dispid]), (String)msg.obj);
                     break;
                 }
                 case DISPLAY_COLORDEPTH_MSG: {
                     int fbid = msg.arg1;
-                    int dispid = mdispstate.getdispid(msg.arg1);
-                    if(mDisplay_enable[dispid] == 1) mDispCommand.setColorDepth(fbid, Integer.parseInt(msg.obj.toString()));
-                    Settings.System.putInt(mContext.getContentResolver(), mSettings_colordepth[dispid], Integer.parseInt(msg.obj.toString()));
+                    int dispid = fbid;
+                    if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setColorDepth(fbid, Integer.parseInt(msg.obj.toString()));
+                    Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("colordepth", mDisplayDevice[dispid]),
+                                           Integer.parseInt(msg.obj.toString()));
                     break;
                 }
                 default:
@@ -817,7 +933,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
     public String[] getDisplayModeListFromDispd(int dispid) {
         String[] rsp_modes ;
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, "getDisplayModeListFromDispd dispid "+ dispid + " fbid " +fbid);
         try {
             rsp_modes = mConnector.doListCommand(String.format("get_display_modelist %d", fbid), DispdResponseCode.InterfaceListResult);
@@ -831,7 +947,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
     /* Returns a list of all currently attached display device mdoe */
     public String[] getDisplayModeList(int dispid) {
-        return mDisplay_modes[dispid];
+        return mDisplayDevice[dispid].getDisplaySupportModes();
     }
 
 
@@ -857,6 +973,11 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     public boolean setDisplayOverScan(int dispid, int overscan){
+        int fbid = dispid;//mdispstate.getfbid(dispid);
+        if(overscan == mDisplayDevice[dispid].getDisplayXOverScan()) return true;
+
+        mDisplayDevice[dispid].setDisplayXOverScan(overscan);
+        if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setOverScan(fbid, overscan);
         commandDisplayOverScan(dispid, 1, overscan);
         return true;
     }
@@ -869,12 +990,12 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
     //set the resolution
     public boolean commandDisplayMode(int dispid, int save, String disp_mode) throws IllegalStateException {
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayMode "+ disp_mode );
-        if(disp_mode.equals(mDisplay_mode[dispid])) return true;
+        if(disp_mode.equals(mDisplayDevice[dispid].getDisplayCurrentMode())) return true;
 
-        mDisplay_mode[dispid] = disp_mode;
-        if(dispid==0)  writeConfigFile(mDisplay_mode[dispid], mDisplay_colordepth[dispid]);
+        mDisplayDevice[dispid].setDisplayCurrentMode(disp_mode);
+        if(dispid==0)  writeConfigFile(mDisplayDevice[dispid].getDisplayCurrentMode(), mDisplayDevice[dispid].getDisplayColorDepth());
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_MODE_MSG;
@@ -888,9 +1009,9 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     public boolean commandDisplayEnable(int dispid, int save, boolean enable) {
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayEnable "+ enable );
-        if(save==1) mDisplay_enable[dispid] = enable?1:0;
+        if(save==1) mDisplayDevice[dispid].setDisplayEnable(enable?1:0);
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_ENABLE_MSG;
@@ -904,9 +1025,9 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
 
     public boolean commandDisplayMirror(int dispid, int save, boolean enable) {
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayMirror "+ enable );
-        mDisplay_mirror[dispid] = enable?1:0;
+        mDisplayDevice[dispid].setDisplayMirror(enable?1:0);
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_MIRROR_MSG;
@@ -920,10 +1041,10 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     public boolean commandDisplayRotation(int dispid, int save, boolean enable) {
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayRotation "+ enable );
 
-        mDisplay_rotation[dispid] = enable?1:0;
+        mDisplayDevice[dispid].setDisplayRotation(enable?1:0);
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_ROTATION_MSG;
@@ -936,11 +1057,8 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     public boolean commandDisplayOverScan(int dispid, int save, int overscan){
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayOverScan "+ overscan );
-        if(overscan == mDisplay_overscan[dispid]) return true;
-
-        mDisplay_overscan[dispid] = overscan;
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_OVERSCAN_MSG;
@@ -953,14 +1071,14 @@ class DisplayManagerService extends IDisplayManager.Stub {
     }
 
     public boolean commandDisplayColorDepth(int dispid, int save, int colordepth) {
-        int fbid = mdispstate.getfbid(dispid);
+        int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayColorDepth "+ colordepth );
-        if(colordepth == mDisplay_colordepth[dispid]) return true;
+        if(colordepth == mDisplayDevice[dispid].getDisplayColorDepth()) return true;
 
 
-        mDisplay_colordepth[dispid] = colordepth;
+        mDisplayDevice[dispid].setDisplayColorDepth(colordepth);
 
-        if(dispid==0)  writeConfigFile(mDisplay_mode[dispid], mDisplay_colordepth[dispid]);
+        if(dispid==0)  writeConfigFile(mDisplayDevice[dispid].getDisplayCurrentMode(), mDisplayDevice[dispid].getDisplayColorDepth());
 
         Message msg = Message.obtain();
         msg.what = DISPLAY_COLORDEPTH_MSG;
@@ -974,26 +1092,30 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
     // interface of getting the parameter,
     public boolean getDisplayEnable(int dispid) {
-        return mDisplay_enable[dispid]==1?true:false;
+        return mDisplayDevice[dispid].getDisplayEnable()==1?true:false;
     }
 
     public boolean getDisplayMirror(int dispid) {
-        return mDisplay_mirror[dispid]==1?true:false;
+        return mDisplayDevice[dispid].getDisplayMirror()==1?true:false;
     }
 
     public boolean getDisplayRotation(int dispid) {
-        return mDisplay_rotation[dispid]==1?true:false;
+        return mDisplayDevice[dispid].getDisplayRotation()==1?true:false;
     }
 
     public String getDisplayMode(int dispid) {
-        return mDisplay_mode[dispid];
+        return mDisplayDevice[dispid].getDisplayCurrentMode();
+    }
+
+    public String getDisplayName(int dispid) {
+        return mDisplayDevice[dispid].getDisplayName();
     }
 
     public int getDisplayOverScan(int dispid) {
-        return mDisplay_overscan[dispid];
+        return mDisplayDevice[dispid].getDisplayXOverScan();
     }
 
     public int getDisplayColorDepth(int dispid) {
-        return mDisplay_colordepth[dispid];
+        return mDisplayDevice[dispid].getDisplayColorDepth();
     }
 }

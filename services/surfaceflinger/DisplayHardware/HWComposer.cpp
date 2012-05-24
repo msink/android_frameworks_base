@@ -91,8 +91,11 @@ void HWComposer::freeAllocatedBuffer()
 
     for (size_t i=0 ; i<mList->numHwLayers ; i++) {
         hwc_layer_t *layer = &mList->hwLayers[i];
-        if(layer->visibleRegionScreen.rects)
+        if(layer->visibleRegionScreen.rects != NULL && layer->visibleRegionScreen.numRects > 0) {
             free((void *)(layer->visibleRegionScreen.rects));
+            layer->visibleRegionScreen.numRects = 0;
+            layer->visibleRegionScreen.rects = NULL;
+        }
     }
     isAllocated = 0;
 }
@@ -129,6 +132,18 @@ void HWComposer::adjustOverScan(hwc_layer_t *layer, int displayWidth, int displa
 
     hwc_rect_t *rect = &layer->displayFrame;
     adjustRect(rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, scale);
+
+    size_t numRects = 0;
+    hwc_rect_t *rects = NULL;
+
+    numRects = layer->visibleRegionScreen.numRects;
+    rects = (hwc_rect_t *)layer->visibleRegionScreen.rects;
+
+    if(numRects > 0) {
+        layer->visibleRegionScreen.rects = (hwc_rect_t const *)malloc(sizeof(hwc_rect_t) * numRects);
+        memcpy((void *)(layer->visibleRegionScreen.rects), (const void*)(rects), sizeof(hwc_rect_t) * numRects);
+        isAllocated = 1;
+    }
 
     for(size_t m=0; m<layer->visibleRegionScreen.numRects; m++) {
         rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;

@@ -1371,6 +1371,13 @@ public final class Settings {
         /**
          * The second display mode, the resolution
          */
+        public static final String PLUGGED_DISPLAY_0_MODE = "plugged_display_0_mode";
+        public static final String PLUGGED_DISPLAY_0_ENABLE = "plugged_display_0_enable";
+        public static final String PLUGGED_DISPLAY_0_MIRROR = "plugged_display_0_mirror";
+        public static final String PLUGGED_DISPLAY_0_OVERSCAN = "plugged_display_0_overscan";
+        public static final String PLUGGED_DISPLAY_0_ROTATION = "plugged_display_0_rotation";
+        public static final String PLUGGED_DISPLAY_0_COLORDEPTH = "plugged_display_0_colordepth";
+
         public static final String PLUGGED_DISPLAY_1_MODE = "plugged_display_1_mode";
         public static final String PLUGGED_DISPLAY_1_ENABLE = "plugged_display_1_enable";
         public static final String PLUGGED_DISPLAY_1_MIRROR = "plugged_display_1_mirror";
@@ -1398,6 +1405,13 @@ public final class Settings {
         public static final String PLUGGED_DISPLAY_4_OVERSCAN = "plugged_display_4_overscan";
         public static final String PLUGGED_DISPLAY_4_ROTATION = "plugged_display_4_rotation";
         public static final String PLUGGED_DISPLAY_4_COLORDEPTH = "plugged_display_4_colordepth";
+
+        public static final String PLUGGED_DISPLAY_5_MODE = "plugged_display_5_mode";
+        public static final String PLUGGED_DISPLAY_5_ENABLE = "plugged_display_5_enable";
+        public static final String PLUGGED_DISPLAY_5_MIRROR = "plugged_display_5_mirror";
+        public static final String PLUGGED_DISPLAY_5_OVERSCAN = "plugged_display_5_overscan";
+        public static final String PLUGGED_DISPLAY_5_ROTATION = "plugged_display_5_rotation";
+        public static final String PLUGGED_DISPLAY_5_COLORDEPTH = "plugged_display_5_colordepth";
         /**
          * If 0, the compatibility mode is off for all applications.
          * If 1, older applications run under compatibility mode.

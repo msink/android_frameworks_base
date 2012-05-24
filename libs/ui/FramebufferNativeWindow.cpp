@@ -181,7 +181,7 @@ FramebufferNativeWindow::FramebufferNativeWindow()
         // bail out if we can't initialize the modules
         if (!fbDev || !grDev)
             return;
-        
+
         mUpdateOnDemand = (fbDev->setUpdateRect != 0);
 
 #ifdef FSL_IMX_DISPLAY
@@ -265,7 +265,7 @@ FramebufferNativeWindow::FramebufferNativeWindow()
     ANativeWindow::query = query;
     ANativeWindow::perform = perform;
 #ifdef FSL_IMX_DISPLAY
-    mAllocMod = NULL;
+    mAllocMod = (gralloc_module_t*)module;//mAllocMod = NULL;
 #endif
 }
 
