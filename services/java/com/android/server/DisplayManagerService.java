@@ -529,6 +529,34 @@ class DisplayManagerService extends IDisplayManager.Stub {
                 intent.putExtra(DisplayManager.EXTRA_DISPLAY_CONNECT, connectState);
                 mContext.sendStickyBroadcast(intent);
             }
+            if(dispid == 0) {
+                try {
+                    char[] buffer = new char[1024];
+                    FileReader file = new FileReader("/sys/class/graphics/fb0/fsl_disp_dev_property");
+                    int len = file.read(buffer, 0, 1024);
+                    file.close();
+                    Intent intent;
+                    String dev_name=new String(buffer, 0, len).trim();
+		    if(connectState && dev_name.contains("hdmi")) {
+                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                        intent.putExtra("state", 1);
+                        intent.putExtra("name", "hdmi");
+                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                    }else if(!connectState && dev_name.contains("hdmi"))
+                    {
+                        intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+                        intent.putExtra("state", 0);
+                        intent.putExtra("name", "hdmi");
+                        ActivityManagerNative.broadcastStickyIntent(intent, null);
+                    }
+                } catch (FileNotFoundException e) {
+                    Slog.w(TAG, "This kernel does not have display dev property");
+                } catch (Exception e) {
+                    Slog.e(TAG, "" , e);
+                }
+            }
 
             if(dispid == 1) {
                 final Intent intent = new Intent(DisplayManager.ACTION_DISPLAY_DEVICE_2_ATTACHED);
