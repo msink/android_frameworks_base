@@ -14673,6 +14673,7 @@ package android.os {
     method public boolean getDisplayMirror(int);
     method public java.lang.String getDisplayMode(int);
     method public java.lang.String[] getDisplayModeList(int);
+    method public java.lang.String getDisplayName(int);
     method public int getDisplayOverScan(int);
     method public boolean getDisplayRotation(int);
     method public boolean rebootSystem();
@@ -14682,10 +14683,12 @@ package android.os {
     method public boolean setDisplayMode(int, java.lang.String);
     method public boolean setDisplayOverScan(int, int);
     method public boolean setDisplayRotation(int, boolean);
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_0_ATTACHED = "android.os.action.DISPLAY_DEVICE_0_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_1_ATTACHED = "android.os.action.DISPLAY_DEVICE_1_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_2_ATTACHED = "android.os.action.DISPLAY_DEVICE_2_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_3_ATTACHED = "android.os.action.DISPLAY_DEVICE_3_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_4_ATTACHED = "android.os.action.DISPLAY_DEVICE_4_ATTACHED";
+    field public static final java.lang.String ACTION_DISPLAY_DEVICE_5_ATTACHED = "android.os.action.DISPLAY_DEVICE_5_ATTACHED";
     field public static final int DISPLAY_STATE_DISABLED = 1; // 0x1
     field public static final int DISPLAY_STATE_DISABLING = 0; // 0x0
     field public static final int DISPLAY_STATE_ENABLED = 3; // 0x3
@@ -17609,6 +17612,12 @@ package android.provider {
     field public static final deprecated java.lang.String PARENTAL_CONTROL_ENABLED = "parental_control_enabled";
     field public static final deprecated java.lang.String PARENTAL_CONTROL_LAST_UPDATE = "parental_control_last_update";
     field public static final deprecated java.lang.String PARENTAL_CONTROL_REDIRECT_URL = "parental_control_redirect_url";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_COLORDEPTH = "plugged_display_0_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_ENABLE = "plugged_display_0_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_MIRROR = "plugged_display_0_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_MODE = "plugged_display_0_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_OVERSCAN = "plugged_display_0_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_0_ROTATION = "plugged_display_0_rotation";
     field public static final java.lang.String PLUGGED_DISPLAY_1_COLORDEPTH = "plugged_display_1_colordepth";
     field public static final java.lang.String PLUGGED_DISPLAY_1_ENABLE = "plugged_display_1_enable";
     field public static final java.lang.String PLUGGED_DISPLAY_1_MIRROR = "plugged_display_1_mirror";
@@ -17633,6 +17642,12 @@ package android.provider {
     field public static final java.lang.String PLUGGED_DISPLAY_4_MODE = "plugged_display_4_mode";
     field public static final java.lang.String PLUGGED_DISPLAY_4_OVERSCAN = "plugged_display_4_overscan";
     field public static final java.lang.String PLUGGED_DISPLAY_4_ROTATION = "plugged_display_4_rotation";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_COLORDEPTH = "plugged_display_5_colordepth";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_ENABLE = "plugged_display_5_enable";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_MIRROR = "plugged_display_5_mirror";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_MODE = "plugged_display_5_mode";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_OVERSCAN = "plugged_display_5_overscan";
+    field public static final java.lang.String PLUGGED_DISPLAY_5_ROTATION = "plugged_display_5_rotation";
     field public static final java.lang.String RADIO_BLUETOOTH = "bluetooth";
     field public static final java.lang.String RADIO_CELL = "cell";
     field public static final java.lang.String RADIO_NFC = "nfc";
