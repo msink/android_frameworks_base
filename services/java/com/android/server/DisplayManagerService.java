@@ -229,7 +229,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
             //mYOverScan = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("Yoverscan", this), 0);
             mColorDepth = Settings.System.getInt(mContext.getContentResolver(), makeDeviceKey("colordepth", this), 32);
             mCurrentMode = Settings.System.getString(mContext.getContentResolver(), makeDeviceKey("mode", this));
-            Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " mXOverScan" + mXOverScan);
+            Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " mXOverScan" + mYOverScan);
         }
 
         public boolean isconnect() {
@@ -808,8 +808,8 @@ class DisplayManagerService extends IDisplayManager.Stub {
                     Intent intent;
                     if(Integer.parseInt(msg.obj.toString()) == 1) {
                         mDispCommand.enable(fbid, mDisplayDevice[dispid].getDisplayCurrentMode(), mDisplayDevice[dispid].getDisplayRotation(),
-                                             mDisplayDevice[dispid].getDisplayXOverScan(), mDisplayDevice[dispid].getDisplayMirror(),
-                                             mDisplayDevice[dispid].getDisplayColorDepth());
+                                             mDisplayDevice[dispid].getDisplayXOverScan(), mDisplayDevice[dispid].getDisplayYOverScan(), 
+                                             mDisplayDevice[dispid].getDisplayMirror(), mDisplayDevice[dispid].getDisplayColorDepth());
                         if(mDisplayDevice[dispid].getPlugable()) {
                             intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
                             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
@@ -837,6 +837,8 @@ class DisplayManagerService extends IDisplayManager.Stub {
                                                mDisplayDevice[dispid].getDisplayRotation());
                         Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("Xoverscan", mDisplayDevice[dispid]),
                                                mDisplayDevice[dispid].getDisplayXOverScan());
+                        Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("Xoverscan", mDisplayDevice[dispid]),
+                                               mDisplayDevice[dispid].getDisplayYOverScan());
                         Settings.System.putString(mContext.getContentResolver(), makeDeviceKey("mode", mDisplayDevice[dispid]),
                                                mDisplayDevice[dispid].getDisplayCurrentMode());
                         Settings.System.putInt(mContext.getContentResolver(), makeDeviceKey("colordepth", mDisplayDevice[dispid]),
@@ -972,13 +974,25 @@ class DisplayManagerService extends IDisplayManager.Stub {
         return true;
     }
 
-    public boolean setDisplayOverScan(int dispid, int overscan){
+    public boolean setDisplayXOverScan(int dispid, int xOverscan){
         int fbid = dispid;//mdispstate.getfbid(dispid);
-        if(overscan == mDisplayDevice[dispid].getDisplayXOverScan()) return true;
+        if(xOverscan == mDisplayDevice[dispid].getDisplayXOverScan()) return true;
 
-        mDisplayDevice[dispid].setDisplayXOverScan(overscan);
-        if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setOverScan(fbid, overscan);
-        commandDisplayOverScan(dispid, 1, overscan);
+        int yOverscan = mDisplayDevice[dispid].getDisplayYOverScan();
+        mDisplayDevice[dispid].setDisplayXOverScan(xOverscan);
+        if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setOverScan(fbid, xOverscan, yOverscan);
+        commandDisplayOverScan(dispid, 1, xOverscan);
+        return true;
+    }
+
+    public boolean setDisplayYOverScan(int dispid, int yOverscan){
+        int fbid = dispid;//mdispstate.getfbid(dispid);
+        if(yOverscan == mDisplayDevice[dispid].getDisplayYOverScan()) return true;
+
+        int xOverscan = mDisplayDevice[dispid].getDisplayXOverScan();
+        mDisplayDevice[dispid].setDisplayYOverScan(yOverscan);
+        if(mDisplayDevice[dispid].getDisplayEnable() == 1) mDispCommand.setOverScan(fbid, xOverscan, yOverscan);
+        commandDisplayOverScan(dispid, 1, xOverscan);
         return true;
     }
 
@@ -1111,8 +1125,12 @@ class DisplayManagerService extends IDisplayManager.Stub {
         return mDisplayDevice[dispid].getDisplayName();
     }
 
-    public int getDisplayOverScan(int dispid) {
+    public int getDisplayXOverScan(int dispid) {
         return mDisplayDevice[dispid].getDisplayXOverScan();
+    }
+
+    public int getDisplayYOverScan(int dispid) {
+        return mDisplayDevice[dispid].getDisplayYOverScan();
     }
 
     public int getDisplayColorDepth(int dispid) {

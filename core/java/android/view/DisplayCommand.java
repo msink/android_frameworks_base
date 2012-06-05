@@ -56,10 +56,9 @@ public class DisplayCommand {
     public static class ConfigParam {
         public int displayId;
         public int operateCode; //operate code: enable, change or disable display.
-        //int width;
-        //int height;
         public int rotation;
-        public int overScan;
+        public int xOverScan;
+        public int yOverScan;
         public int mirror;
         public int colorDepth;
         public String mode;
@@ -67,11 +66,10 @@ public class DisplayCommand {
         public ConfigParam() {
             displayId = -1;
             operateCode = 0;
-            //width = 0;
-            //height = 0;
             mode = null;
             rotation = 0;
-            overScan = 0;
+            xOverScan = 0;
+            yOverScan = 0;
             mirror = 0;
             colorDepth = 0;
         }
@@ -79,10 +77,9 @@ public class DisplayCommand {
         public void writeToParcel(Parcel out) {
             out.writeInt(displayId);
             out.writeInt(operateCode);
-            //out.writeInt(width);
-            //out.writeInt(height);
             out.writeInt(rotation);
-            out.writeInt(overScan);
+            out.writeInt(xOverScan);
+            out.writeInt(yOverScan);
             out.writeInt(mirror);
             out.writeInt(colorDepth);
             out.writeString(mode);
@@ -194,7 +191,7 @@ public class DisplayCommand {
     }
 
     public int enable(int displayId, String mode, int rotation,
-                          int overScan, int mirror, int colorDepth) { 
+                          int xoverScan, int yoverScan, int mirror, int colorDepth) { 
         int ret = 0;
 
         if (mSurfaceFlinger == null) {
@@ -205,11 +202,10 @@ public class DisplayCommand {
         mCfgParam.displayId = displayId;
         mCfgParam.operateCode = OPERATE_CODE_ENABLE | OPERATE_CODE_CHANGE_RESOLUTION | OPERATE_CODE_CHANGE_OVERSCAN |
                       OPERATE_CODE_CHANGE_MIRROR | OPERATE_CODE_CHANGE_COLORDEPTH | OPERATE_CODE_CHANGE_ROTATION;
-        //mCfgParam.width = width;
-        //mCfgParam.height = height;
         mCfgParam.mode = mode;
         mCfgParam.rotation = rotation;
-        mCfgParam.overScan = overScan;
+        mCfgParam.xOverScan = xoverScan;
+        mCfgParam.yOverScan = yoverScan;
         mCfgParam.mirror = mirror;
         mCfgParam.colorDepth = colorDepth;
 
@@ -254,7 +250,7 @@ public class DisplayCommand {
         return ret;
     }
 
-    public int setOverScan(int displayId, int ratio) {
+    public int setOverScan(int displayId, int Xratio, int Yratio) {
         int ret = 0;
 
         if (mSurfaceFlinger == null) {
@@ -264,7 +260,8 @@ public class DisplayCommand {
 
         mCfgParam.displayId = displayId;
         mCfgParam.operateCode = OPERATE_CODE_CHANGE | OPERATE_CODE_CHANGE_OVERSCAN;
-        mCfgParam.overScan = ratio;
+        mCfgParam.xOverScan = Xratio;
+        mCfgParam.yOverScan = Yratio;
 
         ret = transferParam();
         return ret;

@@ -335,6 +335,9 @@ status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
             sf->initContext();
         }
 
+        mConfigParam.xOverScan = mConfigParam.yOverScan = 0;
+        mCurrentParam.xOverScan = mCurrentParam.yOverScan = 0;
+
         return err;
     }
     else {
@@ -347,17 +350,22 @@ int ConfigurableGraphicPlane::getMirror()
     return mCurrentParam.mirror;
 }
 
-int ConfigurableGraphicPlane::getOverScan()
+int ConfigurableGraphicPlane::getXOverScan()
 {
-    return mCurrentParam.overScan;
+    return mCurrentParam.xOverScan;
+}
+
+int ConfigurableGraphicPlane::getYOverScan()
+{
+    return mCurrentParam.yOverScan;
 }
 
 bool ConfigurableGraphicPlane::setConfigParam(const configParam& param)
 {
-    return setParam(mConfigParam, param);
+    return setParam(mConfigParam, param, true);
 }
 
-bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam& param)
+bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam& param, bool setFlag)
 {
     bool change = false;
     int operation = param.operateCode ;
@@ -365,7 +373,8 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
     if(operation & OPERATE_CODE_ENABLE) {
         conParam.mode = param.mode;
         conParam.rotation = param.rotation;
-        conParam.overScan = param.overScan;
+        conParam.xOverScan = param.xOverScan;
+        conParam.yOverScan = param.yOverScan;
         conParam.mirror = param.mirror;
         conParam.colorDepth = param.colorDepth;
         change = true;
@@ -385,8 +394,10 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
         change = true;
     }
 
-    if(operation & OPERATE_CODE_CHANGE_OVERSCAN && conParam.overScan != param.overScan) {
-        conParam.overScan = param.overScan;
+    if(operation & OPERATE_CODE_CHANGE_OVERSCAN && (conParam.xOverScan != param.xOverScan ||
+                       conParam.yOverScan != param.yOverScan)) {
+        conParam.xOverScan = param.xOverScan;
+        conParam.yOverScan = param.yOverScan;
         change = true;
     }
 
@@ -403,7 +414,8 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
     if(change) {
         conParam.displayId = param.displayId;
         conParam.operateCode = param.operateCode;
-        setTransactionFlags(eTransactionNeeded);
+        if(setFlag)
+            setTransactionFlags(eDisplayEventNeeded);
     }
 
     return change;
@@ -412,7 +424,7 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
 void ConfigurableGraphicPlane::doTransaction(SurfaceFlinger* sf)
 {
     int err = NO_ERROR;
-    setParam(mCurrentParam, mConfigParam);
+    setParam(mCurrentParam, mConfigParam, false);
     switch(mCurrentParam.operateCode & 0xf000) {
         case OPERATE_CODE_ENABLE:
             if(mCurrentParam.displayId == 0) {
@@ -518,19 +530,19 @@ void SurfaceFlinger::resizeSwapRegion()
     if(mActivePlaneIndex == 0) {
         ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(mActivePlaneIndex);
         HWComposer& hwc(plane.displayHardware().getHwComposer());
-        int scaleRate = plane.getOverScan();
-        if(scaleRate == 0) {
+        int xscaleRate = plane.getXOverScan();
+        int yscaleRate = plane.getYOverScan();
+        if(xscaleRate == 0 && yscaleRate == 0) {
             return;
         }
 
         int displayWidth = graphicPlane(mActivePlaneIndex).getWidth();
         int displayHeight = graphicPlane(mActivePlaneIndex).getHeight();
-        int dw = displayWidth * (100 - scaleRate) / 100;
-        int dh = displayHeight * (100 - scaleRate) / 100;
+        int dw = displayWidth * (100 - xscaleRate) / 100;
+        int dh = displayHeight * (100 - yscaleRate) / 100;
         Rect rect_t(mSwapRegion.getBounds());
         Rect *rect = &rect_t;
-
-        hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, scaleRate);
+        hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, 0, 0);
         mSwapRegion.set(rect_t);
         return;
     }
@@ -551,8 +563,9 @@ void SurfaceFlinger::resizeSwapRegion()
 
     ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(mActivePlaneIndex);
     HWComposer& hwc(plane.displayHardware().getHwComposer());
-    int scaleRate = plane.getOverScan();
-    hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, fw, fh, scaleRate);
+    int xscaleRate = plane.getXOverScan();
+    int yscaleRate = plane.getYOverScan();
+    hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, fw, fh, xscaleRate, yscaleRate);
     mSwapRegion.set(rect_t);
 }
 
@@ -562,7 +575,7 @@ void SurfaceFlinger::handleDisplayTransaction()
 
     for (size_t i=0; i<NUM_DISPLAY_MAX; i++) {
         ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(i);
-        trFlags = plane.getTransactionFlags(eTransactionNeeded);
+        trFlags = plane.getTransactionFlags(eDisplayEventNeeded);
         if(!trFlags) continue;
 
         plane.doTransaction(this);
@@ -1386,19 +1399,21 @@ void SurfaceFlinger::handleWorkList()
 		for (size_t i=0 ; cur && i<count ; i++) {
 		    currentLayers[i]->setGeometry(&cur[i]);
                     ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(k);
-                    int scaleRate = plane.getOverScan();
+                    int xscaleRate = plane.getXOverScan();
+                    int yscaleRate = plane.getYOverScan();
 
                     if(k != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
                         int swidth = graphicPlane(k).getWidth();
                         int sheight = graphicPlane(k).getHeight();
                         hwc.adjustGeometry(&cur[i], graphicPlane(0).getWidth(),
                                graphicPlane(0).getHeight(), swidth,
-                               sheight, scaleRate);
+                               sheight, xscaleRate, yscaleRate);
                     }
 
-                    if(k == 0 && scaleRate != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
+                    if(k == 0 && (xscaleRate != 0 || yscaleRate != 0) && 
+                                  ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
                         hwc.adjustOverScan(&cur[i], graphicPlane(0).getWidth(), 
-                                graphicPlane(0).getHeight(), scaleRate);
+                                graphicPlane(0).getHeight(), xscaleRate, yscaleRate);
                     }
 
 		    if (mDebugDisableHWC || mDebugRegion) {

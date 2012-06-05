@@ -197,9 +197,17 @@ public class DisplayManager {
             return false;
         }
     }
-    public boolean setDisplayOverScan(int dispid, int overscan){
+    public boolean setDisplayXOverScan(int dispid, int xOverscan){
         try {
-            return mService.setDisplayOverScan(dispid, overscan);
+            return mService.setDisplayXOverScan(dispid, xOverscan);
+        }catch (RemoteException e) {
+            Log.e(TAG, "RemoteException in setDisplayOverScan", e);
+            return false;
+        }
+    }
+    public boolean setDisplayYOverScan(int dispid, int yOverscan){
+        try {
+            return mService.setDisplayYOverScan(dispid, yOverscan);
         }catch (RemoteException e) {
             Log.e(TAG, "RemoteException in setDisplayOverScan", e);
             return false;
@@ -261,11 +269,19 @@ public class DisplayManager {
             return false;
         }
     }
-    public int getDisplayOverScan(int dispid){
+    public int getDisplayXOverScan(int dispid){
         try {
-            return mService.getDisplayOverScan(dispid);
+            return mService.getDisplayXOverScan(dispid);
         }catch (RemoteException e) {
-            Log.e(TAG, "RemoteException in getDisplayOverScan", e);
+            Log.e(TAG, "RemoteException in getDisplayXOverScan", e);
+            return 0;
+        }
+    }
+    public int getDisplayYOverScan(int dispid){
+        try {
+            return mService.getDisplayYOverScan(dispid);
+        }catch (RemoteException e) {
+            Log.e(TAG, "RemoteException in getDisplayYOverScan", e);
             return 0;
         }
     }

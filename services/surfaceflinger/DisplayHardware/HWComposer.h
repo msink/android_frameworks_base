@@ -73,10 +73,10 @@ public:
 
 public:
     void adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight,
-                   int displayWidth, int displayHeight, int scale);
+                   int displayWidth, int displayHeight, int xScale, int yScale);
     void adjustRect(hwc_rect_t *rect, int displayWidth, int displayHeight,
-                     int dw, int dh, int fw, int fh, int scale);
-    void adjustOverScan(hwc_layer_t *layer, int displayWidth, int displayHeight, int scale);
+                     int dw, int dh, int fw, int fh, int xScale, int yScale);
+    void adjustOverScan(hwc_layer_t *layer, int displayWidth, int displayHeight, int xScale, int yScale);
     void freeAllocatedBuffer();
     int isAllocated;
 

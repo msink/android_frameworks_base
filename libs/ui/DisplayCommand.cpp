@@ -31,7 +31,9 @@ status_t configParam::write(Parcel& output) const
     if(err) return err;
     err = output.writeInt32(rotation);
     if(err) return err;
-    err = output.writeInt32(overScan);
+    err = output.writeInt32(xOverScan);
+    if(err) return err;
+    err = output.writeInt32(yOverScan);
     if(err) return err;
     err = output.writeInt32(mirror);
     if(err) return err;
@@ -51,7 +53,8 @@ status_t configParam::read(const Parcel& input)
     displayId = input.readInt32();
     operateCode = input.readInt32();
     rotation = input.readInt32();
-    overScan = input.readInt32();
+    xOverScan = input.readInt32();
+    yOverScan = input.readInt32();
     mirror = input.readInt32();
     colorDepth = input.readInt32();
     mode = input.readString16();

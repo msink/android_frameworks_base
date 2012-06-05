@@ -149,14 +149,15 @@ public:
         ~ConfigurableGraphicPlane() {}
 
         int getMirror();
-        int getOverScan();
+        int getXOverScan();
+        int getYOverScan();
         status_t sendCommand(int operateCode, const configParam& param);
         status_t changePlaneSize(SurfaceFlinger* sf);
 
         void doTransaction(SurfaceFlinger* sf);
         uint32_t getTransactionFlags(uint32_t flags);
         uint32_t setTransactionFlags(uint32_t flags);
-        bool setParam(configParam& conParam, const configParam& param);
+        bool setParam(configParam& conParam, const configParam& param, bool setFlag);
         bool setConfigParam(const configParam& param);
         int initPlane(SurfaceFlinger* sf);
         int unInitPlane(SurfaceFlinger* sf);

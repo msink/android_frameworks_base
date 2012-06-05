@@ -32,7 +32,8 @@ interface IDisplayManager
 
     boolean setDisplayMirror(int dispid, boolean enable);
 
-    boolean setDisplayOverScan(int dispid, int overscan);
+    boolean setDisplayXOverScan(int dispid, int xOverscan);
+    boolean setDisplayYOverScan(int dispid, int yOverscan);
 
     boolean setDisplayRotation(int dispid, boolean enable);
 
@@ -43,7 +44,8 @@ interface IDisplayManager
     boolean getDisplayRotation(int dispid);
     String getDisplayMode(int dispid);
     String getDisplayName(int dispid);
-    int getDisplayOverScan(int dispid);
+    int getDisplayXOverScan(int dispid);
+    int getDisplayYOverScan(int dispid);
     int getDisplayColorDepth(int dispid);
 
     boolean rebootSystem();

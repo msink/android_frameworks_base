@@ -14674,15 +14674,17 @@ package android.os {
     method public java.lang.String getDisplayMode(int);
     method public java.lang.String[] getDisplayModeList(int);
     method public java.lang.String getDisplayName(int);
-    method public int getDisplayOverScan(int);
     method public boolean getDisplayRotation(int);
+    method public int getDisplayXOverScan(int);
+    method public int getDisplayYOverScan(int);
     method public boolean rebootSystem();
     method public boolean setDisplayColorDepth(int, int);
     method public boolean setDisplayEnable(int, boolean);
     method public boolean setDisplayMirror(int, boolean);
     method public boolean setDisplayMode(int, java.lang.String);
-    method public boolean setDisplayOverScan(int, int);
     method public boolean setDisplayRotation(int, boolean);
+    method public boolean setDisplayXOverScan(int, int);
+    method public boolean setDisplayYOverScan(int, int);
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_0_ATTACHED = "android.os.action.DISPLAY_DEVICE_0_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_1_ATTACHED = "android.os.action.DISPLAY_DEVICE_1_ATTACHED";
     field public static final java.lang.String ACTION_DISPLAY_DEVICE_2_ATTACHED = "android.os.action.DISPLAY_DEVICE_2_ATTACHED";
@@ -21960,10 +21962,10 @@ package android.view {
     ctor public DisplayCommand();
     method public int broadcastEvent();
     method public int disable(int);
-    method public int enable(int, java.lang.String, int, int, int, int);
+    method public int enable(int, java.lang.String, int, int, int, int, int);
     method public int setColorDepth(int, int);
     method public int setMirror(int, int);
-    method public int setOverScan(int, int);
+    method public int setOverScan(int, int, int);
     method public int setResolution(int, java.lang.String);
     method public int setRotation(int, int);
     field public static final int OPERATE_CODE_CHANGE = 16384; // 0x4000
@@ -21984,8 +21986,9 @@ package android.view {
     field public int mirror;
     field public java.lang.String mode;
     field public int operateCode;
-    field public int overScan;
     field public int rotation;
+    field public int xOverScan;
+    field public int yOverScan;
   }
 
   public class DragEvent implements android.os.Parcelable {
