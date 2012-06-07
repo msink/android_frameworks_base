@@ -199,7 +199,7 @@ class HTML5VideoViewProxy extends Handler
             } else if (mCurrentProxy == proxy) {
                 // Here, we handle the case when we keep playing with one video
                 if (!mHTML5VideoView.isPlaying()) {
-                    mHTML5VideoView.seekTo(time);
+                    //mHTML5VideoView.seekTo(time);
                     mHTML5VideoView.start();
                 }
             } else if (mCurrentProxy != null) {
@@ -318,8 +318,9 @@ class HTML5VideoViewProxy extends Handler
                 String url = (String) msg.obj;
                 WebChromeClient client = mWebView.getWebChromeClient();
                 int videoLayerID = msg.arg1;
+                int position = msg.arg2;
                 if (client != null) {
-                    VideoPlayer.play(url, mSeekPosition, this, client, videoLayerID);
+                    VideoPlayer.play(url, position, this, client, videoLayerID);
                 }
                 break;
             }
@@ -605,11 +606,12 @@ class HTML5VideoViewProxy extends Handler
             return;
         }
 
-        if (position > 0) {
-            seek(position);
-        }
+        //if (position > 0) {
+        //    seek(position);
+        //}
         Message message = obtainMessage(PLAY);
         message.arg1 = videoLayerID;
+        message.arg2 = position;
         message.obj = url;
         sendMessage(message);
     }
