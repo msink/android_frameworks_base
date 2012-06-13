@@ -278,6 +278,7 @@ int ConfigurableGraphicPlane::unInitPlane(SurfaceFlinger* sf)
         const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
         dh.makeCurrent();
     }
+    ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
 
     return NO_ERROR;
 }
