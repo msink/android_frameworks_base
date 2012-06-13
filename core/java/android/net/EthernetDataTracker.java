@@ -83,7 +83,13 @@ public class EthernetDataTracker implements NetworkStateTracker {
                     mTracker.mNetworkInfo.setIsAvailable(false);
                     mTracker.mNetworkInfo.setDetailedState(DetailedState.DISCONNECTED,
                                                            null, null);
-                }
+		    mTracker.mLinkProperties.clear();
+		    Log.d(TAG, "trigger event change for " + iface);
+		    Message msg = mTracker.mCsHandler.obtainMessage(EVENT_CONFIGURATION_CHANGED, mTracker.mNetworkInfo);
+		    msg.sendToTarget();
+		    msg = mTracker.mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mTracker.mNetworkInfo);
+		    msg.sendToTarget();
+		}
             }
         }
 

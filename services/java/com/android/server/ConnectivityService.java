@@ -453,6 +453,10 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                         continue;
                     }
                     mPriorityList[insertionPoint--] = na.type;
+		    if (na.type == ConnectivityManager.TYPE_ETHERNET){
+			log("Connectivity set first high priority is " + na.type);
+			setNetworkPreference(na.type);
+		    }
                 }
                 currentLowest = nextLowest;
                 nextLowest = 0;
