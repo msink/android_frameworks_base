@@ -60,6 +60,7 @@
 
 #include <private/surfaceflinger/SharedBufferStack.h>
 
+#include <hardware/XmlTool.h>
 /* ideally AID_GRAPHICS would be in a semi-public header
  * or there would be a way to map a user/group name to its id
  */
@@ -305,6 +306,11 @@ status_t ConfigurableGraphicPlane::sendCommand(int operateCode, const configPara
         return err;//mHw->sendCommand(operateCode, param);
     }
 
+    if(param.operateCode & OPERATE_CODE_CHANGE_KEEPRATE) {
+        mClearPlane = 1;
+        return err;
+    }
+
     return BAD_VALUE;
 }
 
@@ -313,6 +319,13 @@ status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
     int err = NO_ERROR;
     if(mCurrentParam.operateCode & OPERATE_CODE_CHANGE_RESOLUTION ||
                mCurrentParam.operateCode & OPERATE_CODE_CHANGE_COLORDEPTH) {
+
+        if(mCurrentParam.operateCode & OPERATE_CODE_CHANGE_RESOLUTION) {
+            mCurrentParam.xOverScan = mConfigParam.xOverScan = 0;
+            mConfigParam.yOverScan = mCurrentParam.yOverScan = 0;
+            mCurrentParam.keepRate = mConfigParam.keepRate = SETTING_MODE_FULL_SCREEN;
+        }
+
         mCurrentParam.operateCode = OPERATE_CODE_ENABLE;
         sf->clearDisplayCblk(mCurrentParam.displayId);
 
@@ -336,9 +349,6 @@ status_t ConfigurableGraphicPlane::changePlaneSize(SurfaceFlinger* sf)
             sf->initContext();
         }
 
-        mConfigParam.xOverScan = mConfigParam.yOverScan = 0;
-        mCurrentParam.xOverScan = mCurrentParam.yOverScan = 0;
-
         return err;
     }
     else {
@@ -361,6 +371,16 @@ int ConfigurableGraphicPlane::getYOverScan()
     return mCurrentParam.yOverScan;
 }
 
+int ConfigurableGraphicPlane::getKeepRate()
+{
+    return mCurrentParam.keepRate;
+}
+
+void ConfigurableGraphicPlane::setKeepRate(int keepRate)
+{
+    mConfigParam.keepRate = mCurrentParam.keepRate = keepRate;
+}
+
 bool ConfigurableGraphicPlane::setConfigParam(const configParam& param)
 {
     return setParam(mConfigParam, param, true);
@@ -378,6 +398,7 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
         conParam.yOverScan = param.yOverScan;
         conParam.mirror = param.mirror;
         conParam.colorDepth = param.colorDepth;
+        conParam.keepRate = param.keepRate;
         change = true;
     }
 
@@ -409,6 +430,11 @@ bool ConfigurableGraphicPlane::setParam(configParam& conParam, const configParam
 
     if(operation & OPERATE_CODE_CHANGE_COLORDEPTH && conParam.colorDepth != param.colorDepth) {
         conParam.colorDepth = param.colorDepth;
+        change = true;
+    }
+
+    if(operation & OPERATE_CODE_CHANGE_KEEPRATE && conParam.keepRate != param.keepRate) {
+        conParam.keepRate = param.keepRate;
         change = true;
     }
 
@@ -533,17 +559,20 @@ void SurfaceFlinger::resizeSwapRegion()
         HWComposer& hwc(plane.displayHardware().getHwComposer());
         int xscaleRate = plane.getXOverScan();
         int yscaleRate = plane.getYOverScan();
-        if(xscaleRate == 0 && yscaleRate == 0) {
+        int keepRate = plane.getKeepRate();
+        if(xscaleRate == 0 && yscaleRate == 0 && keepRate != SETTING_MODE_KEEP_16_9_RATE
+                     && keepRate != SETTING_MODE_KEEP_4_3_RATE) {
             return;
         }
 
         int displayWidth = graphicPlane(mActivePlaneIndex).getWidth();
         int displayHeight = graphicPlane(mActivePlaneIndex).getHeight();
-        int dw = displayWidth * (100 - xscaleRate) / 100;
-        int dh = displayHeight * (100 - yscaleRate) / 100;
+        int dw = displayWidth;
+        int dh = displayHeight;
         Rect rect_t(mSwapRegion.getBounds());
         Rect *rect = &rect_t;
-        hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, displayWidth, displayHeight, 0, 0);
+        hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, dw, dh, displayWidth, displayHeight, &dw, &dh);
+        hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate);
         mSwapRegion.set(rect_t);
         return;
     }
@@ -554,10 +583,6 @@ void SurfaceFlinger::resizeSwapRegion()
     int displayHeight = dh;
     int fw = graphicPlane(0).getWidth();
     int fh = graphicPlane(0).getHeight();
-    if(dw >= dh*fw/fh)
-        dw = dh*fw/fh;
-    else
-        dh = dw*fh/fw;
 
     Rect rect_t(mSwapRegion.getBounds());
     Rect *rect = &rect_t;
@@ -566,7 +591,9 @@ void SurfaceFlinger::resizeSwapRegion()
     HWComposer& hwc(plane.displayHardware().getHwComposer());
     int xscaleRate = plane.getXOverScan();
     int yscaleRate = plane.getYOverScan();
-    hwc.adjustRect((hwc_rect_t*)rect, displayWidth, displayHeight, dw, dh, fw, fh, xscaleRate, yscaleRate);
+    int keepRate = plane.getKeepRate();
+    hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh);
+    hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate);
     mSwapRegion.set(rect_t);
 }
 
@@ -749,6 +776,21 @@ status_t SurfaceFlinger::readyToRun()
 
     mReadyToRunBarrier.open();
 
+    /*
+    *get action mode from settings xml.  
+    */
+    XmlTool *pXmlTool = new XmlTool(FSL_SETTINGS_PREFERENCE);
+    if(pXmlTool == NULL) {
+        LOGW("Warning: xmltool not created");
+    }
+    else {
+        int actionMode = pXmlTool->getHex(FSL_PREFERENCE_KEEPRATE, SETTING_MODE_FULL_SCREEN);
+        LOGW("actionMode=0x%x", actionMode);
+        ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(0);
+        plane.setKeepRate(actionMode);
+        delete pXmlTool;
+        pXmlTool = NULL;
+    }
     /*
      *  We're now ready to accept clients...
      */
@@ -1402,18 +1444,21 @@ void SurfaceFlinger::handleWorkList()
                     ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(k);
                     int xscaleRate = plane.getXOverScan();
                     int yscaleRate = plane.getYOverScan();
+                    int keepRate = plane.getKeepRate();
 
                     if(k != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
                         int swidth = graphicPlane(k).getWidth();
                         int sheight = graphicPlane(k).getHeight();
-                        hwc.adjustGeometry(&cur[i], graphicPlane(0).getWidth(),
+                        hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(),
                                graphicPlane(0).getHeight(), swidth,
                                sheight, xscaleRate, yscaleRate);
                     }
 
-                    if(k == 0 && (xscaleRate != 0 || yscaleRate != 0) && 
-                                  ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
-                        hwc.adjustOverScan(&cur[i], graphicPlane(0).getWidth(), 
+                    if(k == 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1 && 
+                       (xscaleRate != 0 || yscaleRate != 0 || keepRate == SETTING_MODE_KEEP_16_9_RATE
+                        || keepRate == SETTING_MODE_KEEP_4_3_RATE)) {
+                        hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(), 
+                                graphicPlane(0).getHeight(), graphicPlane(0).getWidth(),
                                 graphicPlane(0).getHeight(), xscaleRate, yscaleRate);
                     }
 

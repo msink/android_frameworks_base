@@ -229,6 +229,14 @@ public class DisplayManager {
             return false;
         }
     }
+    public boolean setDisplayKeepRate(int dispid, int keepRate)  {
+        try {
+            return mService.setDisplayKeepRate(dispid, keepRate);
+        }catch (RemoteException e) {
+            Log.e(TAG, "RemoteException in setDisplayKeepRate", e);
+            return false;
+        }
+    }
 
 
     /**
@@ -299,6 +307,14 @@ public class DisplayManager {
         }catch (RemoteException e) {
             Log.e(TAG, "RemoteException in getDisplayColorDepth", e);
             return 16;
+        }
+    }
+    public int getDisplayKeepRate(int dispid) {
+        try {
+            return mService.getDisplayKeepRate(dispid);
+        }catch (RemoteException e) {
+            Log.e(TAG, "RemoteException in getDisplayKeepRate", e);
+            return 0;
         }
     }
 

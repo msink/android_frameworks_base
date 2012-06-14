@@ -151,6 +151,8 @@ public:
         int getMirror();
         int getXOverScan();
         int getYOverScan();
+        int getKeepRate();
+        void setKeepRate(int keepRate);
         status_t sendCommand(int operateCode, const configParam& param);
         status_t changePlaneSize(SurfaceFlinger* sf);
 

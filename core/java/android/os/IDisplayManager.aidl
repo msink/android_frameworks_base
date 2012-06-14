@@ -39,6 +39,8 @@ interface IDisplayManager
 
     boolean setDisplayColorDepth(int dispid, int colordepth);
 
+    boolean setDisplayKeepRate(int dispid, int keepRate);
+
     boolean getDisplayEnable(int dispid);
     boolean getDisplayMirror(int dispid);
     boolean getDisplayRotation(int dispid);
@@ -47,6 +49,7 @@ interface IDisplayManager
     int getDisplayXOverScan(int dispid);
     int getDisplayYOverScan(int dispid);
     int getDisplayColorDepth(int dispid);
+    int getDisplayKeepRate(int dispid);
 
     boolean rebootSystem();
 

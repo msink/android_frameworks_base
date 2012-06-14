@@ -23,6 +23,7 @@
 #include <EGL/egl.h>
 
 #include <hardware/hwcomposer.h>
+#include <hardware/DisplayCommand.h>
 
 #include <utils/StrongPointer.h>
 #include <utils/Vector.h>
@@ -72,11 +73,12 @@ public:
             const Vector< sp<LayerBase> >& visibleLayersSortedByZ) const;
 
 public:
-    void adjustGeometry(hwc_layer_t *layer, int defaultWidth, int defaultHeight,
+    void adjustGeometry(hwc_layer_t *layer, int keepRate, int defaultWidth, int defaultHeight,
                    int displayWidth, int displayHeight, int xScale, int yScale);
-    void adjustRect(hwc_rect_t *rect, int displayWidth, int displayHeight,
-                     int dw, int dh, int fw, int fh, int xScale, int yScale);
-    void adjustOverScan(hwc_layer_t *layer, int displayWidth, int displayHeight, int xScale, int yScale);
+    void adjustRectParam(hwc_rect_t*, float, float, int, int);
+    void adjustRectScale(hwc_rect_t *rect, int dw, int dh, int xScale, int yScale);
+    void adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultWidth, int defaultHeight,
+                         int displayWidth, int displayHeight, int* pdw, int* pdh);
     void freeAllocatedBuffer();
     int isAllocated;
 

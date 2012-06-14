@@ -14670,6 +14670,7 @@ package android.os {
   public class DisplayManager {
     method public int getDisplayColorDepth(int);
     method public boolean getDisplayEnable(int);
+    method public int getDisplayKeepRate(int);
     method public boolean getDisplayMirror(int);
     method public java.lang.String getDisplayMode(int);
     method public java.lang.String[] getDisplayModeList(int);
@@ -14680,6 +14681,7 @@ package android.os {
     method public boolean rebootSystem();
     method public boolean setDisplayColorDepth(int, int);
     method public boolean setDisplayEnable(int, boolean);
+    method public boolean setDisplayKeepRate(int, int);
     method public boolean setDisplayMirror(int, boolean);
     method public boolean setDisplayMode(int, java.lang.String);
     method public boolean setDisplayRotation(int, boolean);
@@ -21962,20 +21964,26 @@ package android.view {
     ctor public DisplayCommand();
     method public int broadcastEvent();
     method public int disable(int);
-    method public int enable(int, java.lang.String, int, int, int, int, int);
+    method public int enable(int, java.lang.String, int, int, int, int, int, int);
     method public int setColorDepth(int, int);
+    method public int setKeepRate(int, int);
     method public int setMirror(int, int);
     method public int setOverScan(int, int, int);
     method public int setResolution(int, java.lang.String);
     method public int setRotation(int, int);
     field public static final int OPERATE_CODE_CHANGE = 16384; // 0x4000
     field public static final int OPERATE_CODE_CHANGE_COLORDEPTH = 8; // 0x8
+    field public static final int OPERATE_CODE_CHANGE_KEEPRATE = 32; // 0x20
     field public static final int OPERATE_CODE_CHANGE_MIRROR = 4; // 0x4
     field public static final int OPERATE_CODE_CHANGE_OVERSCAN = 2; // 0x2
     field public static final int OPERATE_CODE_CHANGE_RESOLUTION = 1; // 0x1
     field public static final int OPERATE_CODE_CHANGE_ROTATION = 16; // 0x10
     field public static final int OPERATE_CODE_DISABLE = 8192; // 0x2000
     field public static final int OPERATE_CODE_ENABLE = 4096; // 0x1000
+    field public static final int SETTING_MODE_FULL_SCREEN = 4096; // 0x1000
+    field public static final int SETTING_MODE_KEEP_16_9_RATE = 16384; // 0x4000
+    field public static final int SETTING_MODE_KEEP_4_3_RATE = 32768; // 0x8000
+    field public static final int SETTING_MODE_KEEP_PRIMARY_RATE = 8192; // 0x2000
   }
 
   public static class DisplayCommand.ConfigParam {
@@ -21983,6 +21991,7 @@ package android.view {
     method public void writeToParcel(android.os.Parcel);
     field public int colorDepth;
     field public int displayId;
+    field public int keepRate;
     field public int mirror;
     field public java.lang.String mode;
     field public int operateCode;

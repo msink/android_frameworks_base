@@ -39,6 +39,8 @@ status_t configParam::write(Parcel& output) const
     if(err) return err;
     err = output.writeInt32(colorDepth);
     if(err) return err;
+    err = output.writeInt32(keepRate);
+    if(err) return err;
     err = output.writeString16(mode);
     if(err) return err;
 
@@ -57,6 +59,7 @@ status_t configParam::read(const Parcel& input)
     yOverScan = input.readInt32();
     mirror = input.readInt32();
     colorDepth = input.readInt32();
+    keepRate = input.readInt32();
     mode = input.readString16();
 
     return NO_ERROR;
