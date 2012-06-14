@@ -2917,7 +2917,6 @@ public class PowerManagerService extends IPowerManager.Stub
             updateWakeLockLocked();
             mLocks.notifyAll();
         }
-        Power.enableDvfsCore(1);
     }
 
     // for watchdog
