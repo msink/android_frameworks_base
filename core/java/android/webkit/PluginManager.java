@@ -242,8 +242,14 @@ public class PluginManager {
         // check to ensure the plugin is properly signed
         Signature signatures[] = pkgInfo.signatures;
         if (signatures == null) {
+            Log.w(LOGTAG, "no signature for " + pkgInfo.packageName);
             return false;
         }
+        
+        // Temp disable signature test, if you want to
+        // signature test, please de-comment it following...
+
+        /*
         if (SystemProperties.getBoolean("ro.secure", false)) {
             boolean signatureMatch = false;
             for (Signature signature : signatures) {
@@ -259,6 +265,7 @@ public class PluginManager {
                 return false;
             }
         }
+        */
 
         return true;
     }
