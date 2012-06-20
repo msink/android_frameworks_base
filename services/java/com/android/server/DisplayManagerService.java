@@ -639,6 +639,13 @@ class DisplayManagerService extends IDisplayManager.Stub {
                     ActivityManagerNative.broadcastStickyIntent(intent, null);
                 } else if(!connectState && mDisplayDevice[dispid].getPlugable())
                 {
+                    mContext.sendBroadcast(new Intent(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+                    //delay 1000 ms
+                    try {
+                          Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                          Log.w(TAG, "sleep error");
+                    }
                     intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
                     intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
                     intent.putExtra("state", 0);
@@ -820,6 +827,13 @@ class DisplayManagerService extends IDisplayManager.Stub {
                     }
                     else {
                         if(mDisplayDevice[dispid].getPlugable()) {
+                            mContext.sendBroadcast(new Intent(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+                            //delay 1000 ms
+                            try {
+                                 Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                 Log.w(TAG, "sleep error");
+                            }
                             intent = new Intent(Intent.ACTION_HDMI_AUDIO_PLUG);
                             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
                             intent.putExtra("state", 0);
