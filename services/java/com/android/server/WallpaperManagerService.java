@@ -809,10 +809,10 @@ class WallpaperManagerService extends IWallpaperManager.Stub {
         Display d = wm.getDefaultDisplay();
         int baseSize = d.getMaximumSizeDimension();
         if (mWidth < baseSize) {
-            mWidth = baseSize;
+            mWidth = (int)((double)baseSize * 1.5);//Need reserve more space to support wallpaper slide, see setWallpaperDimension in Launcher2
         }
         if (mHeight < baseSize) {
-            mHeight = baseSize;
+            mHeight = (int)((double)baseSize * 1.5);//Need reserve more space to support wallpaper slide, see setWallpaperDimension in Launcher2
         }
     }
 
