@@ -52,6 +52,9 @@ public:
         data.writeInt32(usage);
         remote()->transact(CREATE_GRAPHIC_BUFFER, data, &reply);
         sp<GraphicBuffer> graphicBuffer;
+        sp<IBinder> siBinder;
+        sp<BufferReference> bufferSRef;
+
         status_t result = reply.readInt32();
         if (result == NO_ERROR) {
             graphicBuffer = new GraphicBuffer();
@@ -59,6 +62,9 @@ public:
             // reply.readStrongBinder();
             // here we don't even have to read the BufferReference from
             // the parcel, it'll die with the parcel.
+            siBinder = reply.readStrongBinder();
+            bufferSRef = (BufferReference *)siBinder.get();
+            graphicBuffer->mRemoteBuffer = bufferSRef;
         }
         *error = result;
         return graphicBuffer;
@@ -78,12 +84,6 @@ status_t BnGraphicBufferAlloc::onTransact(
      * GraphicBuffer until it is destroyed (that is, until
      * no local or remote process have a reference to it).
      */
-    class BufferReference : public BBinder {
-        sp<GraphicBuffer> buffer;
-    public:
-        BufferReference(const sp<GraphicBuffer>& buffer) : buffer(buffer) { }
-    };
-
 
     switch(code) {
         case CREATE_GRAPHIC_BUFFER: {

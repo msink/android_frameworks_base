@@ -29,6 +29,8 @@
 #include <ui/PixelFormat.h>
 
 #include <pixelflinger/pixelflinger.h>
+#include <binder/Binder.h>
+#include <surfaceflinger/IGraphicBufferAlloc.h>
 
 namespace android {
 
@@ -38,7 +40,7 @@ namespace android {
 
 GraphicBuffer::GraphicBuffer()
     : BASE(), mOwner(ownData), mBufferMapper(GraphicBufferMapper::get()),
-      mInitCheck(NO_ERROR), mIndex(-1)
+      mInitCheck(NO_ERROR), mIndex(-1),mRemoteBuffer()
 {
     width  = 
     height = 

@@ -31,6 +31,7 @@ struct ANativeWindowBuffer;
 namespace android {
 
 class GraphicBufferMapper;
+class BufferReference;
 
 // ===========================================================================
 // GraphicBuffer
@@ -103,6 +104,7 @@ public:
 
     // for debugging
     static void dumpAllocationsToSystemLog();
+    sp<BufferReference> mRemoteBuffer;
 
 private:
     virtual ~GraphicBuffer();

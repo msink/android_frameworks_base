@@ -29,6 +29,16 @@ namespace android {
 
 class GraphicBuffer;
 
+class BufferReference : public BBinder
+{
+public:
+       sp<GraphicBuffer> buffer;
+
+public:
+       BufferReference(const sp<GraphicBuffer>& buffer) : buffer(buffer) { }
+};
+
+
 class IGraphicBufferAlloc : public IInterface
 {
 public:
