@@ -209,7 +209,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
             if(colorDepth != null)
                 mColorDepth = Integer.parseInt(colorDepth);
 
-            mCurrentMode = mSettings.getString(makeDisplayKey("mode", this), "");
+            mCurrentMode = mSettings.getString(makeDisplayKey("mode", this), null);
             Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " keepRate:" + mKeepRate);
         }
 
@@ -530,9 +530,8 @@ class DisplayManagerService extends IDisplayManager.Stub {
         String currentDisplayMode = getDisplayMode(dispid);
 
         display_modes = getDisplayModeListFromDispd(dispid);
-        //mDisplay_modes[dispid] = display_modes;
-        mDisplayDevice[dispid].setDisplaySupportModes(display_modes);
 
+        mDisplayDevice[dispid].setDisplaySupportModes(display_modes);
         if(currentDisplayMode == null) {
             currentDisplayMode = display_modes[0];
         }
