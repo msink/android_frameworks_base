@@ -776,6 +776,7 @@ status_t SurfaceFlinger::readyToRun()
 
     mReadyToRunBarrier.open();
 
+#ifdef FSL_IMX_DISPLAY
     /*
     *get action mode from settings xml.  
     */
@@ -791,6 +792,7 @@ status_t SurfaceFlinger::readyToRun()
         delete pXmlTool;
         pXmlTool = NULL;
     }
+#endif
     /*
      *  We're now ready to accept clients...
      */
