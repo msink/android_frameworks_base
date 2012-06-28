@@ -1403,6 +1403,7 @@ void SurfaceFlinger::handlePageFlip()
 void SurfaceFlinger::invalidateHwcGeometry()
 {
     mHwWorkListDirty = true;
+    ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
 }
 
 bool SurfaceFlinger::lockPageFlip(const LayerVector& currentLayers)
