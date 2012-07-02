@@ -173,6 +173,8 @@ class DisplayManagerService extends IDisplayManager.Stub {
             mDeviceName = name;
             if(name.contains("hdmi")) {
                 mIsPlugable = true;
+            } else  {
+                mIsPlugable = false;
             }
             //mFbid = fbid;
             mIsConnected = true;
@@ -180,7 +182,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
         }
 
         public void removeDevice() {
-            mIsPlugable = false;
+            //mIsPlugable = false;//save state.
             mDeviceName = null;
             mIsConnected = false;
             mConnectCount --;
