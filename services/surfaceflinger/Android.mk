@@ -46,9 +46,11 @@ LOCAL_SHARED_LIBRARIES := \
 	libGLESv1_CM \
 	libbinder \
 	libui \
-	libgui \
-        libfsl_xmltool
+	libgui
 
+ifeq ($(HAVE_FSL_IMX_IPU),true)
+LOCAL_SHARED_LIBRARIES += libfsl_xmltool
+endif
 # this is only needed for DDMS debugging
 LOCAL_SHARED_LIBRARIES += libdvm libandroid_runtime
 
