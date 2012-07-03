@@ -50,6 +50,8 @@ LOCAL_SHARED_LIBRARIES := \
 
 ifeq ($(HAVE_FSL_IMX_IPU),true)
 LOCAL_SHARED_LIBRARIES += libfsl_xmltool
+else ifeq ($(HAVE_FSL_IMX_GPU),true)
+LOCAL_SHARED_LIBRARIES += libfsl_xmltool
 endif
 # this is only needed for DDMS debugging
 LOCAL_SHARED_LIBRARIES += libdvm libandroid_runtime
