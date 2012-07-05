@@ -1139,12 +1139,7 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
             const int dpy = 0;
             const int orientation = mCurrentState.orientation;
             // Currently unused: const uint32_t flags = mCurrentState.orientationFlags;
-#ifdef FSL_IMX_DISPLAY
-            ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)(graphicPlane(dpy));
-            plane.mClearPlane = 1;
-#else
             GraphicPlane& plane(graphicPlane(dpy));
-#endif
             plane.setOrientation(orientation);
 
             // update the shared control block
