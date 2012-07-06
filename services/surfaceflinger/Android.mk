@@ -22,7 +22,9 @@ LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES
 
 ifeq ($(HAVE_FSL_IMX_IPU),true)
 LOCAL_CFLAGS += -DFSL_IMX_DISPLAY
-else ifeq ($(HAVE_FSL_IMX_GPU),true)
+else ifeq ($(HAVE_FSL_IMX_GPU3D),true)
+LOCAL_CFLAGS += -DFSL_IMX_DISPLAY
+else ifeq ($(HAVE_FSL_IMX_GPU2D),true)
 LOCAL_CFLAGS += -DFSL_IMX_DISPLAY
 endif
 
@@ -50,7 +52,9 @@ LOCAL_SHARED_LIBRARIES := \
 
 ifeq ($(HAVE_FSL_IMX_IPU),true)
 LOCAL_SHARED_LIBRARIES += libfsl_xmltool
-else ifeq ($(HAVE_FSL_IMX_GPU),true)
+else ifeq ($(HAVE_FSL_IMX_GPU3D),true)
+LOCAL_SHARED_LIBRARIES += libfsl_xmltool
+else ifeq ($(HAVE_FSL_IMX_GPU2D),true)
 LOCAL_SHARED_LIBRARIES += libfsl_xmltool
 endif
 # this is only needed for DDMS debugging
