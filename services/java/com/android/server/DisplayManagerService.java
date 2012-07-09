@@ -94,6 +94,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
     private static final int DISPLAY_OVERSCAN_DEFAULT = 0;
     private static final String DISPLAY_KEEPRATE_DEFAULT = "1000";
     private static final String DISPLAY_COLORDEPTH_DEFAULT = "32";
+    private static final String DISPLAY_MODE_DEFAULT = "keepHighestMode";
     /**
      * Name representing {@link #setGlobalAlert(long)} limit when delivered to
      * {@link INetworkManagementEventObserver#limitReached(String, String)}.
@@ -211,7 +212,7 @@ class DisplayManagerService extends IDisplayManager.Stub {
             if(colorDepth != null)
                 mColorDepth = Integer.parseInt(colorDepth);
 
-            mCurrentMode = mSettings.getString(makeDisplayKey("mode", this), null);
+            mCurrentMode = mSettings.getString(makeDisplayKey("mode", this), DISPLAY_MODE_DEFAULT);
             Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " keepRate:" + mKeepRate);
         }
 
@@ -314,6 +315,13 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
         public String[] getDisplaySupportModes() {
             return mSupportModes;
+        }
+
+        public String getHighestMode() {
+            if(mSupportModes != null)
+                return mSupportModes[0];
+            else
+                return null;
         }
 
         boolean mIsConnected;
@@ -439,7 +447,13 @@ class DisplayManagerService extends IDisplayManager.Stub {
             String mode = new String(buffer);
             String[] tokens = mode.split("\n");
             if (DBG) Log.w(TAG, "mode:" + tokens[0]);
-            setDisplayDefaultMode(0, tokens[0]);
+
+            String currentDisplayMode = getDisplayMode(0);
+            if(DISPLAY_MODE_DEFAULT.equals(currentDisplayMode)) {
+                Log.w(TAG, "use the highest resolution by default");
+            } else {
+                setDisplayDefaultMode(0, tokens[0]);
+            }
         } else {
             Log.w(TAG, "/sys/class/graphics/fb0/mode not find");
         }
@@ -534,8 +548,19 @@ class DisplayManagerService extends IDisplayManager.Stub {
         display_modes = getDisplayModeListFromDispd(dispid);
 
         mDisplayDevice[dispid].setDisplaySupportModes(display_modes);
+
         if(currentDisplayMode == null) {
             currentDisplayMode = display_modes[0];
+        }
+
+        if(currentDisplayMode == null) {
+            Log.e(TAG, "get display modes failed, please check the display connection");
+            return;
+        }
+
+        if(DISPLAY_MODE_DEFAULT.equals(currentDisplayMode)) {
+            Log.w(TAG, "use the highest resolution by default");
+            return;
         }
 
         boolean found = false;
@@ -797,7 +822,11 @@ class DisplayManagerService extends IDisplayManager.Stub {
 
                     Intent intent;
                     if(Integer.parseInt(msg.obj.toString()) == 1) {
-                        mDispCommand.enable(dispid, mDisplayDevice[dispid].getDisplayCurrentMode(), mDisplayDevice[dispid].getDisplayRotation(),
+                        String disp_mode = mDisplayDevice[dispid].getDisplayCurrentMode();
+                        if(DISPLAY_MODE_DEFAULT.equals(disp_mode)) disp_mode = mDisplayDevice[dispid].getHighestMode();
+                        Log.w(TAG, "disp_mode=" + disp_mode + " high mode=" + mDisplayDevice[dispid].getHighestMode());
+
+                        mDispCommand.enable(dispid, disp_mode, mDisplayDevice[dispid].getDisplayRotation(),
                                              mDisplayDevice[dispid].getDisplayXOverScan(), mDisplayDevice[dispid].getDisplayYOverScan(), 
                                              mDisplayDevice[dispid].getDisplayMirror(), mDisplayDevice[dispid].getDisplayColorDepth(),
                                              mDisplayDevice[dispid].getDisplayKeepRate());
@@ -981,9 +1010,10 @@ class DisplayManagerService extends IDisplayManager.Stub {
     public boolean commandDisplayMode(int dispid, int save, String disp_mode) throws IllegalStateException {
         int fbid = dispid;
         if (DBG) Slog.d(TAG, " dispid " + dispid +" fbid "+ fbid +"setDisplayMode "+ disp_mode );
-        if(disp_mode.equals(mDisplayDevice[dispid].getDisplayCurrentMode())) return true;
+        if(disp_mode == null || disp_mode.equals(mDisplayDevice[dispid].getDisplayCurrentMode())) return true;
 
         mDisplayDevice[dispid].setDisplayCurrentMode(disp_mode);
+        if(DISPLAY_MODE_DEFAULT.equals(disp_mode)) disp_mode = mDisplayDevice[dispid].getHighestMode();
         //reset overscan and keeprate
         int keepRate = Integer.parseInt(DISPLAY_KEEPRATE_DEFAULT, 16);
         mDisplayDevice[dispid].setDisplayKeepRate(keepRate);

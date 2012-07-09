@@ -80,6 +80,7 @@ public:
     void        makeCurrent() const;
     uint32_t    getMaxTextureSize() const;
     uint32_t    getMaxViewportDims() const;
+    int         getDisplayType() const;
 
     uint32_t getPageFlipCount() const;
     EGLDisplay getEGLDisplay() const { return mDisplay; }
@@ -133,6 +134,7 @@ private:
     HWComposer*     mHwc;
 
     sp<FramebufferNativeWindow> mNativeWindow;
+    int             mDisplayType;
 };
 
 }; // namespace android

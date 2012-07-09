@@ -127,6 +127,7 @@ int DisplayHardware::getWidth() const           { return mWidth; }
 int DisplayHardware::getHeight() const          { return mHeight; }
 PixelFormat DisplayHardware::getFormat() const  { return mFormat; }
 uint32_t DisplayHardware::getMaxTextureSize() const { return mMaxTextureSize; }
+int DisplayHardware::getDisplayType() const     { return mDisplayType; }
 
 uint32_t DisplayHardware::getMaxViewportDims() const {
     return mMaxViewportDims[0] < mMaxViewportDims[1] ?
@@ -301,7 +302,7 @@ void DisplayHardware::init(uint32_t dpy)
     mContext = context;
     mFormat  = fbDev->format;
     mPageFlipCount = 0;
-
+    mDisplayType = fbDev->reserved[1];
     /*
      * Gather OpenGL ES extensions
      */

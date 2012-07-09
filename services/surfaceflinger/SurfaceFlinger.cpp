@@ -780,17 +780,19 @@ status_t SurfaceFlinger::readyToRun()
     /*
     *get action mode from settings xml.  
     */
-    XmlTool *pXmlTool = new XmlTool(FSL_SETTINGS_PREFERENCE);
-    if(pXmlTool == NULL) {
-        LOGW("Warning: xmltool not created");
-    }
-    else {
-        int actionMode = pXmlTool->getHex(FSL_PREFERENCE_KEEPRATE, SETTING_MODE_FULL_SCREEN);
-        LOGW("actionMode=0x%x", actionMode);
-        ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(0);
-        plane.setKeepRate(actionMode);
-        delete pXmlTool;
-        pXmlTool = NULL;
+    if(hw.getDisplayType() == 1) {
+        XmlTool *pXmlTool = new XmlTool(FSL_SETTINGS_PREFERENCE);
+        if(pXmlTool == NULL) {
+            LOGW("Warning: xmltool not created");
+        }
+        else {
+            int actionMode = pXmlTool->getHex(FSL_PREFERENCE_KEEPRATE, SETTING_MODE_FULL_SCREEN);
+            LOGW("actionMode=0x%x", actionMode);
+            ConfigurableGraphicPlane& plane = (ConfigurableGraphicPlane&)graphicPlane(0);
+            plane.setKeepRate(actionMode);
+            delete pXmlTool;
+            pXmlTool = NULL;
+        }
     }
 #endif
     /*
