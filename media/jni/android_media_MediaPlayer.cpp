@@ -1,6 +1,7 @@
 /*
 **
 ** Copyright 2007, The Android Open Source Project
+** Copyright 2009-2012 Freescale Semiconductor, Inc.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-/* Copyright 2009-2011 Freescale Semiconductor Inc. */
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "MediaPlayer-JNI"
@@ -533,7 +533,7 @@ android_media_MediaPlayer_getFrameAt(JNIEnv *env, jobject thiz, jint msec)
 static jobject android_media_MediaPlayer_captureCurrentFrame(JNIEnv *env, jobject thiz)
 {
     LOGV("captureCurrentFrame");
-    
+
     sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -566,11 +566,11 @@ static jobject android_media_MediaPlayer_captureCurrentFrame(JNIEnv *env, jobjec
     {
        uint8_t *dst = (uint8_t*)bitmap->getPixels();
        uint8_t *src = (uint8_t*)videoFrame + sizeof(VideoFrame);
-       
-       for(int i=0; i<videoFrame->mDisplayHeight; i++)
+
+       for(int i=0; i<(int)videoFrame->mDisplayHeight; i++)
        {
            memcpy(dst, src, videoFrame->mDisplayWidth*2);//RGB565
-           
+
            src += (videoFrame->mWidth*2);
            dst += (videoFrame->mWidth*2);
        }
@@ -900,7 +900,7 @@ android_media_MediaPlayer_getParameter(JNIEnv *env, jobject thiz, jint key, jobj
     process_media_player_call(env, thiz, mp->getParameter(key, reply), NULL, NULL );
 }
 
-static void android_media_MediaPlayer_setPlaySpeed(JNIEnv *env,  jobject thiz, jint speed) 
+static void android_media_MediaPlayer_setPlaySpeed(JNIEnv *env,  jobject thiz, jint speed)
 {
     sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
