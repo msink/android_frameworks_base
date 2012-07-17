@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2010-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 
-/* Copyright 2010-2011 Freescale Semiconductor Inc. */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -84,6 +84,9 @@ const String16 sDump("android.permission.DUMP");
 
 SurfaceFlinger::SurfaceFlinger()
     :   BnSurfaceComposer(), Thread(false),
+#ifdef FSL_IMX_DISPLAY
+        mActivePlaneIndex(0),
+#endif
         mTransactionFlags(0),
         mTransationPending(false),
         mLayersRemoved(false),
@@ -105,7 +108,6 @@ SurfaceFlinger::SurfaceFlinger()
         mConsoleSignals(0),
 #ifdef FSL_IMX_DISPLAY
         mSecureFrameBuffer(0),
-        mActivePlaneIndex(0),
         mOverlayClear(false)
 #else
         mSecureFrameBuffer(0)
@@ -632,7 +634,7 @@ status_t SurfaceFlinger::configDisplay(configParam* param)
 		return BAD_VALUE;
 	    }
         case OPERATE_CODE_CHANGE:
-            if(plane.setConfigParam(*param)) { 
+            if(plane.setConfigParam(*param)) {
                 flags |= eDisplayEventNeeded;
                 setTransactionFlags(flags);
                 signalEvent();
@@ -778,7 +780,7 @@ status_t SurfaceFlinger::readyToRun()
 
 #ifdef FSL_IMX_DISPLAY
     /*
-    *get action mode from settings xml.  
+    *get action mode from settings xml.
     */
     if(hw.getDisplayType() == 1) {
         XmlTool *pXmlTool = new XmlTool(FSL_SETTINGS_PREFERENCE);
@@ -945,17 +947,17 @@ bool SurfaceFlinger::threadLoop()
                  // repaint the framebuffer (if needed)
                  const int index = hw.getCurrentBufferIndex();
                  GraphicLog& logger(GraphicLog::getInstance());
-    
+
                  logger.log(GraphicLog::SF_REPAINT, index);
                  handleRepaint();
-    
+
                  // call glFinish and postfb only when actual repaint is done
                  if (!mSwapRegion.isEmpty()) {
                      // inform the h/w that we're done compositing
                      logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
                      hw.compositionComplete();
                      // release the clients before we flip ('cause flip might block)
-    
+
                      logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
                              resizeSwapRegion();
                      if(plane.mClearPlane == 1) {
@@ -1456,10 +1458,10 @@ void SurfaceFlinger::handleWorkList()
                                sheight, xscaleRate, yscaleRate);
                     }
 
-                    if(k == 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1 && 
+                    if(k == 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1 &&
                        (xscaleRate != 0 || yscaleRate != 0 || keepRate == SETTING_MODE_KEEP_16_9_RATE
                         || keepRate == SETTING_MODE_KEEP_4_3_RATE)) {
-                        hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(), 
+                        hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(),
                                 graphicPlane(0).getHeight(), graphicPlane(0).getWidth(),
                                 graphicPlane(0).getHeight(), xscaleRate, yscaleRate);
                     }

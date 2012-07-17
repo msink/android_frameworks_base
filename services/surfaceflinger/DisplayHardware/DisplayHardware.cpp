@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2011-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 
-/* Copyright 2011 Freescale Semiconductor Inc. */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -79,7 +79,8 @@ DisplayHardware::DisplayHardware(
             const sp<SurfaceFlinger>& flinger,
             const configParam& param)
     : DisplayHardwareBase(flinger, param.displayId),
-      mFlinger(flinger), mFlags(0), mHwc(0), intialized(0)
+      intialized(0),
+      mFlinger(flinger), mFlags(0), mHwc(0)
 {
     mNativeWindow = new FramebufferNativeWindow(param);
     init(param.displayId);
@@ -106,7 +107,6 @@ DisplayHardware::DisplayHardware(
       intialized(0),
 #endif
       mFlinger(flinger), mFlags(0), mHwc(0)
-     
 {
 #ifdef FSL_IMX_DISPLAY
     mNativeWindow = new FramebufferNativeWindow();
@@ -222,7 +222,7 @@ void DisplayHardware::init(uint32_t dpy)
     EGLConfig config = NULL;
     err = selectConfigForPixelFormat(display, attribs, format, &config);
     LOGE_IF(err, "couldn't find an EGLConfig matching the screen format");
-    
+
     EGLint r,g,b,a;
     eglGetConfigAttrib(display, config, EGL_RED_SIZE,   &r);
     eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &g);
@@ -232,7 +232,7 @@ void DisplayHardware::init(uint32_t dpy)
     if (mNativeWindow->isUpdateOnDemand()) {
         mFlags |= PARTIAL_UPDATES;
     }
-    
+
     if (eglGetConfigAttrib(display, config, EGL_CONFIG_CAVEAT, &dummy) == EGL_TRUE) {
         if (dummy == EGL_SLOW_CONFIG)
             mFlags |= SLOW_CONFIG;
@@ -258,7 +258,7 @@ void DisplayHardware::init(uint32_t dpy)
             mFlags |= BUFFER_PRESERVED;
         }
     }
-    
+
     /* Read density from build-specific ro.sf.lcd_density property
      * except if it is overridden by qemu.sf.lcd_density.
      */
@@ -270,7 +270,7 @@ void DisplayHardware::init(uint32_t dpy)
             // the density low than 160. here use 120.
             if(mWidth < 600 || mHeight < 600)
                 strcpy(property, "120");
-            else 
+            else
                 strcpy(property, "160");
         }
     } else {
@@ -283,7 +283,7 @@ void DisplayHardware::init(uint32_t dpy)
     /*
      * Create our OpenGL ES context
      */
-    
+
 
     EGLint contextAttributes[] = {
 #ifdef EGL_IMG_context_priority
@@ -426,7 +426,7 @@ void DisplayHardware::flip(const Region& dirty) const
     EGLDisplay dpy = mDisplay;
     EGLSurface surface = mSurface;
 
-#ifdef EGL_ANDROID_swap_rectangle    
+#ifdef EGL_ANDROID_swap_rectangle
     if (mFlags & SWAP_RECTANGLE) {
         const Region newDirty(dirty.intersect(bounds()));
 #ifdef FSL_IMX_DISPLAY
@@ -443,13 +443,13 @@ void DisplayHardware::flip(const Region& dirty) const
 #endif
         eglSetSwapRectangleANDROID(dpy, surface,
                 b.left, b.top, b.width(), b.height());
-    } 
+    }
 #endif
-    
+
     if (mFlags & PARTIAL_UPDATES) {
         mNativeWindow->setUpdateRectangle(dirty.getBounds());
     }
-    
+
     mPageFlipCount++;
 
     if (mHwc->initCheck() == NO_ERROR) {
