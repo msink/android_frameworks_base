@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
+ * Copyright (C) 2009-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright 2009-2012 Freescale Semiconductor Inc. */
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "OMXCodec"
@@ -1418,7 +1418,7 @@ status_t OMXCodec::setVideoOutputFormat(
     CODEC_LOGV("setVideoOutputFormat width=%ld, height=%ld", width, height);
 
     OMX_VIDEO_CODINGTYPE compressionFormat = OMX_VIDEO_CodingUnused;
-    char *role = NULL;
+    const char *role = NULL;
     if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_AVC, mime)) {
         compressionFormat = OMX_VIDEO_CodingAVC;
         role = "video_decoder.avc";
@@ -1924,7 +1924,7 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
             color_fmt = HAL_PIXEL_FORMAT_YCbCr_422_P;
             break;
         default:
-            LOGE("Not supported color format %d by surface!");
+            LOGE("Not supported color format %d by surface!", def.format.video.eColorFormat);
             return UNKNOWN_ERROR;
     }
 
