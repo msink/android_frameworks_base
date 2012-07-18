@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 The Android Open Source Project
+ * Copyright 2010-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +79,7 @@ public class EthernetDataTracker implements NetworkStateTracker {
                 // use DHCP
                 if (up) {
                     mTracker.reconnect();
+                    mTracker.mNetworkInfo.setIsAvailable(true);
                 } else {
                     NetworkUtils.stopDhcp(mIface);
                     mTracker.mNetworkInfo.setIsAvailable(false);
