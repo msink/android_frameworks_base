@@ -41,6 +41,10 @@ ifeq ($(WITH_MALLOC_LEAK_CHECK),true)
     LOCAL_CFLAGS += -DMALLOC_LEAK_CHECK
 endif
 
+ifeq ($(USE_ATHR_GPS_HARDWARE),true)
+    LOCAL_CFLAGS += -DUSE_ATHR_GPS
+endif
+
 LOCAL_MODULE:= libandroid_servers
 
 include $(BUILD_SHARED_LIBRARY)

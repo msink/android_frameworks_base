@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (C) 2011-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +61,7 @@ import com.android.internal.app.IBatteryStats;
 import com.android.internal.location.GpsNetInitiatedHandler;
 import com.android.internal.location.GpsNetInitiatedHandler.GpsNiNotification;
 import com.android.internal.telephony.Phone;
+import com.android.internal.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -227,6 +229,9 @@ public class GpsLocationProvider implements LocationProviderInterface {
     // true if XTRA is supported
     private boolean mSupportsXtra;
 
+    // true if gps vendor is Atheros
+    private boolean mGpsFromAtheros;
+
     // for calculating time to first fix
     private long mFixRequestTime = 0;
     // time to first fix for most recent session
@@ -384,6 +389,12 @@ public class GpsLocationProvider implements LocationProviderInterface {
 
         mLocation.setExtras(mLocationExtras);
 
+	String gpsvendor = mContext.getResources().getString(com.android.internal.R.string.config_gpsVendor);
+	if (gpsvendor != null)
+	    mGpsFromAtheros = gpsvendor.equals("atheros");
+	else
+	    mGpsFromAtheros = false;
+
         // Create a wake lock
         PowerManager powerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_KEY);
@@ -414,34 +425,38 @@ public class GpsLocationProvider implements LocationProviderInterface {
         mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService("batteryinfo"));
 
         mProperties = new Properties();
-        try {
-            File file = new File(PROPERTIES_FILE);
-            FileInputStream stream = new FileInputStream(file);
-            mProperties.load(stream);
-            stream.close();
+	if (mGpsFromAtheros) {
+	    Log.w(TAG, "Atheros GPS don't read /etc/gps.conf");
+	} else {
+	    try {
+		File file = new File(PROPERTIES_FILE);
+		FileInputStream stream = new FileInputStream(file);
+		mProperties.load(stream);
+		stream.close();
 
-            mSuplServerHost = mProperties.getProperty("SUPL_HOST");
-            String portString = mProperties.getProperty("SUPL_PORT");
-            if (mSuplServerHost != null && portString != null) {
-                try {
-                    mSuplServerPort = Integer.parseInt(portString);
-                } catch (NumberFormatException e) {
-                    Log.e(TAG, "unable to parse SUPL_PORT: " + portString);
-                }
-            }
+		mSuplServerHost = mProperties.getProperty("SUPL_HOST");
+		String portString = mProperties.getProperty("SUPL_PORT");
+		if (mSuplServerHost != null && portString != null) {
+		    try {
+			mSuplServerPort = Integer.parseInt(portString);
+			} catch (NumberFormatException e) {
+		            Log.e(TAG, "unable to parse SUPL_PORT: " + portString);
+			}
+		}
 
-            mC2KServerHost = mProperties.getProperty("C2K_HOST");
-            portString = mProperties.getProperty("C2K_PORT");
-            if (mC2KServerHost != null && portString != null) {
-                try {
-                    mC2KServerPort = Integer.parseInt(portString);
-                } catch (NumberFormatException e) {
-                    Log.e(TAG, "unable to parse C2K_PORT: " + portString);
-                }
-            }
-        } catch (IOException e) {
-            Log.w(TAG, "Could not open GPS configuration file " + PROPERTIES_FILE);
-        }
+		mC2KServerHost = mProperties.getProperty("C2K_HOST");
+		portString = mProperties.getProperty("C2K_PORT");
+		if (mC2KServerHost != null && portString != null) {
+		    try {
+			mC2KServerPort = Integer.parseInt(portString);
+			} catch (NumberFormatException e) {
+			    Log.e(TAG, "unable to parse C2K_PORT: " + portString);
+			}
+		}
+	    } catch (IOException e) {
+		Log.w(TAG, "Could not open GPS configuration file " + PROPERTIES_FILE);
+	    }
+	}
 
         // wait until we are fully initialized before returning
         mThread = new GpsLocationProviderThread();
@@ -935,7 +950,15 @@ public class GpsLocationProvider implements LocationProviderInterface {
         } else {
             Log.w(TAG, "sendExtraCommand: unknown command " + command);
         }
-        
+	if (mGpsFromAtheros) {
+	    // for ATHR GPS $PUNV & OAP200 commands
+	    if (mSupportsXtra) {
+		Log.d(TAG, "sendExtraCommand command found");
+		return athrxtraDownloadRequest(command);
+	    }
+	    // end of ATHR commands
+	}
+
         Binder.restoreCallingIdentity(identity);
         return result;
     }
@@ -1322,6 +1345,19 @@ public class GpsLocationProvider implements LocationProviderInterface {
                 int length = native_read_nmea(mNmeaBuffer, mNmeaBuffer.length);
                 String nmea = new String(mNmeaBuffer, 0, length);
 
+		if (mGpsFromAtheros) {
+		    //ATHR: starting with OAP or #!GSMA
+		    if (((nmea.charAt(0) == 'O') && (nmea.charAt(1) == 'A')) ||
+			((nmea.charAt(0) == '#') && (nmea.charAt(1) == '!'))) {
+			for (int i = 0; i < length; i++) {
+			    if (((int)mNmeaBuffer[i] < 0) && (i < length-1)) {
+				int tmp = ((int)mNmeaBuffer[i] + 256);
+				nmea = nmea.substring(0, i) + (char)tmp + nmea.substring(i+1);
+			    }
+			}
+		    }
+                    // end of OAP or #!GSMA parsing
+                }
                 for (int i = 0; i < size; i++) {
                     Listener listener = mListeners.get(i);
                     try {
@@ -1355,6 +1391,15 @@ public class GpsLocationProvider implements LocationProviderInterface {
     private void xtraDownloadRequest() {
         if (DEBUG) Log.d(TAG, "xtraDownloadRequest");
         sendMessage(DOWNLOAD_XTRA_DATA, 0, null);
+    }
+
+    /**
+     * for ATHR GPS
+     */
+    private boolean athrxtraDownloadRequest(String cmd) {
+        Log.d(TAG, "athrxtraDownloadRequest - length: " + cmd.length());
+        native_inject_xtra_data(cmd.getBytes(), cmd.length());
+        return true;
     }
 
     //=============================================================

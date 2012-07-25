@@ -1,5 +1,7 @@
+
 /*
  * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (C) 2011-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -433,6 +435,18 @@ static jint android_location_GpsLocationProvider_read_nmea(JNIEnv* env, jobject 
     // this should only be called from within a call to reportNmea
     jbyte* nmea = (jbyte *)env->GetPrimitiveArrayCritical(nmeaArray, 0);
     int length = sNmeaStringLength;
+#ifdef USE_ATHR_GPS
+    char nmertarget;
+    nmertarget = *sNmeaString;
+    if (nmertarget == 'O' || nmertarget == '#')
+    {
+        int cnt;
+        /* 6-byte header + 1-byte type + 2-byte size + data +
+           1-byte '*' + 1-byte checksum + 1-byte '\0xd'
+        */
+        length = 12 + (*(sNmeaString+7)* 256 + *(sNmeaString+8));
+    }
+#endif
     if (length > buffer_size)
         length = buffer_size;
     memcpy(nmea, sNmeaString, length);
@@ -468,7 +482,35 @@ static void android_location_GpsLocationProvider_inject_xtra_data(JNIEnv* env, j
     }
 
     jbyte* bytes = (jbyte *)env->GetPrimitiveArrayCritical(data, 0);
+#ifdef USE_ATHR_GPS
+    jint len = env->GetArrayLength(data);
+    if (len == length) {
+        LOGD("Normal NMEA injection");
+        sGpsXtraInterface->inject_xtra_data((char *)bytes, length);
+    } else { /* binary data injection, eg. OAP200 commands */
+        char *result = 0;
+        int i = 0, cnt = 0;
+        result = (char *)malloc(length);
+        for (i=0; i<len; i++) {
+            /* chars larger than 0x80 */
+            if ((char)bytes[i] == (char)0xc2) {
+                i++;
+                result[cnt] = bytes[i];
+            } else if ((char)bytes[i] == (char)0xc3) {
+                i++;
+                result[cnt] = (bytes[i] | 0x40);
+            } else {
+                result[cnt] = bytes[i];
+            }
+            cnt++;
+        }
+        LOGD("End of binary data injection (%d -> %d)", len, length);
+        sGpsXtraInterface->inject_xtra_data(result, length);
+        free(result);
+    }
+#else
     sGpsXtraInterface->inject_xtra_data((char *)bytes, length);
+#endif
     env->ReleasePrimitiveArrayCritical(data, bytes, JNI_ABORT);
 }
 
