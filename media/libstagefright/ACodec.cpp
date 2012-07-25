@@ -488,8 +488,7 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
 
     err = native_window_set_usage(
             mNativeWindow.get(),
-            GRALLOC_USAGE_SW_READ_NEVER /*| GRALLOC_USAGE_SW_WRITE_OFTEN*/| GRALLOC_USAGE_HW_TEXTURE);
-           // usage | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_EXTERNAL_DISP);
+            GRALLOC_USAGE_SW_READ_NEVER | GRALLOC_USAGE_FORCE_CONTIGUOUS | GRALLOC_USAGE_HW_TEXTURE);
 
     if (err != 0) {
         LOGE("native_window_set_usage failed: %s (%d)", strerror(-err), -err);
