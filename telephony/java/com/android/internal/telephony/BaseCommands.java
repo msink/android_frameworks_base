@@ -737,7 +737,10 @@ public abstract class BaseCommands implements CommandsInterface {
 
             mRadioStateChangedRegistrants.notifyRegistrants();
 
-            if (mState.isAvailable() && !oldState.isAvailable()) {
+            //There is possible that fast state change on avaiable -> not available state
+            //further at cmd for mAvailReistrans failed due to state in not available state
+            if ((mState.isAvailable() && !oldState.isAvailable() ||
+                (mState.isOn() && !oldState.isOn()) )) {
                 Log.d(LOG_TAG,"Notifying: radio available");
                 mAvailRegistrants.notifyRegistrants();
                 onRadioAvailable();
