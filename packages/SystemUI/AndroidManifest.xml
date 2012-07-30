@@ -15,6 +15,7 @@
         android:persistent="true"
         android:allowClearUserData="false"
         android:allowBackup="false"
+        android:largeHeap="true"
         android:hardwareAccelerated="true"
         android:label="@string/app_label"
         android:icon="@drawable/ic_launcher_settings">
