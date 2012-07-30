@@ -388,8 +388,13 @@ public class GpsLocationProvider implements LocationProviderInterface {
         mNIHandler = new GpsNetInitiatedHandler(context);
 
         mLocation.setExtras(mLocationExtras);
-
-	String gpsvendor = mContext.getResources().getString(com.android.internal.R.string.config_gpsVendor);
+	String gpsvendor;
+	try {
+	    int resId = com.android.internal.R.string.class.getField("config_gpsVendor").getInt(null);
+	    gpsvendor = mContext.getResources().getString(resId);
+	} catch (Exception e) {
+	    gpsvendor = null;
+	}
 	if (gpsvendor != null)
 	    mGpsFromAtheros = gpsvendor.equals("atheros");
 	else
