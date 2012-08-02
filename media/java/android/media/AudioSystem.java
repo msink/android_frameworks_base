@@ -211,6 +211,7 @@ public class AudioSystem
     public static final int DEVICE_IN_BLUETOOTH_SCO_HEADSET = 0x200000;
     public static final int DEVICE_IN_WIRED_HEADSET = 0x400000;
     public static final int DEVICE_IN_AUX_DIGITAL = 0x800000;
+    public static final int DEVICE_IN_ANLG_DOCK_MIC = 0x1000000;
     public static final int DEVICE_IN_DEFAULT = 0x80000000;
 
     // device states, must match AudioSystem::device_connection_state

@@ -1999,6 +1999,21 @@ public class Intent implements Parcelable, Cloneable {
      * @hide
      */
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_USB_ANLG_MIC_PLUG =
+            "android.intent.action.USB_ANLG_MIC_PLUG";
+
+    /**
+     * Broadcast Action: An analog audio speaker/headset plugged in or unplugged.
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>name</em> - Headset type, human readable string </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_USB_ANLG_HEADSET_PLUG =
             "android.intent.action.USB_ANLG_HEADSET_PLUG";
 

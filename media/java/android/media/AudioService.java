@@ -369,6 +369,7 @@ public class AudioService extends IAudioService.Stub {
         intentFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         intentFilter.addAction(Intent.ACTION_DOCK_EVENT);
         intentFilter.addAction(Intent.ACTION_USB_ANLG_HEADSET_PLUG);
+        intentFilter.addAction(Intent.ACTION_USB_ANLG_MIC_PLUG);
         intentFilter.addAction(Intent.ACTION_USB_DGTL_HEADSET_PLUG);
         intentFilter.addAction(Intent.ACTION_HDMI_AUDIO_PLUG);
         intentFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
@@ -2577,6 +2578,27 @@ public class AudioService extends IAudioService.Stub {
                                                         "");
                         mConnectedDevices.put(
                                 new Integer(AudioSystem.DEVICE_OUT_ANLG_DOCK_HEADSET), "");
+                    }
+                }
+            } else if (action.equals(Intent.ACTION_USB_ANLG_MIC_PLUG)) {
+                int state = intent.getIntExtra("state", 0);
+                Log.v(TAG, "Broadcast Receiver: Got ACTION_USB_ANLG_MIC_PLUG, state = "+state);
+                synchronized (mConnectedDevices) {
+                    boolean isConnected =
+                        mConnectedDevices.containsKey(AudioSystem.DEVICE_IN_ANLG_DOCK_MIC);
+                    if (state == 0 && isConnected) {
+                        AudioSystem.setDeviceConnectionState(
+                                                        AudioSystem.DEVICE_IN_ANLG_DOCK_MIC,
+                                                        AudioSystem.DEVICE_STATE_UNAVAILABLE,
+                                                        "");
+                        mConnectedDevices.remove(AudioSystem.DEVICE_IN_ANLG_DOCK_MIC);
+                    } else if (state == 1 && !isConnected)  {
+                        AudioSystem.setDeviceConnectionState(
+                                                        AudioSystem.DEVICE_IN_ANLG_DOCK_MIC,
+                                                        AudioSystem.DEVICE_STATE_AVAILABLE,
+                                                        "");
+                        mConnectedDevices.put(
+                                new Integer(AudioSystem.DEVICE_IN_ANLG_DOCK_MIC), "");
                     }
                 }
             } else if (action.equals(Intent.ACTION_HDMI_AUDIO_PLUG)) {
