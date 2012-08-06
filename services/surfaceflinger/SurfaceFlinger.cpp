@@ -571,10 +571,11 @@ void SurfaceFlinger::resizeSwapRegion()
         int displayHeight = graphicPlane(mActivePlaneIndex).getHeight();
         int dw = displayWidth;
         int dh = displayHeight;
+        int orientation = graphicPlane(mActivePlaneIndex).getOrientation(); 
         Rect rect_t(mSwapRegion.getBounds());
         Rect *rect = &rect_t;
-        hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, dw, dh, displayWidth, displayHeight, &dw, &dh);
-        hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate);
+        hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, dw, dh, displayWidth, displayHeight, &dw, &dh, orientation);
+        hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate, orientation);
         mSwapRegion.set(rect_t);
         return;
     }
@@ -585,6 +586,7 @@ void SurfaceFlinger::resizeSwapRegion()
     int displayHeight = dh;
     int fw = graphicPlane(0).getWidth();
     int fh = graphicPlane(0).getHeight();
+    int orientation = graphicPlane(mActivePlaneIndex).getOrientation();
 
     Rect rect_t(mSwapRegion.getBounds());
     Rect *rect = &rect_t;
@@ -594,8 +596,8 @@ void SurfaceFlinger::resizeSwapRegion()
     int xscaleRate = plane.getXOverScan();
     int yscaleRate = plane.getYOverScan();
     int keepRate = plane.getKeepRate();
-    hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh);
-    hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate);
+    hwc.adjustDisplayParam((hwc_rect_t*)rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh, orientation);
+    hwc.adjustRectScale((hwc_rect_t*)rect, dw, dh, xscaleRate, yscaleRate, orientation);
     mSwapRegion.set(rect_t);
 }
 
@@ -1140,21 +1142,26 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
             // the orientation has changed, recompute all visible regions
             // and invalidate everything.
 
-            const int dpy = 0;
+            int dpy = 0;
             const int orientation = mCurrentState.orientation;
             // Currently unused: const uint32_t flags = mCurrentState.orientationFlags;
-            GraphicPlane& plane(graphicPlane(dpy));
-            plane.setOrientation(orientation);
+            for (int k=DISPLAY_COUNT-1; k>=0; k--) {
+                if(mServerCblk->connected & (1<<k)) {
+                    dpy = k;
+                    GraphicPlane& plane(graphicPlane(dpy));
+                    plane.setOrientation(orientation);
 
-            // update the shared control block
-            const DisplayHardware& hw(plane.displayHardware());
-            volatile display_cblk_t* dcblk = mServerCblk->displays + dpy;
-            dcblk->orientation = orientation;
-            dcblk->w = plane.getWidth();
-            dcblk->h = plane.getHeight();
-
+                    // update the shared control block
+                    const DisplayHardware& hw(plane.displayHardware());
+                    volatile display_cblk_t* dcblk = mServerCblk->displays + dpy;
+                    dcblk->orientation = orientation;
+                    dcblk->w = plane.getWidth();
+                    dcblk->h = plane.getHeight();
+                    if(k == 0)
+                        mDirtyRegion.set(hw.bounds());
+                }
+            }
             mVisibleRegionsDirty = true;
-            mDirtyRegion.set(hw.bounds());
         }
 
         if (currentLayers.size() > mDrawingState.layersSortedByZ.size()) {
@@ -1449,13 +1456,14 @@ void SurfaceFlinger::handleWorkList()
                     int xscaleRate = plane.getXOverScan();
                     int yscaleRate = plane.getYOverScan();
                     int keepRate = plane.getKeepRate();
+                    int orientation = graphicPlane(mActivePlaneIndex).getOrientation();
 
                     if(k != 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1) {
                         int swidth = graphicPlane(k).getWidth();
                         int sheight = graphicPlane(k).getHeight();
                         hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(),
                                graphicPlane(0).getHeight(), swidth,
-                               sheight, xscaleRate, yscaleRate);
+                               sheight, xscaleRate, yscaleRate, orientation);
                     }
 
                     if(k == 0 && ConfigurableGraphicPlane::mUpdateVisibleRegion == 1 &&
@@ -1463,7 +1471,7 @@ void SurfaceFlinger::handleWorkList()
                         || keepRate == SETTING_MODE_KEEP_4_3_RATE)) {
                         hwc.adjustGeometry(&cur[i], keepRate, graphicPlane(0).getWidth(),
                                 graphicPlane(0).getHeight(), graphicPlane(0).getWidth(),
-                                graphicPlane(0).getHeight(), xscaleRate, yscaleRate);
+                                graphicPlane(0).getHeight(), xscaleRate, yscaleRate, orientation);
                     }
 
 		    if (mDebugDisableHWC || mDebugRegion) {

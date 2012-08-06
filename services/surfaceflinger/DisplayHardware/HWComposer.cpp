@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 The Android Open Source Project
+ * Copyright (C) 2010-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +110,7 @@ void HWComposer::adjustRectParam(hwc_rect_t *rect, float rateW, float rateH, int
 }
 
 void HWComposer::adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultWidth, int defaultHeight,
-                         int displayWidth, int displayHeight, int* pdw, int* pdh)
+                         int displayWidth, int displayHeight, int* pdw, int* pdh, int orientation)
 {
     float rtw, rth;
     int dlw, dlh;
@@ -122,7 +123,7 @@ void HWComposer::adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultW
             break;
 
         case SETTING_MODE_KEEP_PRIMARY_RATE:
-            if(dw >= dh * defaultWidth/defaultHeight)
+            if((float)dw >= (float)dh * (float)defaultWidth/(float)defaultHeight)
                 dw = (int)((float)dh * (float)defaultWidth/(float)defaultHeight);
             else
                 dh = (int)((float)dw * (float)defaultHeight/(float)defaultWidth);
@@ -143,7 +144,7 @@ void HWComposer::adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultW
 
         default:
             LOGI("use the defualt keep proportion rate.");
-            if(dw >= dh * defaultWidth/defaultHeight)
+            if((float)dw >= (float)dh * (float)defaultWidth/(float)defaultHeight)
                 dw = (int)((float)dh * (float)defaultWidth/(float)defaultHeight);
             else
                 dh = (int)((float)dw * (float)defaultHeight/(float)defaultWidth);
@@ -156,10 +157,13 @@ void HWComposer::adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultW
     rth = (float)dh/(float)defaultHeight;
     dlw = displayWidth - dw;
     dlh = displayHeight - dh;
-    adjustRectParam(rect, rtw, rth, dlw, dlh);
+    if(orientation & 1)
+        adjustRectParam(rect, rth, rtw, dlh, dlw);
+    else
+        adjustRectParam(rect, rtw, rth, dlw, dlh);
 }
 
-void HWComposer::adjustRectScale(hwc_rect_t *rect, int dw, int dh, int xScale, int yScale)
+void HWComposer::adjustRectScale(hwc_rect_t *rect, int dw, int dh, int xScale, int yScale, int orientation)
 {
     if (xScale == 0 && yScale == 0)
         return;
@@ -171,11 +175,14 @@ void HWComposer::adjustRectScale(hwc_rect_t *rect, int dw, int dh, int xScale, i
     rth = (100.0 - (float)yScale)/100.0;
     dlw = (int)((float)dw * (float)xScale / 100.0);
     dlh = (int)((float)dh * (float)yScale / 100.0);
-    adjustRectParam(rect, rtw, rth, dlw, dlh);
+    if(orientation & 1)
+        adjustRectParam(rect, rth, rtw, dlh, dlw);
+    else
+        adjustRectParam(rect, rtw, rth, dlw, dlh);
 }
 
 void HWComposer::adjustGeometry(hwc_layer_t *layer, int keepRate, int defaultWidth, int defaultHeight,
-                         int displayWidth, int displayHeight, int xScale, int yScale)
+                         int displayWidth, int displayHeight, int xScale, int yScale, int orientation)
 {
     if(!mList)
         return;
@@ -185,8 +192,8 @@ void HWComposer::adjustGeometry(hwc_layer_t *layer, int keepRate, int defaultWid
     int fh = defaultHeight;
 
     hwc_rect_t *rect = &layer->displayFrame;
-    adjustDisplayParam(rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh);
-    adjustRectScale(rect, dw, dh, xScale, yScale);
+    adjustDisplayParam(rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh, orientation);
+    adjustRectScale(rect, dw, dh, xScale, yScale, orientation);
 
     size_t numRects = 0;
     hwc_rect_t *rects = NULL;
@@ -202,8 +209,8 @@ void HWComposer::adjustGeometry(hwc_layer_t *layer, int keepRate, int defaultWid
 
     for(size_t m=0; m<layer->visibleRegionScreen.numRects; m++) {
         rect = (hwc_rect_t *)layer->visibleRegionScreen.rects + m;
-        adjustDisplayParam(rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh);
-        adjustRectScale(rect, dw, dh, xScale, yScale);
+        adjustDisplayParam(rect, keepRate, fw, fh, displayWidth, displayHeight, &dw, &dh, orientation);
+        adjustRectScale(rect, dw, dh, xScale, yScale, orientation);
     }
 }
 
