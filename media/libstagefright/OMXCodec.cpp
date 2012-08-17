@@ -3042,11 +3042,16 @@ bool OMXCodec::flushPortAsync(OMX_U32 portIndex) {
         return false;
     }
 
-    status_t err =
-        mOMX->sendCommand(mNode, OMX_CommandFlush, portIndex);
-    CHECK_EQ(err, (status_t)OK);
+	status_t err = UNKNOWN_ERROR;
+	OMX_U32 nCnt = 0;
+	while (err != OK) {
+		err = mOMX->sendCommand(mNode, OMX_CommandFlush, portIndex);
+		if (nCnt ++ == 100)
+			break;
 
-    usleep(50000);
+		usleep(10000);
+	}
+	CHECK_EQ(err, (status_t)OK);
 
     return true;
 }
