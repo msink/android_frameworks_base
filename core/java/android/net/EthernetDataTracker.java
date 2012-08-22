@@ -75,22 +75,13 @@ public class EthernetDataTracker implements NetworkStateTracker {
             if (mIface.equals(iface) && mLinkUp != up) {
                 Log.d(TAG, "Interface " + iface + " link " + (up ? "up" : "down"));
                 mLinkUp = up;
+		mTracker.mNetworkInfo.setIsAvailable(up);
 
                 // use DHCP
                 if (up) {
                     mTracker.reconnect();
-                    mTracker.mNetworkInfo.setIsAvailable(true);
                 } else {
-                    NetworkUtils.stopDhcp(mIface);
-                    mTracker.mNetworkInfo.setIsAvailable(false);
-                    mTracker.mNetworkInfo.setDetailedState(DetailedState.DISCONNECTED,
-                                                           null, null);
-		    mTracker.mLinkProperties.clear();
-		    Log.d(TAG, "trigger event change for " + iface);
-		    Message msg = mTracker.mCsHandler.obtainMessage(EVENT_CONFIGURATION_CHANGED, mTracker.mNetworkInfo);
-		    msg.sendToTarget();
-		    msg = mTracker.mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mTracker.mNetworkInfo);
-		    msg.sendToTarget();
+                    mTracker.disconnect();
 		}
             }
         }
@@ -137,11 +128,7 @@ public class EthernetDataTracker implements NetworkStateTracker {
         runDhcp();
     }
 
-    private void interfaceRemoved(String iface) {
-        if (!iface.equals(mIface))
-            return;
-
-        Log.d(TAG, "Removing " + iface);
+    private void disconnect() {
 
         NetworkUtils.stopDhcp(mIface);
 
@@ -154,7 +141,21 @@ public class EthernetDataTracker implements NetworkStateTracker {
 
         msg = mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
         msg.sendToTarget();
+	IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
+	INetworkManagementService service = INetworkManagementService.Stub.asInterface(b);
+	try {
+	    service.clearInterfaceAddresses(mIface);
+	} catch (Exception e) {
+	    Log.e(TAG, "Failed to clear addresses or disable ip" + e);
+	}
+    }
 
+    private void interfaceRemoved(String iface) {
+	if (!iface.equals(mIface))
+            return;
+
+        Log.d(TAG, "Removing " + iface);
+	disconnect();
         mIface = "";
     }
 
