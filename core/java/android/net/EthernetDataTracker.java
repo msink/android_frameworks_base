@@ -25,6 +25,7 @@ import android.os.INetworkManagementService;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.util.Log;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,6 +47,7 @@ public class EthernetDataTracker implements NetworkStateTracker {
     private AtomicBoolean mDefaultRouteSet = new AtomicBoolean(false);
 
     private static boolean mLinkUp;
+    private static boolean mClearIp;
     private LinkProperties mLinkProperties;
     private LinkCapabilities mLinkCapabilities;
     private NetworkInfo mNetworkInfo;
@@ -75,7 +77,8 @@ public class EthernetDataTracker implements NetworkStateTracker {
             if (mIface.equals(iface) && mLinkUp != up) {
                 Log.d(TAG, "Interface " + iface + " link " + (up ? "up" : "down"));
                 mLinkUp = up;
-		mTracker.mNetworkInfo.setIsAvailable(up);
+                mTracker.mNetworkInfo.setIsAvailable(up);
+                mClearIp = (SystemProperties.get("ethernet.clear.ip", "yes")).equals("yes");
 
                 // use DHCP
                 if (up) {
@@ -141,12 +144,14 @@ public class EthernetDataTracker implements NetworkStateTracker {
 
         msg = mCsHandler.obtainMessage(EVENT_STATE_CHANGED, mNetworkInfo);
         msg.sendToTarget();
-	IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
-	INetworkManagementService service = INetworkManagementService.Stub.asInterface(b);
-	try {
-	    service.clearInterfaceAddresses(mIface);
-	} catch (Exception e) {
-	    Log.e(TAG, "Failed to clear addresses or disable ip" + e);
+	if (mClearIp){
+	    IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
+	    INetworkManagementService service = INetworkManagementService.Stub.asInterface(b);
+	    try {
+                service.clearInterfaceAddresses(mIface);
+	    } catch (Exception e) {
+		Log.e(TAG, "Failed to clear addresses or disable ip" + e);
+	    }
 	}
     }
 
