@@ -472,7 +472,6 @@ private:
    volatile     int32_t                     mSecureFrameBuffer;
 #ifdef FSL_IMX_DISPLAY
    int                                      mTopOrientation;
-   bool                                     mOverlayClear;
 #endif
 
 };

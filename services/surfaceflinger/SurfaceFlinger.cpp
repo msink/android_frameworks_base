@@ -106,12 +106,7 @@ SurfaceFlinger::SurfaceFlinger()
         mLastTransactionTime(0),
         mBootFinished(false),
         mConsoleSignals(0),
-#ifdef FSL_IMX_DISPLAY
-        mSecureFrameBuffer(0),
-        mOverlayClear(false)
-#else
         mSecureFrameBuffer(0)
-#endif
 {
     init();
 }
@@ -1378,7 +1373,6 @@ void SurfaceFlinger::handlePageFlip()
         const Region screenRegion(hw.bounds());
         if (visibleRegions) {
 #ifdef FSL_IMX_DISPLAY
-            mOverlayClear = true;
             ConfigurableGraphicPlane::mUpdateVisibleRegion = 1;
 #endif
             Region opaqueRegion;
@@ -1696,16 +1690,6 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
     size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
         if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
-#ifdef FSL_IMX_DISPLAY
-            if(mOverlayClear) {
-                mOverlayClear = false;
-                const sp<LayerBase>& layer(layers[i]);
-                const Region clip(dirty.intersect(layer->visibleRegionScreen));
-                if (!clip.isEmpty()) {
-                    layer->clearWithOpenGL(clip);
-                }
-            }
-#endif
             continue;
         }
         const sp<LayerBase>& layer(layers[i]);
@@ -1715,9 +1699,6 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
             mTopOrientation = layer->getOrientation();
 #endif
             layer->draw(clip);
-#ifdef FSL_IMX_DISPLAY
-            mOverlayClear = true;
-#endif
         }
     }
 }
