@@ -123,8 +123,8 @@ class HTML5VideoViewProxy extends Handler
                             playerState);
                     if (playerState >= HTML5VideoView.STATE_PREPARED
                             && !foundInTree) {
-                        mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
-                        mHTML5VideoView.deleteSurfaceTexture();
+                        //mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
+                        //mHTML5VideoView.deleteSurfaceTexture();
                     }
                 }
             }
