@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright 2012 Freescale Semiconductor, Inc. */
+/* Copyright (C) 2012 Freescale Semiconductor, Inc. */
 
 package com.android.server;
 
@@ -93,7 +93,6 @@ class DisplayManagerService extends IDisplayManager.Stub {
     private static final boolean DISPLAY_MIRROR_DEFAULT = true;
     private static final int DISPLAY_OVERSCAN_DEFAULT = 0;
     private static final String DISPLAY_KEEPRATE_DEFAULT = "1000";
-    private static final String DISPLAY_COLORDEPTH_DEFAULT = "32";
     private static final String DISPLAY_MODE_DEFAULT = "keepHighestMode";
     /**
      * Name representing {@link #setGlobalAlert(long)} limit when delivered to
@@ -208,9 +207,34 @@ class DisplayManagerService extends IDisplayManager.Stub {
             String keepRate = mSettings.getString(makeDisplayKey("keeprate", this), DISPLAY_KEEPRATE_DEFAULT);
             mKeepRate = Integer.parseInt(keepRate, 16);
 
-            String colorDepth = mSettings.getString(makeDisplayKey("colordepth", this), DISPLAY_COLORDEPTH_DEFAULT);
-            if(colorDepth != null)
+            String colorDepth = mSettings.getString(makeDisplayKey("colordepth", this), null);
+            if(colorDepth != null) {
                 mColorDepth = Integer.parseInt(colorDepth);
+            } else {
+                String filePath = "/sys/class/graphics/fb" + mFbid + "/bits_per_pixel";
+		File colordepthFile = new File(filePath);
+		char[] buffer2 = new char[1024];
+
+		if(colordepthFile.exists()) {
+		    try {
+			FileReader file2 = new FileReader(colordepthFile);
+			int len = file2.read(buffer2, 0 , 1024);
+			file2.close();
+		    } catch (FileNotFoundException e) {
+			Log.w(TAG, "file not find");
+		    } catch (Exception e) {
+			Log.e(TAG, "" , e);
+		    }
+
+		    String colorDepth2 = new String(buffer2);
+		    String[] itokens = colorDepth2.split("\n");
+		    if (DBG) Log.w(TAG, "mColordepth:" + itokens[0]);
+		    mColorDepth = Integer.parseInt(itokens[0]);
+                }
+                else {
+                    mColorDepth = 32;
+                }
+            }
 
             mCurrentMode = mSettings.getString(makeDisplayKey("mode", this), DISPLAY_MODE_DEFAULT);
             Log.w(TAG,"mCurrentMode " + mFbid + " " + mCurrentMode + " keepRate:" + mKeepRate);
