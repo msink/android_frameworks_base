@@ -4074,6 +4074,13 @@ status_t OMXCodec::read(
 
     while (mState != ERROR && !mNoMoreOutputData && mFilledBuffers.empty()) {
         if ((err = waitForBufferFilled_l()) != OK) {
+#if 1  //FIXME: workaround for sync issue
+            if(0==mFilledBuffers.empty())
+            {
+                CODEC_LOGE("%s: %d: wait timeout, but buffer not empty !",__FUNCTION__,__LINE__);
+            }
+            else
+#endif
             return err;
         }
     }
