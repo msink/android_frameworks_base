@@ -39,6 +39,7 @@
 #include "InputReader.h"
 
 #include <cutils/log.h>
+#include <cutils/properties.h>
 #include <ui/Keyboard.h>
 #include <ui/VirtualKeyMap.h>
 
@@ -2696,6 +2697,20 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
     } else {
         mPointerController.clear();
     }
+
+     char  hwrotBuf[PROPERTY_VALUE_MAX];
+     int32_t hwrotation;
+     property_get("ro.sf.hwrotation", hwrotBuf, "0");
+     hwrotation = atoi(hwrotBuf) / 90;
+     orientation = (orientation + hwrotation ) % 4;
+
+     if (hwrotation == DISPLAY_ORIENTATION_90 ||
+         hwrotation == DISPLAY_ORIENTATION_270) {
+             int tmp = width;
+             width = height;
+             height = tmp;
+     }
+
 
     bool orientationChanged = mSurfaceOrientation != orientation;
     if (orientationChanged) {
