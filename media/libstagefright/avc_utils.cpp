@@ -351,6 +351,29 @@ bool IsAVCReferenceFrame(const sp<ABuffer> &accessUnit) {
     return true;
 }
 
+bool IsAVCSPS(const sp<ABuffer> &accessUnit, int32_t &width,  int32_t  &height)
+{
+    size_t size = accessUnit->size();
+    if( size ==0)
+    {
+        return false;
+    }
+    const uint8_t *data = accessUnit->data();
+    if(data == NULL || size ==0)
+    {
+        return false;
+    }
+
+    sp<ABuffer> seqParamSet = FindNAL(data, size, 7, NULL);
+    if (seqParamSet == NULL) {
+        return false;
+    }
+
+    LOGV("IsAVCSPS - find AVC dimension \n");
+    FindAVCDimensions(seqParamSet, &width, &height);
+    return true;
+}
+
 sp<MetaData> MakeAACCodecSpecificData(
         unsigned profile, unsigned sampling_freq_index,
         unsigned channel_configuration) {

@@ -29,6 +29,7 @@ namespace android {
 struct ACodec;
 struct MetaData;
 struct NuPlayerDriver;
+struct ABuffer;
 
 struct NuPlayer : public AHandler {
     NuPlayer();
@@ -126,6 +127,10 @@ private:
 
     int64_t mVideoLateByUs;
     int64_t mNumFramesTotal, mNumFramesDropped;
+
+    bool mResolutionChanged;
+    bool mDiscontinuity;
+    sp<ABuffer> mSPSBuffer;
 
     status_t instantiateDecoder(bool audio, sp<Decoder> *decoder);
 

@@ -51,6 +51,7 @@ sp<MetaData> MakeAVCCodecSpecificData(const sp<ABuffer> &accessUnit);
 
 bool IsIDR(const sp<ABuffer> &accessUnit);
 bool IsAVCReferenceFrame(const sp<ABuffer> &accessUnit);
+bool IsAVCSPS(const sp<ABuffer> &accessUnit, int32_t &width,  int32_t &height);
 
 const char *AVCProfileToString(uint8_t profile);
 

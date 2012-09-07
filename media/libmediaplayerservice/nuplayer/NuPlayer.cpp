@@ -63,7 +63,9 @@ NuPlayer::NuPlayer()
       mSkipRenderingVideoUntilMediaTimeUs(-1ll),
       mVideoLateByUs(0ll),
       mNumFramesTotal(0ll),
-      mNumFramesDropped(0ll) {
+      mNumFramesDropped(0ll),
+      mResolutionChanged(false),
+      mDiscontinuity(false){
 }
 
 NuPlayer::~NuPlayer() {
@@ -671,6 +673,17 @@ status_t NuPlayer::feedDecoderInputData(bool audio, const sp<AMessage> &msg) {
     sp<ABuffer> accessUnit;
 
     bool dropAccessUnit;
+
+    if(mResolutionChanged && !audio && mVideoIsAVC)
+    {
+        LOGV("Send empty buffer to trigger flash re-create external player pipeline after a resolution change\n");
+        reply->setObject("buffer", mSPSBuffer);
+        reply->post();
+        mResolutionChanged = false;
+        mDiscontinuity =false;
+        return OK;
+    }
+   
     do {
         status_t err = mSource->dequeueAccessUnit(audio, &accessUnit);
 
@@ -722,6 +735,7 @@ status_t NuPlayer::feedDecoderInputData(bool audio, const sp<AMessage> &msg) {
                 mTimeDiscontinuityPending =
                     mTimeDiscontinuityPending || timeChange;
 
+		   if(timeChange) mDiscontinuity = true;
                 if (formatChange || timeChange) {
                     flushDecoder(audio, formatChange);
                 } else {
@@ -742,6 +756,35 @@ status_t NuPlayer::feedDecoderInputData(bool audio, const sp<AMessage> &msg) {
             reply->setInt32("err", err);
             reply->post();
             return OK;
+        }
+
+        // Check for SPS/PPS headers after a flush in case a resolution change occurs
+        if(!audio && mVideoIsAVC && mDiscontinuity)
+        {
+            int32_t  width, height;
+            static  int32_t count = 0;
+            if(count <15)
+            {
+                if(IsAVCSPS(accessUnit, width, height))
+                {
+                    LOGV("New sps/pps video width and height has changed  %d, %d \n", width, height);
+                    mResolutionChanged = true;
+                    mRenderer->flush(audio);
+                    mFlushingVideo = FLUSHING_DECODER;
+                    mVideoDecoder->signalFlush();
+                    mFlushingAudio = FLUSHING_DECODER;
+                    mAudioDecoder->signalFlush();
+                    reply->setInt32("err", INFO_DISCONTINUITY);
+                    reply->post();
+                    mDiscontinuity = false;
+                    count = 0;
+                    return OK;
+                }
+                else count++;
+            } else {
+                mDiscontinuity = false;
+                count = 0;
+            }
         }
 
         if (!audio) {
