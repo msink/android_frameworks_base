@@ -1500,7 +1500,11 @@ void SurfaceFlinger::handleRepaint()
     // compute the invalid region
     mSwapRegion.orSelf(mDirtyRegion);
 
+#ifdef FSL_IMX_DISPLAY
+    if (UNLIKELY(mDebugRegion) && mActivePlaneIndex == 0) {
+#else
     if (UNLIKELY(mDebugRegion)) {
+#endif
         debugFlashRegions();
     }
 
