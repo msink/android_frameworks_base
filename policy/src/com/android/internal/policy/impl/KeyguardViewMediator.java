@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright 2009-2012 Freescale Semiconductor, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* Copyright 2009-2011 Freescale Semiconductor Inc. */
 
 package com.android.internal.policy.impl;
 
@@ -404,7 +404,6 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
                     doKeyguardLocked();
                 } else {
                     // Lock in the future
-                    /*
                     long when = SystemClock.elapsedRealtime() + timeout;
                     Intent intent = new Intent(DELAYED_KEYGUARD_ACTION);
                     intent.putExtra("seq", mDelayedShowingSequence);
@@ -413,8 +412,6 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
                     mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, when, sender);
                     if (DEBUG) Log.d(TAG, "setting alarm to turn off keyguard, seq = "
                                      + mDelayedShowingSequence);
-                    */
-                    doKeyguardLocked();
                 }
             } else if (why == WindowManagerPolicy.OFF_BECAUSE_OF_PROX_SENSOR) {
                 // Do not enable the keyguard if the prox sensor forced the screen off.
