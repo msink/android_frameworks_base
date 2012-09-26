@@ -68,6 +68,8 @@
 #include "TestPlayerStub.h"
 #include "StagefrightPlayer.h"
 #include "nuplayer/NuPlayerDriver.h"
+#include <drm/DrmManagerClient.h>
+
 #ifdef FSL_GM_PLAYER
 #include <media/OMXPlayer.h>
 #include <media/OMXFastPlayer.h>
@@ -630,12 +632,41 @@ player_type getPlayerType(const char* url)
         return TEST_PLAYER;
     }
 
-    if (!strncasecmp("widevine://", url, 11))
-        return STAGEFRIGHT_PLAYER;
+	if (!strncasecmp("widevine://", url, 11))
+		return STAGEFRIGHT_PLAYER;
+
+	char value[PROPERTY_VALUE_MAX];
+	if (property_get("drm.service.enabled", value, NULL)
+			&& (!strcmp(value, "1") || !strcasecmp(value, "true"))) {
+		if (!strncasecmp("http://", url, 7)) {
+
+			sp<DecryptHandle> mDecryptHandle = NULL;
+			DrmManagerClient *mDrmManagerClient = NULL;
+			if (mDrmManagerClient == NULL) {
+				mDrmManagerClient = new DrmManagerClient();
+			}
+			if (mDrmManagerClient == NULL) {
+				return STAGEFRIGHT_PLAYER;
+			}
+			if (mDecryptHandle == NULL) {
+				mDecryptHandle = mDrmManagerClient->openDecryptSession(
+						String8(url));
+			}
+			if (mDecryptHandle != NULL) {
+				// To release mDecryptHandle
+				mDrmManagerClient->closeDecryptSession(mDecryptHandle);
+				mDecryptHandle = NULL;
+				if (mDrmManagerClient != NULL) {
+					delete mDrmManagerClient;
+					mDrmManagerClient = NULL;
+				}
+				return STAGEFRIGHT_PLAYER;
+			}
+		}
+	}
 
 #ifdef FSL_GM_PLAYER
     int lenURL = strlen(url);
-    char value[PROPERTY_VALUE_MAX];
     if (property_get("media.omxgm.enable-player", value, NULL) && (!strcmp(value, "1"))) {
         if (!strncasecmp(url, "http://", 7) || !strncasecmp(url, "rtsp://", 7))
             return OMX_PLAYER;

@@ -33,6 +33,7 @@ LOCAL_SHARED_LIBRARIES :=     		\
 	libstagefright_foundation               \
 	libsurfaceflinger_client                \
 	libgui                                  \
+	libdrmframework  \
 
 ifeq ($(HAVE_FSL_IMX_CODEC),true)
 LOCAL_SHARED_LIBRARIES +=                       \
