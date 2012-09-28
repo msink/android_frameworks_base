@@ -2702,13 +2702,13 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
      int32_t hwrotation;
      property_get("ro.sf.hwrotation", hwrotBuf, "0");
      hwrotation = atoi(hwrotBuf) / 90;
-     orientation = (orientation + hwrotation ) % 4;
 
      if (hwrotation == DISPLAY_ORIENTATION_90 ||
          hwrotation == DISPLAY_ORIENTATION_270) {
              int tmp = width;
              width = height;
              height = tmp;
+             orientation = (orientation + hwrotation ) % 4;
      }
 
 
