@@ -235,7 +235,9 @@ extmap OMX_PLAYER_FILE_EXTS [] =  {
         {".divx", OMX_PLAYER},
         {".m4v", OMX_PLAYER},        
         //{".ogg", OMX_PLAYER},   
-        {".out", OMX_PLAYER},   
+        {".out", OMX_PLAYER},
+        {".amr", OMX_PLAYER},
+        {".awb", OMX_PLAYER},
 #ifdef MX6X
         {".webm", OMX_PLAYER},   
 #endif
