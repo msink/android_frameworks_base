@@ -165,6 +165,9 @@ class ServerThread extends Thread {
             Slog.i(TAG, "System Content Providers");
             ActivityManagerService.installSystemProviders();
 
+            Slog.i(TAG, "EPD Service");
+            ServiceManager.addService(Context.EPD_SERVICE, new EpdService(context));
+
             Slog.i(TAG, "Battery Service");
             battery = new BatteryService(context);
             ServiceManager.addService("battery", battery);

@@ -1560,6 +1560,8 @@ public abstract class Context {
 
     public static final String ETHERNET_SERVICE = "ethernet";
 
+    public static final String EPD_SERVICE = "epd";
+
     /**
      * Determine whether the given permission is allowed for a particular
      * process and user ID running in the system.
