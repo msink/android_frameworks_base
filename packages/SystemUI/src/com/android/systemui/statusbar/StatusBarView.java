@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.ServiceManager;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -32,12 +33,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.systemui.R;
 
-public class StatusBarView extends FrameLayout {
+public class StatusBarView extends RelativeLayout {
     private static final String TAG = "StatusBarView";
 
     static final int DIM_ANIM_TIME = 400;
@@ -56,9 +57,14 @@ public class StatusBarView extends FrameLayout {
     TextView mbut_menu;
     TextView mbut_add;
     TextView mbut_sub;
+    TextView mbut_left;
+    TextView mbut_right;
 
     boolean is_down = false;
     final private int ADJUST_VOLUME_DELAY = 250;
+
+    final IWindowManager windowManager = IWindowManager.Stub
+               .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
 
     public StatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -71,17 +77,32 @@ public class StatusBarView extends FrameLayout {
         super.onFinishInflate();
         mNotificationIcons = (ViewGroup)findViewById(R.id.notificationIcons);
         mStatusIcons = (ViewGroup)findViewById(R.id.statusIcons);
-        mDate = findViewById(R.id.date);
-
-        mBackground = new FixedSizeDrawable(mDate.getBackground());
-        mBackground.setFixedBounds(0, 0, 0, 0);
-        mDate.setBackgroundDrawable(mBackground);
 
         mbut_home = (TextView) findViewById(R.id.status_bar_home);
         mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
         mbut_bac = (TextView) findViewById(R.id.status_bar_back);
         mbut_add = (TextView) findViewById(R.id.status_bar_add);
         mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
+        mbut_left = (TextView) findViewById(R.id.status_bar_left);
+        mbut_right = (TextView) findViewById(R.id.status_bar_right);
+
+        mbut_left.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    windowManager.setRotation(-1, false, 0);
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        mbut_right.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    windowManager.setRotation(-2, false, 0);
+                } catch (Exception e) {
+                }
+            }
+        });
 
         mbut_home.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
@@ -201,10 +222,23 @@ public class StatusBarView extends FrameLayout {
         }
     };
 
+    private Handler removerButtonHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            is_down = false;
+            msubHandler.removeCallbacks(msubRun);
+            mbut_sub.setBackgroundResource(R.drawable.sub_normal);
+            maddHandler.removeCallbacks (maddRun);
+            mbut_add.setBackgroundResource(R.drawable.add_normal);
+        }
+    };
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mService.onBarViewAttached();
+
+        requestUnion(this);
     }
     
     @Override
@@ -217,31 +251,6 @@ public class StatusBarView extends FrameLayout {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         b = 40;
         super.onLayout(changed, l, t, r, b);
-
-        // put the date date view quantized to the icons
-        int oldDateRight = mDate.getRight();
-        int newDateRight;
-
-        newDateRight = getDateSize(mNotificationIcons, oldDateRight,
-                getViewOffset(mNotificationIcons));
-        if (newDateRight < 0) {
-            int offset = getViewOffset(mStatusIcons);
-            if (oldDateRight < offset) {
-                newDateRight = oldDateRight;
-            } else {
-                newDateRight = getDateSize(mStatusIcons, oldDateRight, offset);
-                if (newDateRight < 0) {
-                    newDateRight = r;
-                }
-            }
-        }
-        int max = r - getPaddingRight();
-        if (newDateRight > max) {
-            newDateRight = max;
-        }
-
-        mDate.layout(mDate.getLeft(), mDate.getTop(), newDateRight, mDate.getBottom());
-        mBackground.setFixedBounds(-mDate.getLeft(), -mDate.getTop(), (r-l), (b-t));
     }
 
     /**
@@ -275,6 +284,14 @@ public class StatusBarView extends FrameLayout {
         return -1;
     }
 
+    private boolean inTouchButtonArea(android.view.MotionEvent event) {
+         int left = findViewById(R.id.button_layout_Home).getRight();
+         int right = findViewById(R.id.button_layout).getLeft();
+         float x = event.getX();
+         int EXTRA = 5;
+         return (x < (left + 5)) || (x > (right - 5));
+    }
+
     /**
      * Ensure that, if there is no target under us to receive the touch,
      * that we process it ourself.  This makes sure that onInterceptTouchEvent()
@@ -282,7 +299,7 @@ public class StatusBarView extends FrameLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (is_touch_button) {
+        if (!is_touch_button) {
             mService.interceptTouchEvent(event);
         }
         return true;
@@ -290,6 +307,11 @@ public class StatusBarView extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
+        removerButtonHandler.removeMessages(0);
+        removerButtonHandler.sendEmptyMessageDelayed(0, 500);
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            is_touch_button = inTouchButtonArea(event);
+        }
         return super.onInterceptTouchEvent(event);
     }
 

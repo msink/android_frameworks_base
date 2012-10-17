@@ -22,6 +22,7 @@
     android:orientation="vertical"
     android:focusable="true"
     android:descendantFocusability="afterDescendants"
+    android:background="@drawable/item_bg"
     >
 
     <LinearLayout
@@ -34,21 +35,20 @@
         android:background="@drawable/title_bar_portrait"
         >
         <com.android.systemui.statusbar.CarrierLabel
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginTop="1dp"
-            android:layout_marginLeft="5dp"
-            android:layout_gravity="center_vertical"
-            android:paddingBottom="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_gravity="left"
             android:paddingLeft="4dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="#ffdfdfdf"
+            android:textColor="#ff000000"
+            android:singleLine="true"
             />
         <TextView android:id="@+id/clear_all_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="center"
+            android:layout_marginLeft="300dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="1dp"
             android:textSize="14sp"
@@ -59,8 +59,19 @@
             android:paddingRight="15dp"
             android:background="@android:drawable/btn_default_small"
             />
+        <com.android.systemui.statusbar.DateView android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_alignParentRight="true"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingLeft="6px"
+            android:paddingRight="6px"
+            android:gravity="center"
+            android:singleLine="true"
+            />
     </LinearLayout>
-
     <FrameLayout
         android:layout_width="match_parent" 
         android:layout_height="wrap_content"
@@ -69,7 +80,7 @@
         <ScrollView
             android:id="@+id/scroll"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:fadingEdge="none"
             android:overScrollMode="ifContentScrolls"
             >
@@ -86,6 +97,7 @@
                     android:background="@drawable/shade_bgcolor"
                     android:paddingLeft="5dp"
                     android:textAppearance="@style/TextAppearance.StatusBar.Title"
+                    android:textColor="#fff"
                     android:text="@string/status_bar_no_notifications_title"
                     />
 
@@ -95,6 +107,7 @@
                     android:background="@drawable/shade_bgcolor"
                     android:paddingLeft="5dp"
                     android:textAppearance="@style/TextAppearance.StatusBar.Title"
+                    android:textColor="#fff"
                     android:text="@string/status_bar_ongoing_events_title"
                     />
                 <LinearLayout android:id="@+id/ongoingItems"
@@ -118,13 +131,6 @@
                     />
             </com.android.systemui.statusbar.NotificationLinearLayout>
         </ScrollView>
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/title_bar_shadow"
-            android:scaleType="fitXY"
-        />
 
     </FrameLayout>
 </com.android.systemui.statusbar.ExpandedView>

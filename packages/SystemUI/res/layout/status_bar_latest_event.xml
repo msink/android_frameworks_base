@@ -7,7 +7,7 @@
     <com.android.systemui.statusbar.LatestItemView android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="64sp"
-            android:background="@android:drawable/status_bar_item_background"
+            android:background="@drawable/title_bar_portrait"
             android:focusable="true"
             android:clickable="true"
             android:paddingRight="6sp"
@@ -17,7 +17,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/divider_horizontal_light_opaque"
+        android:background="@drawable/divider_horizontal_dark_opaque"
         />
 
 </LinearLayout>

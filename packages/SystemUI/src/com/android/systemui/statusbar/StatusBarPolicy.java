@@ -128,10 +128,10 @@ public class StatusBarPolicy {
               R.drawable.stat_sys_wifi_signal_2,
               R.drawable.stat_sys_wifi_signal_3,
               R.drawable.stat_sys_wifi_signal_4 },
-            { R.drawable.stat_sys_wifi_signal_1_fully,
-              R.drawable.stat_sys_wifi_signal_2_fully,
-              R.drawable.stat_sys_wifi_signal_3_fully,
-              R.drawable.stat_sys_wifi_signal_4_fully }
+            { R.drawable.stat_sys_wifi_signal_1,
+              R.drawable.stat_sys_wifi_signal_2,
+              R.drawable.stat_sys_wifi_signal_3,
+              R.drawable.stat_sys_wifi_signal_4 }
         };
     private static final int sWifiTemporarilyNotConnectedImage =
             R.drawable.stat_sys_wifi_signal_0;

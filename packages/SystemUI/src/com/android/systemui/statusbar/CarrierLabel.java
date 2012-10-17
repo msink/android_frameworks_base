@@ -20,7 +20,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.provider.Telephony;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.NetworkInfo;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.View;
@@ -39,6 +42,9 @@ import com.android.internal.R;
 public class CarrierLabel extends TextView {
     private boolean mAttached;
 
+    private ConnectivityManager mConnectivityManager;
+    private WifiManager mWifiManager;
+
     public CarrierLabel(Context context) {
         this(context, null);
     }
@@ -49,7 +55,9 @@ public class CarrierLabel extends TextView {
 
     public CarrierLabel(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        updateNetworkName(false, null, false, null);
+        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        updateNetworkName();
     }
 
     @Override
@@ -59,7 +67,7 @@ public class CarrierLabel extends TextView {
         if (!mAttached) {
             mAttached = true;
             IntentFilter filter = new IntentFilter();
-            filter.addAction(Telephony.Intents.SPN_STRINGS_UPDATED_ACTION);
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
             getContext().registerReceiver(mIntentReceiver, filter, null, getHandler());
         }
     }
@@ -77,35 +85,20 @@ public class CarrierLabel extends TextView {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (Telephony.Intents.SPN_STRINGS_UPDATED_ACTION.equals(action)) {
-                updateNetworkName(intent.getBooleanExtra(Telephony.Intents.EXTRA_SHOW_SPN, false),
-                        intent.getStringExtra(Telephony.Intents.EXTRA_SPN),
-                        intent.getBooleanExtra(Telephony.Intents.EXTRA_SHOW_PLMN, false),
-                        intent.getStringExtra(Telephony.Intents.EXTRA_PLMN));
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
+                updateNetworkName();
             }
         }
     };
 
-    void updateNetworkName(boolean showSpn, String spn, boolean showPlmn, String plmn) {
-        if (false) {
-            Slog.d("CarrierLabel", "updateNetworkName showSpn=" + showSpn + " spn=" + spn
-                    + " showPlmn=" + showPlmn + " plmn=" + plmn);
-        }
-        StringBuilder str = new StringBuilder();
-        boolean something = false;
-        if (showPlmn && plmn != null) {
-            str.append(plmn);
-            something = true;
-        }
-        if (showSpn && spn != null) {
-            if (something) {
-                str.append('\n');
+    void updateNetworkName() {
+        NetworkInfo.State state = mConnectivityManager.getNetworkInfo(1).getState();
+        if (NetworkInfo.State.CONNECTED == state) {
+            WifiInfo info = mWifiManager.getConnectionInfo();
+            if (info != null) {
+                String ssid = info.getSSID();
+                setText(ssid);
             }
-            str.append(spn);
-            something = true;
-        }
-        if (something) {
-            setText(str.toString());
         } else {
             setText(com.android.internal.R.string.lockscreen_carrier_default);
         }

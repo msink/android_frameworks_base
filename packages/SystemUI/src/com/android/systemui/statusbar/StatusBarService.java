@@ -41,6 +41,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemProperties;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
@@ -262,10 +263,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mNotificationIcons = (IconMerger)sb.findViewById(R.id.notificationIcons);
         mIcons = (LinearLayout)sb.findViewById(R.id.icons);
         mTickerView = sb.findViewById(R.id.ticker);
-        mDateView = (DateView)sb.findViewById(R.id.date);
 
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
+        mDateView = (DateView)expanded.findViewById(R.id.date);
         mExpandedContents = expanded.findViewById(R.id.notificationLinearLayout);
         mOngoingTitle = (TextView)expanded.findViewById(R.id.ongoingTitle);
         mOngoingItems = (LinearLayout)expanded.findViewById(R.id.ongoingItems);
@@ -289,7 +290,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         // set the inital view visibility
         setAreThereNotifications();
-        mDateView.setVisibility(View.INVISIBLE);
 
         // receive broadcasts
         IntentFilter filter = new IntentFilter();
@@ -326,7 +326,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         }
         StatusBarIconView view = new StatusBarIconView(this, slot);
         view.set(icon);
-        mStatusIcons.addView(view, viewIndex, new LinearLayout.LayoutParams(mIconSize, mIconSize));
+        mStatusIcons.addView(view, viewIndex, new LinearLayout.LayoutParams(mIconSize, -1));
     }
 
     public void updateIcon(String slot, int index, int viewIndex,
@@ -648,7 +648,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedDialog.getWindow().setAttributes(mExpandedParams);
         mExpandedView.requestFocus(View.FOCUS_FORWARD);
 
+        mExpandedDialog.show();
+        mExpandedView.requestFullWhenShown();
 
+        setDateViewVisibility(true);
     }
 
     public void performExpand() {
@@ -728,6 +731,11 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                     performExpand();
                     mTracking = false;
                 }
+            } else if (event.getAction() == MotionEvent.ACTION_UP ||
+                       event.getAction() == MotionEvent.ACTION_CANCEL) {
+                if (mTrackingExpanded)
+                    performCollapse();
+                mTracking = false;
             }
 
         }
