@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/my_text_light"
             android:ellipsize="marquee"
             android:fadingEdge="horizontal" />
             
@@ -47,6 +48,7 @@
             android:layout_below="@android:id/title"
             android:layout_alignLeft="@android:id/title"
             android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/my_text_light"
             android:maxLines="4" />
 
     </RelativeLayout>

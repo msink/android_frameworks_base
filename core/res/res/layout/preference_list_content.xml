@@ -22,4 +22,5 @@
     android:layout_height="match_parent"
     android:drawSelectorOnTop="false"
     android:scrollbarAlwaysDrawVerticalTrack="true"
+    android:background="#ffffffff"
     />

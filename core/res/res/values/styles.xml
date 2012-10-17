@@ -37,16 +37,16 @@
     </style>
 
     <style name="AlertDialog">
-        <item name="fullDark">@android:drawable/popup_full_dark</item>
-        <item name="topDark">@android:drawable/popup_top_dark</item>
-        <item name="centerDark">@android:drawable/popup_center_dark</item>
-        <item name="bottomDark">@android:drawable/popup_bottom_dark</item>
+        <item name="fullDark">@android:drawable/popup_full_bright</item>
+        <item name="topDark">@android:drawable/popup_top_bright</item>
+        <item name="centerDark">@android:drawable/popup_center_bright</item>
+        <item name="bottomDark">@android:drawable/popup_bottom_bright</item>
         <item name="fullBright">@android:drawable/popup_full_bright</item>
         <item name="topBright">@android:drawable/popup_top_bright</item>
         <item name="centerBright">@android:drawable/popup_center_bright</item>
         <item name="bottomBright">@android:drawable/popup_bottom_bright</item>
-        <item name="bottomMedium">@android:drawable/popup_bottom_medium</item>
-        <item name="centerMedium">@android:drawable/popup_center_medium</item>
+        <item name="bottomMedium">@android:drawable/popup_bottom_bright</item>
+        <item name="centerMedium">@android:drawable/popup_center_bright</item>
     </style>
     
     <!-- Base style for animations.  This style specifies no animations. -->
@@ -246,7 +246,7 @@
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
-        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textColor">@android:drawable/btn_font_style</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
     </style>
 
@@ -390,6 +390,7 @@
         <item name="android:textSelectHandleLeft">?android:attr/textSelectHandleLeft</item>
         <item name="android:textSelectHandleRight">?android:attr/textSelectHandleRight</item>
         <item name="android:textSelectHandle">?android:attr/textSelectHandle</item>
+        <item name="android:textColor">@android:color/my_text_light</item>
     </style>
     
     <style name="Widget.TextView.ListSeparator">
@@ -493,7 +494,7 @@
 
     <style name="Widget.ListView" parent="Widget.AbsListView">
         <item name="android:listSelector">@android:drawable/list_selector_background</item>
-        <item name="android:cacheColorHint">?android:attr/colorBackgroundCacheHint</item>
+        <item name="android:cacheColorHint">#ffffffff</item>
         <item name="android:divider">@android:drawable/divider_horizontal_dark_opaque</item>
     </style>
     
@@ -539,6 +540,7 @@
 
     <style name="Widget.TabWidget">
         <item name="android:textAppearance">@style/TextAppearance.Widget.TabWidget</item>
+        <item name="android:textColor">#ffffffff</item>
         <item name="ellipsize">marquee</item>
         <item name="singleLine">true</item>
     </style>
@@ -685,7 +687,7 @@
     </style>
 
     <style name="TextAppearance.Widget.IconMenu.Item" parent="TextAppearance.Small">
-        <item name="android:textColor">?textColorPrimary</item>
+        <item name="android:textColor">?textColorPrimaryInverse</item>
     </style>
 
     <style name="TextAppearance.Widget.EditText">

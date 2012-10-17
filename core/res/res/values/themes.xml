@@ -103,7 +103,7 @@
         <item name="galleryItemBackground">@android:drawable/gallery_item_background</item>
         
         <!-- Window attributes -->
-        <item name="windowBackground">@android:drawable/screen_background_dark</item>
+        <item name="windowBackground">@android:drawable/screen_background_light</item>
         <item name="windowFrame">@null</item>
         <item name="windowNoTitle">false</item>
         <item name="windowFullscreen">false</item>
@@ -504,7 +504,7 @@
 
     <style name="Theme.ExpandedMenu">
         <!-- Menu/item attributes -->
-        <item name="android:itemTextAppearance">?android:attr/textAppearanceLarge</item>
+        <item name="android:itemTextAppearance">?android:attr/textAppearanceLargeInverse</item>
         <item name="android:listViewStyle">@android:style/Widget.ListView.Menu</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.OptionsPanel</item>
         <item name="android:background">@null</item>
