@@ -245,11 +245,6 @@ class PowerManagerService extends IPowerManager.Stub
     boolean mUnplugTurnsOnScreen;
     private int mWarningSpewThrottleCount;
     private long mWarningSpewThrottleTime;
-    private int mAnimationSetting = ANIM_SETTING_OFF;
-
-    // Must match with the ISurfaceComposer constants in C++.
-    private static final int ANIM_SETTING_ON = 0x01;
-    private static final int ANIM_SETTING_OFF = 0x10;
 
     // Used when logging number and duration of touch-down cycles
     private long mTotalTouchDownTime;
@@ -458,17 +453,6 @@ class PowerManagerService extends IPowerManager.Stub
 
                 // recalculate everything
                 setScreenOffTimeoutsLocked();
-
-                final float windowScale = getFloat(WINDOW_ANIMATION_SCALE, 1.0f);
-                final float transitionScale = getFloat(TRANSITION_ANIMATION_SCALE, 1.0f);
-                mAnimationSetting = 0;
-                if (windowScale > 0.5f) {
-                    mAnimationSetting |= ANIM_SETTING_OFF;
-                }
-                if (transitionScale > 0.5f) {
-                    // Uncomment this if you want the screen-on animation.
-                    // mAnimationSetting |= ANIM_SETTING_ON;
-                }
             }
         }
     }
@@ -2047,28 +2031,6 @@ class PowerManagerService extends IPowerManager.Stub
         }
 
         public void run() {
-            if (mAnimateScreenLights) {
-                synchronized (mLocks) {
-                    long now = SystemClock.uptimeMillis();
-                    boolean more = mScreenBrightness.stepLocked();
-                    if (more) {
-                        mScreenOffHandler.postAtTime(this, now+(1000/60));
-                    }
-                }
-            } else {
-                synchronized (mLocks) {
-                    // we're turning off
-                    final boolean animate = animating && targetValue == Power.BRIGHTNESS_OFF;
-                    if (animate) {
-                        // It's pretty scary to hold mLocks for this long, and we should
-                        // redesign this, but it works for now.
-                        nativeStartSurfaceFlingerAnimation(
-                                mScreenOffReason == WindowManagerPolicy.OFF_BECAUSE_OF_PROX_SENSOR
-                                ? 0 : mAnimationSetting);
-                    }
-                    mScreenBrightness.jumpToTargetLocked();
-                }
-            }
         }
     }
 

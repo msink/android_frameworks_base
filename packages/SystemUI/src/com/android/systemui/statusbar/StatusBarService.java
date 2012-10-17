@@ -91,9 +91,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     static final int EXPANDED_LEAVE_ALONE = -10000;
     static final int EXPANDED_FULL_OPEN = -10001;
 
-    private static final int MSG_ANIMATE = 1000;
-    private static final int MSG_ANIMATE_REVEAL = 1001;
-
     StatusBarPolicy mIconPolicy;
 
     CommandQueue mCommandQueue;
@@ -103,7 +100,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     Display mDisplay;
     StatusBarView mStatusBarView;
     int mPixelFormat;
-    H mHandler = new H();
+    Handler mHandler = new Handler();
     Object mQueueLock = new Object();
 
     // icons
@@ -121,8 +118,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // top bar
     TextView mNoNotificationsTitle;
     TextView mClearButton;
-    // drag bar
-    CloseDragHandle mCloseView;
     // ongoing
     NotificationData mOngoing = new NotificationData();
     TextView mOngoingTitle;
@@ -140,9 +135,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     DateView mDateView;
 
     // the tracker view
-    TrackingView mTrackingView;
-    WindowManager.LayoutParams mTrackingParams;
-    int mTrackingPosition; // the position of the top of the tracking view.
     private boolean mPanelSlightlyVisible;
 
     // ticker
@@ -153,23 +145,14 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // Tracking finger for opening/closing.
     int mEdgeBorder; // corresponds to R.dimen.status_bar_edge_ignore
     boolean mTracking;
-    VelocityTracker mVelocityTracker;
+    boolean mTrackingExpanded;
 
     static final int ANIM_FRAME_DURATION = (1000/60);
-
-    boolean mAnimating;
-    long mCurAnimationTime;
     float mDisplayHeight;
-    float mAnimY;
-    float mAnimVel;
-    float mAnimAccel;
-    long mAnimLastTime;
-    boolean mAnimatingReveal = false;
-    int mViewDelta;
     int[] mAbsPos = new int[2];
 
     // for disabling the status bar
-    int mDisabled = 0;
+    int mDisabled = StatusBarManager.DISABLE_NOTIFICATION_ICONS;
 
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
@@ -182,7 +165,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_BACK:
                 if (!down) {
-                    animateCollapse();
+                    performCollapse();
                 }
                 return true;
             }
@@ -294,7 +277,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mScrollView = (ScrollView)expanded.findViewById(R.id.scroll);
         mNotificationLinearLayout = expanded.findViewById(R.id.notificationLinearLayout);
 
-        mExpandedView.setVisibility(View.GONE);
         mOngoingTitle.setVisibility(View.GONE);
         mLatestTitle.setVisibility(View.GONE);
 
@@ -302,11 +284,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         TickerView tickerView = (TickerView)sb.findViewById(R.id.tickerText);
         tickerView.mTicker = mTicker;
-
-        mTrackingView = (TrackingView)View.inflate(context, R.layout.status_bar_tracking, null);
-        mTrackingView.mService = this;
-        mCloseView = (CloseDragHandle)mTrackingView.findViewById(R.id.close);
-        mCloseView.mService = this;
 
         mEdgeBorder = res.getDimensionPixelSize(R.dimen.status_bar_edge_ignore);
 
@@ -389,7 +366,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         
         // Recalculate the position of the sliding windows and the titles.
         setAreThereNotifications();
-        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
     }
 
     public void updateNotification(IBinder key, StatusBarNotification notification) {
@@ -472,7 +448,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         // Recalculate the position of the sliding windows and the titles.
         setAreThereNotifications();
-        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
     }
 
     public void removeNotification(IBinder key) {
@@ -485,7 +460,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
             // Recalculate the position of the sliding windows and the titles.
             setAreThereNotifications();
-            updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
         }
     }
 
@@ -628,7 +602,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         if ((diff & StatusBarManager.DISABLE_EXPAND) != 0) {
             if ((state & StatusBarManager.DISABLE_EXPAND) != 0) {
                 if (SPEW) Slog.d(TAG, "DISABLE_EXPAND: yes");
-                animateCollapse();
+                performCollapse();
             }
         }
         if ((diff & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
@@ -637,34 +611,18 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                 if (mTicking) {
                     mTicker.halt();
                 } else {
-                    setNotificationIconVisibility(false, com.android.internal.R.anim.fade_out);
+                    setNotificationIconVisibility(false);
                 }
             } else {
                 if (SPEW) Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: no");
                 if (!mExpandedVisible) {
-                    setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
+                    setNotificationIconVisibility(true);
                 }
             }
         } else if ((diff & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
             if (mTicking && (state & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
                 if (SPEW) Slog.d(TAG, "DISABLE_NOTIFICATION_TICKER: yes");
                 mTicker.halt();
-            }
-        }
-    }
-
-    /**
-     * All changes to the status bar and notifications funnel through here and are batched.
-     */
-    private class H extends Handler {
-        public void handleMessage(Message m) {
-            switch (m.what) {
-                case MSG_ANIMATE:
-                    doAnimation();
-                    break;
-                case MSG_ANIMATE_REVEAL:
-                    doRevealAnimation();
-                    break;
             }
         }
     }
@@ -685,60 +643,15 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedVisible = true;
         visibilityChanged(true);
 
-        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
         mExpandedParams.flags &= ~WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         mExpandedParams.flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         mExpandedDialog.getWindow().setAttributes(mExpandedParams);
         mExpandedView.requestFocus(View.FOCUS_FORWARD);
-        mTrackingView.setVisibility(View.VISIBLE);
-        mExpandedView.setVisibility(View.VISIBLE);
 
-        if (!mTicking) {
-            setDateViewVisibility(true, com.android.internal.R.anim.fade_in);
-        }
+
     }
 
-    public void animateExpand() {
-        if (SPEW) Slog.d(TAG, "Animate expand: expanded=" + mExpanded);
-        if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
-            return ;
-        }
-        if (mExpanded) {
-            return;
-        }
-
-        prepareTracking(0, true);
-        performFling(0, 2000.0f, true);
-    }
-
-    public void animateCollapse() {
-        if (SPEW) {
-            Slog.d(TAG, "animateCollapse(): mExpanded=" + mExpanded
-                    + " mExpandedVisible=" + mExpandedVisible
-                    + " mExpanded=" + mExpanded
-                    + " mAnimating=" + mAnimating
-                    + " mAnimY=" + mAnimY
-                    + " mAnimVel=" + mAnimVel);
-        }
-
-        if (!mExpandedVisible) {
-            return;
-        }
-
-        int y;
-        if (mAnimating) {
-            y = (int)mAnimY;
-        } else {
-            y = mDisplay.getHeight()-1;
-        }
-        // Let the fling think that we're open so it goes in the right direction
-        // and doesn't try to re-open the windowshade.
-        mExpanded = true;
-        prepareTracking(y, false);
-        performFling(y, -2000.0f, true);
-    }
-
-    void performExpand() {
+    public void performExpand() {
         if (SPEW) Slog.d(TAG, "performExpand: mExpanded=" + mExpanded);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return ;
@@ -749,12 +662,11 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         mExpanded = true;
         makeExpandedVisible();
-        updateExpandedViewPos(EXPANDED_FULL_OPEN);
 
         if (false) postStartTracing();
     }
 
-    void performCollapse() {
+    public void performCollapse() {
         if (SPEW) Slog.d(TAG, "performCollapse: mExpanded=" + mExpanded
                 + " mExpandedVisible=" + mExpandedVisible
                 + " mTicking=" + mTicking);
@@ -767,170 +679,16 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         mExpandedParams.flags &= ~WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         mExpandedDialog.getWindow().setAttributes(mExpandedParams);
-        mTrackingView.setVisibility(View.GONE);
-        mExpandedView.setVisibility(View.GONE);
+        mExpandedDialog.hide();
 
         if ((mDisabled & StatusBarManager.DISABLE_NOTIFICATION_ICONS) == 0) {
-            setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
-        }
-        if (mDateView.getVisibility() == View.VISIBLE) {
-            setDateViewVisibility(false, com.android.internal.R.anim.fade_out);
+            setNotificationIconVisibility(true);
         }
 
         if (!mExpanded) {
             return;
         }
         mExpanded = false;
-    }
-
-    void doAnimation() {
-        if (mAnimating) {
-            if (SPEW) Slog.d(TAG, "doAnimation");
-            if (SPEW) Slog.d(TAG, "doAnimation before mAnimY=" + mAnimY);
-            incrementAnim();
-            if (SPEW) Slog.d(TAG, "doAnimation after  mAnimY=" + mAnimY);
-            if (mAnimY >= mDisplay.getHeight()-1) {
-                if (SPEW) Slog.d(TAG, "Animation completed to expanded state.");
-                mAnimating = false;
-                updateExpandedViewPos(EXPANDED_FULL_OPEN);
-                performExpand();
-            }
-            else if (mAnimY < mStatusBarView.getHeight()) {
-                if (SPEW) Slog.d(TAG, "Animation completed to collapsed state.");
-                mAnimating = false;
-                updateExpandedViewPos(0);
-                performCollapse();
-            }
-            else {
-                updateExpandedViewPos((int)mAnimY);
-                mCurAnimationTime += ANIM_FRAME_DURATION;
-                mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE), mCurAnimationTime);
-            }
-        }
-    }
-
-    void stopTracking() {
-        mTracking = false;
-        mVelocityTracker.recycle();
-        mVelocityTracker = null;
-    }
-
-    void incrementAnim() {
-        long now = SystemClock.uptimeMillis();
-        float t = ((float)(now - mAnimLastTime)) / 1000;            // ms -> s
-        final float y = mAnimY;
-        final float v = mAnimVel;                                   // px/s
-        final float a = mAnimAccel;                                 // px/s/s
-        mAnimY = y + (v*t) + (0.5f*a*t*t);                          // px
-        mAnimVel = v + (a*t);                                       // px/s
-        mAnimLastTime = now;                                        // ms
-        //Slog.d(TAG, "y=" + y + " v=" + v + " a=" + a + " t=" + t + " mAnimY=" + mAnimY
-        //        + " mAnimAccel=" + mAnimAccel);
-    }
-
-    void doRevealAnimation() {
-        final int h = mCloseView.getHeight() + mStatusBarView.getHeight();
-        if (mAnimatingReveal && mAnimating && mAnimY < h) {
-            incrementAnim();
-            if (mAnimY >= h) {
-                mAnimY = h;
-                updateExpandedViewPos((int)mAnimY);
-            } else {
-                updateExpandedViewPos((int)mAnimY);
-                mCurAnimationTime += ANIM_FRAME_DURATION;
-                mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE_REVEAL),
-                        mCurAnimationTime);
-            }
-        }
-    }
-
-    void prepareTracking(int y, boolean opening) {
-        mTracking = true;
-        mVelocityTracker = VelocityTracker.obtain();
-        if (opening) {
-            mAnimAccel = 2000.0f;
-            mAnimVel = 200;
-            mAnimY = mStatusBarView.getHeight();
-            updateExpandedViewPos((int)mAnimY);
-            mAnimating = true;
-            mAnimatingReveal = true;
-            mHandler.removeMessages(MSG_ANIMATE);
-            mHandler.removeMessages(MSG_ANIMATE_REVEAL);
-            long now = SystemClock.uptimeMillis();
-            mAnimLastTime = now;
-            mCurAnimationTime = now + ANIM_FRAME_DURATION;
-            mAnimating = true;
-            mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE_REVEAL),
-                    mCurAnimationTime);
-            makeExpandedVisible();
-        } else {
-            // it's open, close it?
-            if (mAnimating) {
-                mAnimating = false;
-                mHandler.removeMessages(MSG_ANIMATE);
-            }
-            updateExpandedViewPos(y + mViewDelta);
-        }
-    }
-
-    void performFling(int y, float vel, boolean always) {
-        mAnimatingReveal = false;
-        mDisplayHeight = mDisplay.getHeight();
-
-        mAnimY = y;
-        mAnimVel = vel;
-
-        //Slog.d(TAG, "starting with mAnimY=" + mAnimY + " mAnimVel=" + mAnimVel);
-
-        if (mExpanded) {
-            if (!always && (
-                    vel > 200.0f
-                    || (y > (mDisplayHeight-25) && vel > -200.0f))) {
-                // We are expanded, but they didn't move sufficiently to cause
-                // us to retract.  Animate back to the expanded position.
-                mAnimAccel = 2000.0f;
-                if (vel < 0) {
-                    mAnimVel = 0;
-                }
-            }
-            else {
-                // We are expanded and are now going to animate away.
-                mAnimAccel = -2000.0f;
-                if (vel > 0) {
-                    mAnimVel = 0;
-                }
-            }
-        } else {
-            if (always || (
-                    vel > 200.0f
-                    || (y > (mDisplayHeight/2) && vel > -200.0f))) {
-                // We are collapsed, and they moved enough to allow us to
-                // expand.  Animate in the notifications.
-                mAnimAccel = 2000.0f;
-                if (vel < 0) {
-                    mAnimVel = 0;
-                }
-            }
-            else {
-                // We are collapsed, but they didn't move sufficiently to cause
-                // us to retract.  Animate back to the collapsed position.
-                mAnimAccel = -2000.0f;
-                if (vel > 0) {
-                    mAnimVel = 0;
-                }
-            }
-        }
-        //Slog.d(TAG, "mAnimY=" + mAnimY + " mAnimVel=" + mAnimVel
-        //        + " mAnimAccel=" + mAnimAccel);
-
-        long now = SystemClock.uptimeMillis();
-        mAnimLastTime = now;
-        mCurAnimationTime = now + ANIM_FRAME_DURATION;
-        mAnimating = true;
-        mHandler.removeMessages(MSG_ANIMATE);
-        mHandler.removeMessages(MSG_ANIMATE_REVEAL);
-        mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE), mCurAnimationTime);
-        stopTracking();
     }
 
     boolean interceptTouchEvent(MotionEvent event) {
@@ -945,59 +703,31 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         final int statusBarSize = mStatusBarView.getHeight();
         final int hitSize = statusBarSize*2;
+        final int bottom = mNotificationLinearLayout.getBottom();
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             final int y = (int)event.getRawY();
-
-            if (!mExpanded) {
-                mViewDelta = statusBarSize - y;
-            } else {
-                mTrackingView.getLocationOnScreen(mAbsPos);
-                mViewDelta = mAbsPos[1] + mTrackingView.getHeight() - y;
-            }
             if ((!mExpanded && y < hitSize) ||
-                    (mExpanded && y > (mDisplay.getHeight()-hitSize))) {
+                    (mExpanded && y > bottom)) {
 
                 // We drop events at the edge of the screen to make the windowshade come
                 // down by accident less, especially when pushing open a device with a keyboard
                 // that rotates (like g1 and droid)
                 int x = (int)event.getRawX();
-                final int edgeBorder = mEdgeBorder;
+                int edgeBorder = mEdgeBorder;
                 if (x >= edgeBorder && x < mDisplay.getWidth() - edgeBorder) {
-                    prepareTracking(y, !mExpanded);// opening if we're not already fully visible
-                    mVelocityTracker.addMovement(event);
+                    mTracking = true;
+                    mTrackingExpanded = mExpanded;
                 }
             }
+
         } else if (mTracking) {
-            mVelocityTracker.addMovement(event);
-            final int minY = statusBarSize + mCloseView.getHeight();
+            final int minY = statusBarSize;
             if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 int y = (int)event.getRawY();
-                if (mAnimatingReveal && y < minY) {
-                    // nothing
-                } else  {
-                    mAnimatingReveal = false;
-                    updateExpandedViewPos(y + mViewDelta);
+                if (y >= minY) {
+                    performExpand();
+                    mTracking = false;
                 }
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                mVelocityTracker.computeCurrentVelocity(1000);
-
-                float yVel = mVelocityTracker.getYVelocity();
-                boolean negative = yVel < 0;
-
-                float xVel = mVelocityTracker.getXVelocity();
-                if (xVel < 0) {
-                    xVel = -xVel;
-                }
-                if (xVel > 150.0f) {
-                    xVel = 150.0f; // limit how much we care about the x axis
-                }
-
-                float vel = (float)Math.hypot(yVel, xVel);
-                if (negative) {
-                    vel = -vel;
-                }
-
-                performFling((int)event.getRawY(), vel, false);
             }
 
         }
@@ -1018,6 +748,9 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         }
 
         public void onClick(View v) {
+
+            performCollapse();
+
             try {
                 // The intent we are sending is for the application, which
                 // won't have permission to immediately start an activity after
@@ -1046,9 +779,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             } catch (RemoteException ex) {
                 // system process is dead if we're here.
             }
-
-            // close the shade if it was open
-            animateCollapse();
         }
     }
 
@@ -1091,11 +821,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = true;
             mIcons.setVisibility(View.GONE);
             mTickerView.setVisibility(View.VISIBLE);
-            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_in, null));
-            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
-            if (mExpandedVisible) {
-                setDateViewVisibility(false, com.android.internal.R.anim.push_up_out);
-            }
         }
 
         @Override
@@ -1104,11 +829,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = false;
             mIcons.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
-            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
-            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_out, null));
-            if (mExpandedVisible) {
-                setDateViewVisibility(true, com.android.internal.R.anim.push_down_in);
-            }
         }
 
         void tickerHalting() {
@@ -1116,20 +836,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = false;
             mIcons.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
-            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.fade_in, null));
-            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.fade_out, null));
-            if (mExpandedVisible) {
-                setDateViewVisibility(true, com.android.internal.R.anim.fade_in);
-            }
         }
-    }
-
-    private Animation loadAnim(int id, Animation.AnimationListener listener) {
-        Animation anim = AnimationUtils.loadAnimation(StatusBarService.this, id);
-        if (listener != null) {
-            anim.setAnimationListener(listener);
-        }
-        return anim;
     }
 
     public String viewInfo(View v) {
@@ -1152,26 +859,15 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                     + ", mExpandedVisible=" + mExpandedVisible);
             pw.println("  mTicking=" + mTicking);
             pw.println("  mTracking=" + mTracking);
-            pw.println("  mAnimating=" + mAnimating
-                    + ", mAnimY=" + mAnimY + ", mAnimVel=" + mAnimVel
-                    + ", mAnimAccel=" + mAnimAccel);
-            pw.println("  mCurAnimationTime=" + mCurAnimationTime
-                    + " mAnimLastTime=" + mAnimLastTime);
-            pw.println("  mDisplayHeight=" + mDisplayHeight
-                    + " mAnimatingReveal=" + mAnimatingReveal
-                    + " mViewDelta=" + mViewDelta);
             pw.println("  mDisplayHeight=" + mDisplayHeight);
             pw.println("  mExpandedParams: " + mExpandedParams);
             pw.println("  mExpandedView: " + viewInfo(mExpandedView));
             pw.println("  mExpandedDialog: " + mExpandedDialog);
-            pw.println("  mTrackingParams: " + mTrackingParams);
-            pw.println("  mTrackingView: " + viewInfo(mTrackingView));
             pw.println("  mOngoingTitle: " + viewInfo(mOngoingTitle));
             pw.println("  mOngoingItems: " + viewInfo(mOngoingItems));
             pw.println("  mLatestTitle: " + viewInfo(mLatestTitle));
             pw.println("  mLatestItems: " + viewInfo(mLatestItems));
             pw.println("  mNoNotificationsTitle: " + viewInfo(mNoNotificationsTitle));
-            pw.println("  mCloseView: " + viewInfo(mCloseView));
             pw.println("  mTickerView: " + viewInfo(mTickerView));
             pw.println("  mScrollView: " + viewInfo(mScrollView)
                     + " scroll " + mScrollView.getScrollX() + "," + mScrollView.getScrollY());
@@ -1197,42 +893,12 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         /// ---------- Tracking View --------------
         pixelFormat = PixelFormat.RGBX_8888;
-        bg = mTrackingView.getBackground();
-        if (bg != null) {
-            pixelFormat = bg.getOpacity();
-        }
-
-        lp = new WindowManager.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL,
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
-                pixelFormat);
-//        lp.token = mStatusBarView.getWindowToken();
-        lp.gravity = Gravity.TOP | Gravity.FILL_HORIZONTAL;
-        lp.setTitle("TrackingView");
-        lp.y = mTrackingPosition;
-        mTrackingParams = lp;
-
-        WindowManagerImpl.getDefault().addView(mTrackingView, lp);
-    }
-
-    void onTrackingViewAttached() {
-        WindowManager.LayoutParams lp;
-        int pixelFormat;
-        Drawable bg;
-
-        /// ---------- Expanded View --------------
-        pixelFormat = PixelFormat.TRANSLUCENT;
-
         final int disph = mDisplay.getHeight();
         lp = mExpandedDialog.getWindow().getAttributes();
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
         lp.height = getExpandedHeight();
         lp.x = 0;
-        mTrackingPosition = lp.y = -disph; // sufficiently large negative
+        lp.y = 0;
         lp.type = WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL;
         lp.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
@@ -1250,117 +916,26 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedDialog.setContentView(mExpandedView,
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                            ViewGroup.LayoutParams.MATCH_PARENT));
-        mExpandedDialog.getWindow().setBackgroundDrawable(null);
-        mExpandedDialog.show();
-        FrameLayout hack = (FrameLayout)mExpandedView.getParent();
     }
 
-    void setDateViewVisibility(boolean visible, int anim) {
+    void onTrackingViewAttached() {
+    }
+
+    void setDateViewVisibility(boolean visible) {
         mDateView.setUpdates(visible);
         mDateView.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-        mDateView.startAnimation(loadAnim(anim, null));
     }
 
-    void setNotificationIconVisibility(boolean visible, int anim) {
+    void setNotificationIconVisibility(boolean visible) {
         int old = mNotificationIcons.getVisibility();
         int v = visible ? View.VISIBLE : View.INVISIBLE;
         if (old != v) {
             mNotificationIcons.setVisibility(v);
-            mNotificationIcons.startAnimation(loadAnim(anim, null));
-        }
-    }
-
-    void updateExpandedViewPos(int expandedPosition) {
-        if (SPEW) {
-            Slog.d(TAG, "updateExpandedViewPos before expandedPosition=" + expandedPosition
-                    + " mTrackingParams.y=" 
-                    + ((mTrackingParams == null) ? "???" : mTrackingParams.y)
-                    + " mTrackingPosition=" + mTrackingPosition);
-        }
-
-        int h = mStatusBarView.getHeight();
-        int disph = mDisplay.getHeight();
-
-        // If the expanded view is not visible, make sure they're still off screen.
-        // Maybe the view was resized.
-        if (!mExpandedVisible) {
-            if (mTrackingView != null) {
-                mTrackingPosition = -disph;
-                if (mTrackingParams != null) {
-                    mTrackingParams.y = mTrackingPosition;
-                    WindowManagerImpl.getDefault().updateViewLayout(mTrackingView, mTrackingParams);
-                }
-            }
-            if (mExpandedParams != null) {
-                mExpandedParams.y = -disph;
-                mExpandedDialog.getWindow().setAttributes(mExpandedParams);
-            }
-            return;
-        }
-
-        // tracking view...
-        int pos;
-        if (expandedPosition == EXPANDED_FULL_OPEN) {
-            pos = h;
-        }
-        else if (expandedPosition == EXPANDED_LEAVE_ALONE) {
-            pos = mTrackingPosition;
-        }
-        else {
-            if (expandedPosition <= disph) {
-                pos = expandedPosition;
-            } else {
-                pos = disph;
-            }
-            pos -= disph-h;
-        }
-        mTrackingPosition = mTrackingParams.y = pos;
-        mTrackingParams.height = disph-h;
-        WindowManagerImpl.getDefault().updateViewLayout(mTrackingView, mTrackingParams);
-
-        if (mExpandedParams != null) {
-            mCloseView.getLocationInWindow(mPositionTmp);
-            final int closePos = mPositionTmp[1];
-
-            mExpandedContents.getLocationInWindow(mPositionTmp);
-            final int contentsBottom = mPositionTmp[1] + mExpandedContents.getHeight();
-
-            if (expandedPosition != EXPANDED_LEAVE_ALONE) {
-                mExpandedParams.y = pos + mTrackingView.getHeight()
-                        - (mTrackingParams.height-closePos) - contentsBottom;
-                int max = h;
-                if (mExpandedParams.y > max) {
-                    mExpandedParams.y = max;
-                }
-                int min = mTrackingPosition;
-                if (mExpandedParams.y < min) {
-                    mExpandedParams.y = min;
-                }
-
-                boolean visible = (mTrackingPosition + mTrackingView.getHeight()) > h;
-                if (!visible) {
-                    // if the contents aren't visible, move the expanded view way off screen
-                    // because the window itself extends below the content view.
-                    mExpandedParams.y = -disph;
-                }
-                mExpandedDialog.getWindow().setAttributes(mExpandedParams);
-
-                if (SPEW) Slog.d(TAG, "updateExpandedViewPos visibilityChanged(" + visible + ")");
-                visibilityChanged(visible);
-            }
-        }
-
-        if (SPEW) {
-            Slog.d(TAG, "updateExpandedViewPos after  expandedPosition=" + expandedPosition
-                    + " mTrackingParams.y=" + mTrackingParams.y
-                    + " mTrackingPosition=" + mTrackingPosition
-                    + " mExpandedParams.y=" + mExpandedParams.y
-                    + " mExpandedParams.height=" + mExpandedParams.height);
         }
     }
 
     int getExpandedHeight() {
-        return mDisplay.getHeight() - mStatusBarView.getHeight() - mCloseView.getHeight();
+        return mDisplay.getHeight() - mStatusBarView.getHeight();
     }
 
     void updateExpandedHeight() {
@@ -1397,7 +972,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         if ((diff & StatusBarManager.DISABLE_EXPAND) != 0) {
             if ((net & StatusBarManager.DISABLE_EXPAND) != 0) {
                 Slog.d(TAG, "DISABLE_EXPAND: yes");
-                animateCollapse();
             }
         }
         if ((diff & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
@@ -1407,12 +981,12 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                     mNotificationIcons.setVisibility(View.INVISIBLE);
                     mTicker.halt();
                 } else {
-                    setNotificationIconVisibility(false, com.android.internal.R.anim.fade_out);
+                    setNotificationIconVisibility(false);
                 }
             } else {
                 Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: no");
                 if (!mExpandedVisible) {
-                    setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
+                    setNotificationIconVisibility(true);
                 }
             }
         } else if ((diff & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
@@ -1432,7 +1006,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             } catch (RemoteException ex) {
                 // system process is dead if we're here.
             }
-            animateCollapse();
         }
     };
 
@@ -1442,7 +1015,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)
                     || Intent.ACTION_SCREEN_OFF.equals(action)
                     || Intent.ACTION_CLOSE_STATUSBAR_USB.equals(action)) {
-                animateCollapse();
+                performCollapse();
             }
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updateResources();

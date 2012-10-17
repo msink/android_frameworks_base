@@ -43,7 +43,7 @@ public class ViewConfiguration {
     /**
      * Defines the length of the fading edges in pixels
      */
-    private static final int FADING_EDGE_LENGTH = 12;
+    private static final int FADING_EDGE_LENGTH = 0;
 
     /**
      * Defines the duration in milliseconds of the pressed state in child
@@ -148,7 +148,7 @@ public class ViewConfiguration {
     /**
      * Max distance to overfling for edge effects
      */
-    private static final int OVERFLING_DISTANCE = 4;
+    private static final int OVERFLING_DISTANCE = 0;
 
     private final int mEdgeSlop;
     private final int mFadingEdgeLength;

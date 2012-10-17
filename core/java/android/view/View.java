@@ -2241,12 +2241,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdgeLength
      */
     public int getVerticalFadingEdgeLength() {
-        if (isVerticalFadingEdgeEnabled()) {
-            ScrollabilityCache cache = mScrollCache;
-            if (cache != null) {
-                return cache.fadingEdgeLength;
-            }
-        }
         return 0;
     }
 
@@ -2273,12 +2267,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdgeLength
      */
     public int getHorizontalFadingEdgeLength() {
-        if (isHorizontalFadingEdgeEnabled()) {
-            ScrollabilityCache cache = mScrollCache;
-            if (cache != null) {
-                return cache.fadingEdgeLength;
-            }
-        }
         return 0;
     }
 
@@ -2289,18 +2277,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      *         is no vertical scrollbar.
      */
     public int getVerticalScrollbarWidth() {
-        ScrollabilityCache cache = mScrollCache;
-        if (cache != null) {
-            ScrollBarDrawable scrollBar = cache.scrollBar;
-            if (scrollBar != null) {
-                int size = scrollBar.getSize(true);
-                if (size <= 0) {
-                    size = cache.scrollBarSize;
-                }
-                return size;
-            }
-            return 0;
-        }
         return 0;
     }
 
@@ -2311,18 +2287,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      *         there is no horizontal scrollbar.
      */
     protected int getHorizontalScrollbarHeight() {
-        ScrollabilityCache cache = mScrollCache;
-        if (cache != null) {
-            ScrollBarDrawable scrollBar = cache.scrollBar;
-            if (scrollBar != null) {
-                int size = scrollBar.getSize(false);
-                if (size <= 0) {
-                    size = cache.scrollBarSize;
-                }
-                return size;
-            }
-            return 0;
-        }
         return 0;
     }
 
@@ -4467,12 +4431,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
                             mUnsetPressedState = new UnsetPressedState();
                         }
 
-                        if (prepressed) {
-                            mPrivateFlags |= PRESSED;
-                            refreshDrawableState();
-                            postDelayed(mUnsetPressedState,
-                                    ViewConfiguration.getPressedStateDuration());
-                        } else if (!post(mUnsetPressedState)) {
+                        if (!post(mUnsetPressedState)) {
                             // If the post failed, unpress right now
                             mUnsetPressedState.run();
                         }
@@ -5514,7 +5473,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdge
      */
     public boolean isHorizontalFadingEdgeEnabled() {
-        return (mViewFlags & FADING_EDGE_HORIZONTAL) == FADING_EDGE_HORIZONTAL;
+        return false;
     }
 
     /**
@@ -5529,13 +5488,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdge
      */
     public void setHorizontalFadingEdgeEnabled(boolean horizontalFadingEdgeEnabled) {
-        if (isHorizontalFadingEdgeEnabled() != horizontalFadingEdgeEnabled) {
-            if (horizontalFadingEdgeEnabled) {
-                initScrollCache();
-            }
-
-            mViewFlags ^= FADING_EDGE_HORIZONTAL;
-        }
     }
 
     /**
@@ -5549,7 +5501,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdge
      */
     public boolean isVerticalFadingEdgeEnabled() {
-        return (mViewFlags & FADING_EDGE_VERTICAL) == FADING_EDGE_VERTICAL;
+        return false;
     }
 
     /**
@@ -5564,13 +5516,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @attr ref android.R.styleable#View_fadingEdge
      */
     public void setVerticalFadingEdgeEnabled(boolean verticalFadingEdgeEnabled) {
-        if (isVerticalFadingEdgeEnabled() != verticalFadingEdgeEnabled) {
-            if (verticalFadingEdgeEnabled) {
-                initScrollCache();
-            }
-
-            mViewFlags ^= FADING_EDGE_VERTICAL;
-        }
     }
 
     /**
@@ -5584,7 +5529,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @return the intensity of the top fade as a float between 0.0f and 1.0f
      */
     protected float getTopFadingEdgeStrength() {
-        return computeVerticalScrollOffset() > 0 ? 1.0f : 0.0f;
+        return 0.0f;
     }
 
     /**
@@ -5598,8 +5543,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @return the intensity of the bottom fade as a float between 0.0f and 1.0f
      */
     protected float getBottomFadingEdgeStrength() {
-        return computeVerticalScrollOffset() + computeVerticalScrollExtent() <
-                computeVerticalScrollRange() ? 1.0f : 0.0f;
+        return 0.0f;
     }
 
     /**
@@ -5613,7 +5557,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @return the intensity of the left fade as a float between 0.0f and 1.0f
      */
     protected float getLeftFadingEdgeStrength() {
-        return computeHorizontalScrollOffset() > 0 ? 1.0f : 0.0f;
+        return 0.0f;
     }
 
     /**
@@ -5627,8 +5571,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @return the intensity of the right fade as a float between 0.0f and 1.0f
      */
     protected float getRightFadingEdgeStrength() {
-        return computeHorizontalScrollOffset() + computeHorizontalScrollExtent() <
-                computeHorizontalScrollRange() ? 1.0f : 0.0f;
+        return 0.0f;
     }
 
     /**
@@ -5641,7 +5584,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @see #setHorizontalScrollBarEnabled(boolean)
      */
     public boolean isHorizontalScrollBarEnabled() {
-        return (mViewFlags & SCROLLBARS_HORIZONTAL) == SCROLLBARS_HORIZONTAL;
+        return false;
     }
 
     /**
@@ -5654,11 +5597,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @see #isHorizontalScrollBarEnabled()
      */
     public void setHorizontalScrollBarEnabled(boolean horizontalScrollBarEnabled) {
-        if (isHorizontalScrollBarEnabled() != horizontalScrollBarEnabled) {
-            mViewFlags ^= SCROLLBARS_HORIZONTAL;
-            computeOpaqueFlags();
-            recomputePadding();
-        }
     }
 
     /**
@@ -5671,7 +5609,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @see #setVerticalScrollBarEnabled(boolean)
      */
     public boolean isVerticalScrollBarEnabled() {
-        return (mViewFlags & SCROLLBARS_VERTICAL) == SCROLLBARS_VERTICAL;
+        return false;
     }
 
     /**
@@ -5684,11 +5622,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @see #isVerticalScrollBarEnabled()
      */
     public void setVerticalScrollBarEnabled(boolean verticalScrollBarEnabled) {
-        if (isVerticalScrollBarEnabled() != verticalScrollBarEnabled) {
-            mViewFlags ^= SCROLLBARS_VERTICAL;
-            computeOpaqueFlags();
-            recomputePadding();
-        }
     }
 
     private void recomputePadding() {
@@ -5702,14 +5635,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * 
      */
     public void setScrollbarFadingEnabled(boolean fadeScrollbars) {
-        initScrollCache();
-        final ScrollabilityCache scrollabilityCache = mScrollCache;
-        scrollabilityCache.fadeScrollBars = fadeScrollbars;
-        if (fadeScrollbars) {
-            scrollabilityCache.state = ScrollabilityCache.OFF;
-        } else {
-            scrollabilityCache.state = ScrollabilityCache.ON;
-        }
     }
     
     /**
@@ -5719,7 +5644,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @return true if scrollbar fading is enabled
      */
     public boolean isScrollbarFadingEnabled() {
-        return mScrollCache != null && mScrollCache.fadeScrollBars; 
+        return false;
     }
     
     /**
@@ -8538,9 +8463,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @param animation the animation to start now
      */
     public void startAnimation(Animation animation) {
-        animation.setStartTime(Animation.START_ON_FIRST_FRAME);
-        setAnimation(animation);
-        invalidate();
     }
 
     /**
@@ -8681,7 +8603,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * {@link HapticFeedbackConstants}
      */
     public boolean performHapticFeedback(int feedbackConstant) {
-        return performHapticFeedback(feedbackConstant, 0);
+        return true;
     }
 
     /**
@@ -8694,16 +8616,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @param flags Additional flags as per {@link HapticFeedbackConstants}.
      */
     public boolean performHapticFeedback(int feedbackConstant, int flags) {
-        if (mAttachInfo == null) {
-            return false;
-        }
-        if ((flags&HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING) == 0
-                && !isHapticFeedbackEnabled()) {
-            return false;
-        }
-        return mAttachInfo.mRootCallbacks.performHapticFeedback(
-                feedbackConstant,
-                (flags&HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING) != 0);
+        return true;
     }
 
     /**
@@ -8936,12 +8849,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
      * @param overScrollMode The new over-scroll mode for this view.
      */
     public void setOverScrollMode(int overScrollMode) {
-        if (overScrollMode != OVER_SCROLL_ALWAYS &&
-                overScrollMode != OVER_SCROLL_IF_CONTENT_SCROLLS &&
-                overScrollMode != OVER_SCROLL_NEVER) {
-            throw new IllegalArgumentException("Invalid overscroll mode " + overScrollMode);
-        }
-        mOverScrollMode = overScrollMode;
+        mOverScrollMode = OVER_SCROLL_NEVER;
     }
 
     /**

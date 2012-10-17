@@ -138,6 +138,7 @@ class HTML5VideoViewProxy extends Handler
                         mCurrentProxy.dispatchOnEnded();
                     else
                         mCurrentProxy.dispatchOnPaused();
+                    mCurrentProxy.getWebView().getViewManager().showAll();
                     isVideoSelfEnded = false;
                     mCurrentProxy = null;
                     mLayout.removeView(mVideoView);
@@ -199,6 +200,7 @@ class HTML5VideoViewProxy extends Handler
             mTimer = new Timer();
             mVideoView.start();
             client.onShowCustomView(mLayout, mCallback);
+            mCurrentProxy.getWebView().getViewManager().hideAll();
         }
 
         public static boolean isPlaying(HTML5VideoViewProxy proxy) {
@@ -604,4 +606,8 @@ class HTML5VideoViewProxy extends Handler
     private native void nativeOnPaused(int nativePointer);
     private native void nativeOnPosterFetched(Bitmap poster, int nativePointer);
     private native void nativeOnTimeupdate(int position, int nativePointer);
+
+    WebView getWebView() {
+        return mWebView;
+    }
 }

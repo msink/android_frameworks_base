@@ -163,7 +163,7 @@ public class WindowManagerService extends IWindowManager.Stub
     static final boolean HIDE_STACK_CRAWLS = true;
 
     static final boolean PROFILE_ORIENTATION = false;
-    static final boolean BLUR = true;
+    static final boolean BLUR = false;
     static final boolean localLOGV = DEBUG;
 
     /** How much to multiply the policy's type layer, to reserve room
@@ -476,8 +476,8 @@ public class WindowManagerService extends IWindowManager.Stub
 
     PowerManagerService mPowerManager;
 
-    float mWindowAnimationScale = 1.0f;
-    float mTransitionAnimationScale = 1.0f;
+    float mWindowAnimationScale = 0.0f;
+    float mTransitionAnimationScale = 0.0f;
 
     final InputManager mInputManager;
 
@@ -491,7 +491,7 @@ public class WindowManagerService extends IWindowManager.Stub
      * Whether the UI is currently running in touch mode (not showing
      * navigational focus because the user is directly pressing the screen).
      */
-    boolean mInTouchMode = false;
+    boolean mInTouchMode = true;
 
     private ViewServer mViewServer;
     private ArrayList<WindowChangeListener> mWindowChangeListeners =
@@ -614,12 +614,6 @@ public class WindowManagerService extends IWindowManager.Stub
 
         mActivityManager = ActivityManagerNative.getDefault();
         mBatteryStats = BatteryStatsService.getService();
-
-        // Get persisted window scale setting
-        mWindowAnimationScale = Settings.System.getFloat(context.getContentResolver(),
-                Settings.System.WINDOW_ANIMATION_SCALE, mWindowAnimationScale);
-        mTransitionAnimationScale = Settings.System.getFloat(context.getContentResolver(),
-                Settings.System.TRANSITION_ANIMATION_SCALE, mTransitionAnimationScale);
 
         // Track changes to DevicePolicyManager state so we can enable/disable keyguard.
         IntentFilter filter = new IntentFilter();
@@ -1942,7 +1936,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 }
             }
 
-            win.mEnterAnimationPending = true;
+            win.mEnterAnimationPending = false;
 
             mPolicy.getContentInsetHintLw(attrs, outContentInsets);
 
@@ -2285,9 +2279,11 @@ public class WindowManagerService extends IWindowManager.Stub
             int requestedHeight, int viewVisibility, boolean insetsPending,
             Rect outFrame, Rect outContentInsets, Rect outVisibleInsets,
             Configuration outConfig, Surface outSurface) {
+
         boolean displayed = false;
         boolean inTouchMode;
-        boolean configChanged;
+        boolean configChanged = false;
+        boolean LayoutWinEn = true;
         long origId = Binder.clearCallingIdentity();
 
         synchronized(mWindowMap) {
@@ -2307,6 +2303,7 @@ public class WindowManagerService extends IWindowManager.Stub
             if (attrs != null) {
                 flagChanges = win.mAttrs.flags ^= attrs.flags;
                 attrChanges = win.mAttrs.copyFrom(attrs);
+                LayoutWinEn = (attrs.flags & WindowManager.LayoutParams.FLAG_DIS_LAYOUT) == 0;
             }
 
             if (DEBUG_LAYOUT) Slog.v(TAG, "Relayout " + win + ": " + win.mAttrs);
@@ -2353,9 +2350,6 @@ public class WindowManagerService extends IWindowManager.Stub
                 if (win.mDestroying) {
                     win.mDestroying = false;
                     mDestroySurface.remove(win);
-                }
-                if (oldVisibility == View.GONE) {
-                    win.mEnterAnimationPending = true;
                 }
                 if (displayed) {
                     if (win.mSurface != null && !win.mDrawPending
@@ -2516,6 +2510,7 @@ public class WindowManagerService extends IWindowManager.Stub
 
             mLayoutNeeded = true;
             win.mGivenInsetsPending = insetsPending;
+          if (LayoutWinEn) {
             if (assignLayers) {
                 assignLayersLocked();
             }
@@ -2528,6 +2523,7 @@ public class WindowManagerService extends IWindowManager.Stub
             if (win.mAppToken != null) {
                 win.mAppToken.updateReportedVisibilityLocked();
             }
+          }
             outFrame.set(win.mFrame);
             outContentInsets.set(win.mContentInsets);
             outVisibleInsets.set(win.mVisibleInsets);
@@ -2544,7 +2540,9 @@ public class WindowManagerService extends IWindowManager.Stub
 
             inTouchMode = mInTouchMode;
             
+          if (LayoutWinEn) {
             mInputMonitor.updateInputWindowsLw();
+          }
         }
 
         if (configChanged) {
@@ -2573,234 +2571,35 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     private AttributeCache.Entry getCachedAnimations(WindowManager.LayoutParams lp) {
-        if (DEBUG_ANIM) Slog.v(TAG, "Loading animations: params package="
-                + (lp != null ? lp.packageName : null)
-                + " resId=0x" + (lp != null ? Integer.toHexString(lp.windowAnimations) : null));
-        if (lp != null && lp.windowAnimations != 0) {
-            // If this is a system resource, don't try to load it from the
-            // application resources.  It is nice to avoid loading application
-            // resources if we can.
-            String packageName = lp.packageName != null ? lp.packageName : "android";
-            int resId = lp.windowAnimations;
-            if ((resId&0xFF000000) == 0x01000000) {
-                packageName = "android";
-            }
-            if (DEBUG_ANIM) Slog.v(TAG, "Loading animations: picked package="
-                    + packageName);
-            return AttributeCache.instance().get(packageName, resId,
-                    com.android.internal.R.styleable.WindowAnimation);
-        }
         return null;
     }
 
     private AttributeCache.Entry getCachedAnimations(String packageName, int resId) {
-        if (DEBUG_ANIM) Slog.v(TAG, "Loading animations: params package="
-                + packageName + " resId=0x" + Integer.toHexString(resId));
-        if (packageName != null) {
-            if ((resId&0xFF000000) == 0x01000000) {
-                packageName = "android";
-            }
-            if (DEBUG_ANIM) Slog.v(TAG, "Loading animations: picked package="
-                    + packageName);
-            return AttributeCache.instance().get(packageName, resId,
-                    com.android.internal.R.styleable.WindowAnimation);
-        }
         return null;
     }
 
     private void applyEnterAnimationLocked(WindowState win) {
-        int transit = WindowManagerPolicy.TRANSIT_SHOW;
         if (win.mEnterAnimationPending) {
             win.mEnterAnimationPending = false;
-            transit = WindowManagerPolicy.TRANSIT_ENTER;
         }
-
-        applyAnimationLocked(win, transit, true);
     }
 
     private boolean applyAnimationLocked(WindowState win,
             int transit, boolean isEntrance) {
-        if (win.mLocalAnimating && win.mAnimationIsEntrance == isEntrance) {
-            // If we are trying to apply an animation, but already running
-            // an animation of the same type, then just leave that one alone.
-            return true;
-        }
-
-        // Only apply an animation if the display isn't frozen.  If it is
-        // frozen, there is no reason to animate and it can cause strange
-        // artifacts when we unfreeze the display if some different animation
-        // is running.
-        if (!mDisplayFrozen && mPolicy.isScreenOn()) {
-            int anim = mPolicy.selectAnimationLw(win, transit);
-            int attr = -1;
-            Animation a = null;
-            if (anim != 0) {
-                a = AnimationUtils.loadAnimation(mContext, anim);
-            } else {
-                switch (transit) {
-                    case WindowManagerPolicy.TRANSIT_ENTER:
-                        attr = com.android.internal.R.styleable.WindowAnimation_windowEnterAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_EXIT:
-                        attr = com.android.internal.R.styleable.WindowAnimation_windowExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_SHOW:
-                        attr = com.android.internal.R.styleable.WindowAnimation_windowShowAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_HIDE:
-                        attr = com.android.internal.R.styleable.WindowAnimation_windowHideAnimation;
-                        break;
-                }
-                if (attr >= 0) {
-                    a = loadAnimation(win.mAttrs, attr);
-                }
-            }
-            if (DEBUG_ANIM) Slog.v(TAG, "applyAnimation: win=" + win
-                    + " anim=" + anim + " attr=0x" + Integer.toHexString(attr)
-                    + " mAnimation=" + win.mAnimation
-                    + " isEntrance=" + isEntrance);
-            if (a != null) {
-                if (DEBUG_ANIM) {
-                    RuntimeException e = null;
-                    if (!HIDE_STACK_CRAWLS) {
-                        e = new RuntimeException();
-                        e.fillInStackTrace();
-                    }
-                    Slog.v(TAG, "Loaded animation " + a + " for " + win, e);
-                }
-                win.setAnimation(a);
-                win.mAnimationIsEntrance = isEntrance;
-            }
-        } else {
-            win.clearAnimation();
-        }
-
-        return win.mAnimation != null;
+        return false;
     }
 
     private Animation loadAnimation(WindowManager.LayoutParams lp, int animAttr) {
-        int anim = 0;
-        Context context = mContext;
-        if (animAttr >= 0) {
-            AttributeCache.Entry ent = getCachedAnimations(lp);
-            if (ent != null) {
-                context = ent.context;
-                anim = ent.array.getResourceId(animAttr, 0);
-            }
-        }
-        if (anim != 0) {
-            return AnimationUtils.loadAnimation(context, anim);
-        }
         return null;
     }
 
     private Animation loadAnimation(String packageName, int resId) {
-        int anim = 0;
-        Context context = mContext;
-        if (resId >= 0) {
-            AttributeCache.Entry ent = getCachedAnimations(packageName, resId);
-            if (ent != null) {
-                context = ent.context;
-                anim = resId;
-            }
-        }
-        if (anim != 0) {
-            return AnimationUtils.loadAnimation(context, anim);
-        }
         return null;
     }
 
     private boolean applyAnimationLocked(AppWindowToken wtoken,
             WindowManager.LayoutParams lp, int transit, boolean enter) {
-        // Only apply an animation if the display isn't frozen.  If it is
-        // frozen, there is no reason to animate and it can cause strange
-        // artifacts when we unfreeze the display if some different animation
-        // is running.
-        if (!mDisplayFrozen && mPolicy.isScreenOn()) {
-            Animation a;
-            if (lp != null && (lp.flags & FLAG_COMPATIBLE_WINDOW) != 0) {
-                a = new FadeInOutAnimation(enter);
-                if (DEBUG_ANIM) Slog.v(TAG,
-                        "applying FadeInOutAnimation for a window in compatibility mode");
-            } else if (mNextAppTransitionPackage != null) {
-                a = loadAnimation(mNextAppTransitionPackage, enter ?
-                        mNextAppTransitionEnter : mNextAppTransitionExit);
-            } else {
-                int animAttr = 0;
-                switch (transit) {
-                    case WindowManagerPolicy.TRANSIT_ACTIVITY_OPEN:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_activityOpenEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_activityOpenExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_ACTIVITY_CLOSE:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_activityCloseEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_activityCloseExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_TASK_OPEN:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_taskOpenEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_taskOpenExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_TASK_CLOSE:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_taskCloseEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_taskCloseExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_TASK_TO_FRONT:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_taskToFrontEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_taskToFrontExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_TASK_TO_BACK:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_taskToBackEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_taskToBackExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_WALLPAPER_OPEN:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_wallpaperOpenEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_wallpaperOpenExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_WALLPAPER_CLOSE:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_wallpaperCloseEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_wallpaperCloseExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_WALLPAPER_INTRA_OPEN:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenExitAnimation;
-                        break;
-                    case WindowManagerPolicy.TRANSIT_WALLPAPER_INTRA_CLOSE:
-                        animAttr = enter
-                                ? com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseEnterAnimation
-                                : com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseExitAnimation;
-                        break;
-                }
-                a = animAttr != 0 ? loadAnimation(lp, animAttr) : null;
-                if (DEBUG_ANIM) Slog.v(TAG, "applyAnimation: wtoken=" + wtoken
-                        + " anim=" + a
-                        + " animAttr=0x" + Integer.toHexString(animAttr)
-                        + " transit=" + transit);
-            }
-            if (a != null) {
-                if (DEBUG_ANIM) {
-                    RuntimeException e = null;
-                    if (!HIDE_STACK_CRAWLS) {
-                        e = new RuntimeException();
-                        e.fillInStackTrace();
-                    }
-                    Slog.v(TAG, "Loaded animation " + a + " for " + wtoken, e);
-                }
-                wtoken.setAnimation(a);
-            }
-        } else {
-            wtoken.clearAnimation();
-        }
-
-        return wtoken.animation != null;
+        return false;
     }
 
     // -------------------------------------------------------------
@@ -3293,11 +3092,6 @@ public class WindowManagerService extends IWindowManager.Stub
 
     public void overridePendingAppTransition(String packageName,
             int enterAnim, int exitAnim) {
-        if (mNextAppTransition != WindowManagerPolicy.TRANSIT_UNSET) {
-            mNextAppTransitionPackage = packageName;
-            mNextAppTransitionEnter = enterAnim;
-            mNextAppTransitionExit = exitAnim;
-        }
     }
 
     public void executeAppTransition() {
@@ -3328,156 +3122,6 @@ public class WindowManagerService extends IWindowManager.Stub
         if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
                 "setAppStartingIcon()")) {
             throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-        }
-
-        synchronized(mWindowMap) {
-            if (DEBUG_STARTING_WINDOW) Slog.v(
-                    TAG, "setAppStartingIcon: token=" + token + " pkg=" + pkg
-                    + " transferFrom=" + transferFrom);
-
-            AppWindowToken wtoken = findAppWindowToken(token);
-            if (wtoken == null) {
-                Slog.w(TAG, "Attempted to set icon of non-existing app token: " + token);
-                return;
-            }
-
-            // If the display is frozen, we won't do anything until the
-            // actual window is displayed so there is no reason to put in
-            // the starting window.
-            if (mDisplayFrozen || !mPolicy.isScreenOn()) {
-                return;
-            }
-
-            if (wtoken.startingData != null) {
-                return;
-            }
-
-            if (transferFrom != null) {
-                AppWindowToken ttoken = findAppWindowToken(transferFrom);
-                if (ttoken != null) {
-                    WindowState startingWindow = ttoken.startingWindow;
-                    if (startingWindow != null) {
-                        if (mStartingIconInTransition) {
-                            // In this case, the starting icon has already
-                            // been displayed, so start letting windows get
-                            // shown immediately without any more transitions.
-                            mSkipAppTransitionAnimation = true;
-                        }
-                        if (DEBUG_STARTING_WINDOW) Slog.v(TAG,
-                                "Moving existing starting from " + ttoken
-                                + " to " + wtoken);
-                        final long origId = Binder.clearCallingIdentity();
-
-                        // Transfer the starting window over to the new
-                        // token.
-                        wtoken.startingData = ttoken.startingData;
-                        wtoken.startingView = ttoken.startingView;
-                        wtoken.startingWindow = startingWindow;
-                        ttoken.startingData = null;
-                        ttoken.startingView = null;
-                        ttoken.startingWindow = null;
-                        ttoken.startingMoved = true;
-                        startingWindow.mToken = wtoken;
-                        startingWindow.mRootToken = wtoken;
-                        startingWindow.mAppToken = wtoken;
-                        if (DEBUG_WINDOW_MOVEMENT) Slog.v(TAG,
-                                "Removing starting window: " + startingWindow);
-                        mWindows.remove(startingWindow);
-                        mWindowsChanged = true;
-                        ttoken.windows.remove(startingWindow);
-                        ttoken.allAppWindows.remove(startingWindow);
-                        addWindowToListInOrderLocked(startingWindow, true);
-
-                        // Propagate other interesting state between the
-                        // tokens.  If the old token is displayed, we should
-                        // immediately force the new one to be displayed.  If
-                        // it is animating, we need to move that animation to
-                        // the new one.
-                        if (ttoken.allDrawn) {
-                            wtoken.allDrawn = true;
-                        }
-                        if (ttoken.firstWindowDrawn) {
-                            wtoken.firstWindowDrawn = true;
-                        }
-                        if (!ttoken.hidden) {
-                            wtoken.hidden = false;
-                            wtoken.hiddenRequested = false;
-                            wtoken.willBeHidden = false;
-                        }
-                        if (wtoken.clientHidden != ttoken.clientHidden) {
-                            wtoken.clientHidden = ttoken.clientHidden;
-                            wtoken.sendAppVisibilityToClients();
-                        }
-                        if (ttoken.animation != null) {
-                            wtoken.animation = ttoken.animation;
-                            wtoken.animating = ttoken.animating;
-                            wtoken.animLayerAdjustment = ttoken.animLayerAdjustment;
-                            ttoken.animation = null;
-                            ttoken.animLayerAdjustment = 0;
-                            wtoken.updateLayers();
-                            ttoken.updateLayers();
-                        }
-
-                        updateFocusedWindowLocked(UPDATE_FOCUS_WILL_PLACE_SURFACES);
-                        mLayoutNeeded = true;
-                        performLayoutAndPlaceSurfacesLocked();
-                        Binder.restoreCallingIdentity(origId);
-                        return;
-                    } else if (ttoken.startingData != null) {
-                        // The previous app was getting ready to show a
-                        // starting window, but hasn't yet done so.  Steal it!
-                        if (DEBUG_STARTING_WINDOW) Slog.v(TAG,
-                                "Moving pending starting from " + ttoken
-                                + " to " + wtoken);
-                        wtoken.startingData = ttoken.startingData;
-                        ttoken.startingData = null;
-                        ttoken.startingMoved = true;
-                        Message m = mH.obtainMessage(H.ADD_STARTING, wtoken);
-                        // Note: we really want to do sendMessageAtFrontOfQueue() because we
-                        // want to process the message ASAP, before any other queued
-                        // messages.
-                        mH.sendMessageAtFrontOfQueue(m);
-                        return;
-                    }
-                }
-            }
-
-            // There is no existing starting window, and the caller doesn't
-            // want us to create one, so that's it!
-            if (!createIfNeeded) {
-                return;
-            }
-
-            // If this is a translucent or wallpaper window, then don't
-            // show a starting window -- the current effect (a full-screen
-            // opaque starting window that fades away to the real contents
-            // when it is ready) does not work for this.
-            if (theme != 0) {
-                AttributeCache.Entry ent = AttributeCache.instance().get(pkg, theme,
-                        com.android.internal.R.styleable.Window);
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowIsTranslucent, false)) {
-                    return;
-                }
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowIsFloating, false)) {
-                    return;
-                }
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowShowWallpaper, false)) {
-                    return;
-                }
-            }
-
-            mStartingIconInTransition = true;
-            wtoken.startingData = new StartingData(
-                    pkg, theme, nonLocalizedLabel,
-                    labelRes, icon);
-            Message m = mH.obtainMessage(H.ADD_STARTING, wtoken);
-            // Note: we really want to do sendMessageAtFrontOfQueue() because we
-            // want to process the message ASAP, before any other queued
-            // messages.
-            mH.sendMessageAtFrontOfQueue(m);
         }
     }
 
@@ -3519,9 +3163,7 @@ public class WindowManagerService extends IWindowManager.Stub
             boolean runningAppAnimation = false;
 
             if (transit != WindowManagerPolicy.TRANSIT_UNSET) {
-                if (wtoken.animation == sDummyAnimation) {
-                    wtoken.animation = null;
-                }
+                wtoken.animation = null;
                 applyAnimationLocked(wtoken, lp, transit, visible);
                 changed = true;
                 if (wtoken.animation != null) {
@@ -3637,7 +3279,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 mOpeningApps.remove(wtoken);
                 mClosingApps.remove(wtoken);
                 wtoken.waitingToShow = wtoken.waitingToHide = false;
-                wtoken.inPendingTransaction = true;
+                wtoken.inPendingTransaction = false;
                 if (visible) {
                     mOpeningApps.add(wtoken);
                     wtoken.startingDisplayed = false;
@@ -4279,40 +3921,9 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     public void setAnimationScale(int which, float scale) {
-        if (!checkCallingPermission(android.Manifest.permission.SET_ANIMATION_SCALE,
-                "setAnimationScale()")) {
-            throw new SecurityException("Requires SET_ANIMATION_SCALE permission");
-        }
-
-        if (scale < 0) scale = 0;
-        else if (scale > 20) scale = 20;
-        scale = Math.abs(scale);
-        switch (which) {
-            case 0: mWindowAnimationScale = fixScale(scale); break;
-            case 1: mTransitionAnimationScale = fixScale(scale); break;
-        }
-
-        // Persist setting
-        mH.obtainMessage(H.PERSIST_ANIMATION_SCALE).sendToTarget();
     }
 
     public void setAnimationScales(float[] scales) {
-        if (!checkCallingPermission(android.Manifest.permission.SET_ANIMATION_SCALE,
-                "setAnimationScale()")) {
-            throw new SecurityException("Requires SET_ANIMATION_SCALE permission");
-        }
-
-        if (scales != null) {
-            if (scales.length >= 1) {
-                mWindowAnimationScale = fixScale(scales[0]);
-            }
-            if (scales.length >= 2) {
-                mTransitionAnimationScale = fixScale(scales[1]);
-            }
-        }
-
-        // Persist setting
-        mH.obtainMessage(H.PERSIST_ANIMATION_SCALE).sendToTarget();
     }
 
     public float getAnimationScale(int which) {
@@ -5385,14 +4996,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
         
         public void setEventDispatchingLw(boolean enabled) {
-            if (mInputDispatchEnabled != enabled) {
-                if (DEBUG_INPUT) {
-                    Slog.v(TAG, "Setting event dispatching to " + enabled);
-                }
-                
-                mInputDispatchEnabled = enabled;
-                updateInputDispatchModeLw();
-            }
         }
         
         private void updateInputDispatchModeLw() {
@@ -6348,13 +5951,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         public void setAnimation(Animation anim) {
-            if (localLOGV) Slog.v(
-                TAG, "Setting animation in " + this + ": " + anim);
-            mAnimating = false;
-            mLocalAnimating = false;
-            mAnimation = anim;
-            mAnimation.restrictDuration(MAX_ANIMATION_DURATION);
-            mAnimation.scaleCurrentDuration(mWindowAnimationScale);
         }
 
         public void clearAnimation() {
@@ -6593,8 +6189,6 @@ public class WindowManagerService extends IWindowManager.Stub
                 mReadyToShow = false;
                 enableScreenIfNeededLocked();
 
-                applyEnterAnimationLocked(this);
-
                 int i = mChildWindows.size();
                 while (i > 0) {
                     i--;
@@ -6642,166 +6236,7 @@ public class WindowManagerService extends IWindowManager.Stub
         // This must be called while inside a transaction.  Returns true if
         // there is more animation to run.
         boolean stepAnimationLocked(long currentTime, int dw, int dh) {
-            if (!mDisplayFrozen && mPolicy.isScreenOn()) {
-                // We will run animations as long as the display isn't frozen.
-
-                if (!mDrawPending && !mCommitDrawPending && mAnimation != null) {
-                    mHasTransformation = true;
-                    mHasLocalTransformation = true;
-                    if (!mLocalAnimating) {
-                        if (DEBUG_ANIM) Slog.v(
-                            TAG, "Starting animation in " + this +
-                            " @ " + currentTime + ": ww=" + mFrame.width() + " wh=" + mFrame.height() +
-                            " dw=" + dw + " dh=" + dh + " scale=" + mWindowAnimationScale);
-                        mAnimation.initialize(mFrame.width(), mFrame.height(), dw, dh);
-                        mAnimation.setStartTime(currentTime);
-                        mLocalAnimating = true;
-                        mAnimating = true;
-                    }
-                    mTransformation.clear();
-                    final boolean more = mAnimation.getTransformation(
-                        currentTime, mTransformation);
-                    if (DEBUG_ANIM) Slog.v(
-                        TAG, "Stepped animation in " + this +
-                        ": more=" + more + ", xform=" + mTransformation);
-                    if (more) {
-                        // we're not done!
-                        return true;
-                    }
-                    if (DEBUG_ANIM) Slog.v(
-                        TAG, "Finished animation in " + this +
-                        " @ " + currentTime);
-                    mAnimation = null;
-                    //WindowManagerService.this.dump();
-                }
-                mHasLocalTransformation = false;
-                if ((!mLocalAnimating || mAnimationIsEntrance) && mAppToken != null
-                        && mAppToken.animation != null) {
-                    // When our app token is animating, we kind-of pretend like
-                    // we are as well.  Note the mLocalAnimating mAnimationIsEntrance
-                    // part of this check means that we will only do this if
-                    // our window is not currently exiting, or it is not
-                    // locally animating itself.  The idea being that one that
-                    // is exiting and doing a local animation should be removed
-                    // once that animation is done.
-                    mAnimating = true;
-                    mHasTransformation = true;
-                    mTransformation.clear();
-                    return false;
-                } else if (mHasTransformation) {
-                    // Little trick to get through the path below to act like
-                    // we have finished an animation.
-                    mAnimating = true;
-                } else if (isAnimating()) {
-                    mAnimating = true;
-                }
-            } else if (mAnimation != null) {
-                // If the display is frozen, and there is a pending animation,
-                // clear it and make sure we run the cleanup code.
-                mAnimating = true;
-                mLocalAnimating = true;
-                mAnimation = null;
-            }
-
-            if (!mAnimating && !mLocalAnimating) {
-                return false;
-            }
-
-            if (DEBUG_ANIM) Slog.v(
-                TAG, "Animation done in " + this + ": exiting=" + mExiting
-                + ", reportedVisible="
-                + (mAppToken != null ? mAppToken.reportedVisible : false));
-
-            mAnimating = false;
-            mLocalAnimating = false;
-            mAnimation = null;
-            mAnimLayer = mLayer;
-            if (mIsImWindow) {
-                mAnimLayer += mInputMethodAnimLayerAdjustment;
-            } else if (mIsWallpaper) {
-                mAnimLayer += mWallpaperAnimLayerAdjustment;
-            }
-            if (DEBUG_LAYERS) Slog.v(TAG, "Stepping win " + this
-                    + " anim layer: " + mAnimLayer);
-            mHasTransformation = false;
-            mHasLocalTransformation = false;
-            if (mPolicyVisibility != mPolicyVisibilityAfterAnim) {
-                if (DEBUG_VISIBILITY) {
-                    Slog.v(TAG, "Policy visibility changing after anim in " + this + ": "
-                            + mPolicyVisibilityAfterAnim);
-                }
-                mPolicyVisibility = mPolicyVisibilityAfterAnim;
-                if (!mPolicyVisibility) {
-                    if (mCurrentFocus == this) {
-                        mFocusMayChange = true;
-                    }
-                    // Window is no longer visible -- make sure if we were waiting
-                    // for it to be displayed before enabling the display, that
-                    // we allow the display to be enabled now.
-                    enableScreenIfNeededLocked();
-                }
-            }
-            mTransformation.clear();
-            if (mHasDrawn
-                    && mAttrs.type == WindowManager.LayoutParams.TYPE_APPLICATION_STARTING
-                    && mAppToken != null
-                    && mAppToken.firstWindowDrawn
-                    && mAppToken.startingData != null) {
-                if (DEBUG_STARTING_WINDOW) Slog.v(TAG, "Finish starting "
-                        + mToken + ": first real window done animating");
-                mFinishedStarting.add(mAppToken);
-                mH.sendEmptyMessage(H.FINISHED_STARTING);
-            }
-
-            finishExit();
-
-            if (mAppToken != null) {
-                mAppToken.updateReportedVisibilityLocked();
-            }
-
             return false;
-        }
-
-        void finishExit() {
-            if (DEBUG_ANIM) Slog.v(
-                    TAG, "finishExit in " + this
-                    + ": exiting=" + mExiting
-                    + " remove=" + mRemoveOnExit
-                    + " windowAnimating=" + isWindowAnimating());
-
-            final int N = mChildWindows.size();
-            for (int i=0; i<N; i++) {
-                mChildWindows.get(i).finishExit();
-            }
-
-            if (!mExiting) {
-                return;
-            }
-
-            if (isWindowAnimating()) {
-                return;
-            }
-
-            if (localLOGV) Slog.v(
-                    TAG, "Exit animation finished in " + this
-                    + ": remove=" + mRemoveOnExit);
-            if (mSurface != null) {
-                mDestroySurface.add(this);
-                mDestroying = true;
-                if (SHOW_TRANSACTIONS) logSurface(this, "HIDE (finishExit)", null);
-                mSurfaceShown = false;
-                try {
-                    mSurface.hide();
-                } catch (RuntimeException e) {
-                    Slog.w(TAG, "Error hiding surface in " + this, e);
-                }
-                mLastHidden = true;
-            }
-            mExiting = false;
-            if (mRemoveOnExit) {
-                mPendingRemove.add(this);
-                mRemoveOnExit = false;
-            }
         }
 
         boolean isIdentityMatrix(float dsdx, float dtdx, float dsdy, float dtdy) {
@@ -7525,32 +6960,9 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         public void setAnimation(Animation anim) {
-            if (localLOGV) Slog.v(
-                TAG, "Setting animation in " + this + ": " + anim);
-            animation = anim;
-            animating = false;
-            anim.restrictDuration(MAX_ANIMATION_DURATION);
-            anim.scaleCurrentDuration(mTransitionAnimationScale);
-            int zorder = anim.getZAdjustment();
-            int adj = 0;
-            if (zorder == Animation.ZORDER_TOP) {
-                adj = TYPE_LAYER_OFFSET;
-            } else if (zorder == Animation.ZORDER_BOTTOM) {
-                adj = -TYPE_LAYER_OFFSET;
-            }
-
-            if (animLayerAdjustment != adj) {
-                animLayerAdjustment = adj;
-                updateLayers();
-            }
         }
 
         public void setDummyAnimation() {
-            if (animation == null) {
-                if (localLOGV) Slog.v(
-                    TAG, "Setting dummy animation in " + this);
-                animation = sDummyAnimation;
-            }
         }
 
         public void clearAnimation() {
@@ -7561,20 +6973,6 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         void updateLayers() {
-            final int N = allAppWindows.size();
-            final int adj = animLayerAdjustment;
-            for (int i=0; i<N; i++) {
-                WindowState w = allAppWindows.get(i);
-                w.mAnimLayer = w.mLayer + adj;
-                if (DEBUG_LAYERS) Slog.v(TAG, "Updating layer " + w + ": "
-                        + w.mAnimLayer);
-                if (w == mInputMethodTarget) {
-                    setInputMethodAnimLayerAdjustment(adj);
-                }
-                if (w == mWallpaperTarget && mLowerWallpaperTarget == null) {
-                    setWallpaperAnimLayerAdjustmentLocked(adj);
-                }
-            }
         }
 
         void sendAppVisibilityToClients() {
@@ -7606,79 +7004,6 @@ public class WindowManagerService extends IWindowManager.Stub
 
         // This must be called while inside a transaction.
         boolean stepAnimationLocked(long currentTime, int dw, int dh) {
-            if (!mDisplayFrozen && mPolicy.isScreenOn()) {
-                // We will run animations as long as the display isn't frozen.
-
-                if (animation == sDummyAnimation) {
-                    // This guy is going to animate, but not yet.  For now count
-                    // it as not animating for purposes of scheduling transactions;
-                    // when it is really time to animate, this will be set to
-                    // a real animation and the next call will execute normally.
-                    return false;
-                }
-
-                if ((allDrawn || animating || startingDisplayed) && animation != null) {
-                    if (!animating) {
-                        if (DEBUG_ANIM) Slog.v(
-                            TAG, "Starting animation in " + this +
-                            " @ " + currentTime + ": dw=" + dw + " dh=" + dh
-                            + " scale=" + mTransitionAnimationScale
-                            + " allDrawn=" + allDrawn + " animating=" + animating);
-                        animation.initialize(dw, dh, dw, dh);
-                        animation.setStartTime(currentTime);
-                        animating = true;
-                    }
-                    transformation.clear();
-                    final boolean more = animation.getTransformation(
-                        currentTime, transformation);
-                    if (DEBUG_ANIM) Slog.v(
-                        TAG, "Stepped animation in " + this +
-                        ": more=" + more + ", xform=" + transformation);
-                    if (more) {
-                        // we're done!
-                        hasTransformation = true;
-                        return true;
-                    }
-                    if (DEBUG_ANIM) Slog.v(
-                        TAG, "Finished animation in " + this +
-                        " @ " + currentTime);
-                    animation = null;
-                }
-            } else if (animation != null) {
-                // If the display is frozen, and there is a pending animation,
-                // clear it and make sure we run the cleanup code.
-                animating = true;
-                animation = null;
-            }
-
-            hasTransformation = false;
-
-            if (!animating) {
-                return false;
-            }
-
-            clearAnimation();
-            animating = false;
-            if (mInputMethodTarget != null && mInputMethodTarget.mAppToken == this) {
-                moveInputMethodWindowsIfNeededLocked(true);
-            }
-
-            if (DEBUG_ANIM) Slog.v(
-                    TAG, "Animation done in " + this
-                    + ": reportedVisible=" + reportedVisible);
-
-            transformation.clear();
-            if (animLayerAdjustment != 0) {
-                animLayerAdjustment = 0;
-                updateLayers();
-            }
-
-            final int N = windows.size();
-            for (int i=0; i<N; i++) {
-                windows.get(i).finishExit();
-            }
-            updateReportedVisibilityLocked();
-
             return false;
         }
 
@@ -7952,13 +7277,12 @@ public class WindowManagerService extends IWindowManager.Stub
                 case ANIMATE: {
                     synchronized(mWindowMap) {
                         mAnimationPending = false;
-                        performLayoutAndPlaceSurfacesLocked();
                     }
                 } break;
 
                 case ADD_STARTING: {
                     final AppWindowToken wtoken = (AppWindowToken)msg.obj;
-                    final StartingData sd = wtoken.startingData;
+                    final StartingData sd = null;
 
                     if (sd == null) {
                         // Animation has been canceled... do nothing.
@@ -8484,7 +7808,7 @@ public class WindowManagerService extends IWindowManager.Stub
             // soon won't be visible, to avoid wasting time and funky
             // changes while a window is animating away.
             final AppWindowToken atoken = win.mAppToken;
-            final boolean gone = win.mViewVisibility == View.GONE
+            boolean gone = win.mViewVisibility == View.GONE
                     || !win.mRelayoutCalled
                     || win.mRootToken.hidden
                     || (atoken != null && atoken.hiddenRequested)
@@ -8508,6 +7832,13 @@ public class WindowManagerService extends IWindowManager.Stub
             // if they want.  (We do the normal layout for INVISIBLE
             // windows, since that means "perform layout as normal,
             // just don't display").
+            if (win.mIsWallpaper) {
+                gone = win.mViewVisibility == View.GONE
+                    || !win.mRelayoutCalled
+                    || (atoken != null && atoken.hiddenRequested)
+                    || win.mAttachedHidden
+                    || win.mExiting || win.mDestroying;
+            }
             if (!gone || !win.mHaveFrame) {
                 if (!win.mLayoutAttached) {
                     mPolicy.layoutWindowLw(win, win.mAttrs, null);
@@ -8654,25 +7985,6 @@ public class WindowManagerService extends IWindowManager.Stub
                 // Update animations of all applications, including those
                 // associated with exiting/removed apps
                 boolean tokensAnimating = false;
-                final int NAT = mAppTokens.size();
-                for (i=0; i<NAT; i++) {
-                    if (mAppTokens.get(i).stepAnimationLocked(currentTime, dw, dh)) {
-                        tokensAnimating = true;
-                    }
-                }
-                final int NEAT = mExitingAppTokens.size();
-                for (i=0; i<NEAT; i++) {
-                    if (mExitingAppTokens.get(i).stepAnimationLocked(currentTime, dw, dh)) {
-                        tokensAnimating = true;
-                    }
-                }
-
-                // SECOND LOOP: Execute animations and update visibility of windows.
-                
-                if (DEBUG_APP_TRANSITIONS) Slog.v(TAG, "*** ANIM STEP: seq="
-                        + transactionSequence + " tokensAnimating="
-                        + tokensAnimating);
-                        
                 animating = tokensAnimating;
 
                 boolean tokenMayBeDrawn = false;
@@ -8700,10 +8012,6 @@ public class WindowManagerService extends IWindowManager.Stub
                         }
 
                         boolean wasAnimating = w.mAnimating;
-                        if (w.stepAnimationLocked(currentTime, dw, dh)) {
-                            animating = true;
-                            //w.dump("  ");
-                        }
                         if (wasAnimating && !w.mAnimating && mWallpaperTarget == w) {
                             wallpaperMayChange = true;
                         }
@@ -9385,6 +8693,14 @@ public class WindowManagerService extends IWindowManager.Stub
                             || w.mLastHScale != w.mHScale
                             || w.mLastVScale != w.mVScale
                             || w.mLastHidden) {
+                        boolean layerChanged = w.mLastLayer != w.mAnimLayer;
+                        boolean alphaChanged = w.mLastAlpha != w.mShownAlpha;
+                        boolean matrixChanged = w.mLastDsDx != w.mDsDx ||
+                                                w.mLastDtDx != w.mDtDx ||
+                                                w.mLastDsDy != w.mDsDy ||
+                                                w.mLastDtDy != w.mDtDy ||
+                                                w.mLastHScale != w.mHScale ||
+                                                w.mLastVScale != w.mVScale;
                         displayed = true;
                         w.mLastAlpha = w.mShownAlpha;
                         w.mLastLayer = w.mAnimLayer;
@@ -9403,10 +8719,10 @@ public class WindowManagerService extends IWindowManager.Stub
                         if (w.mSurface != null) {
                             try {
                                 w.mSurfaceAlpha = w.mShownAlpha;
-                                w.mSurface.setAlpha(w.mShownAlpha);
+                                if (alphaChanged) w.mSurface.setAlpha(w.mShownAlpha);
                                 w.mSurfaceLayer = w.mAnimLayer;
-                                w.mSurface.setLayer(w.mAnimLayer);
-                                w.mSurface.setMatrix(
+                                if (layerChanged) w.mSurface.setLayer(w.mAnimLayer);
+                                if (matrixChanged) w.mSurface.setMatrix(
                                         w.mDsDx*w.mHScale, w.mDtDx*w.mVScale,
                                         w.mDsDy*w.mHScale, w.mDtDy*w.mVScale);
                             } catch (RuntimeException e) {
@@ -9529,58 +8845,6 @@ public class WindowManagerService extends IWindowManager.Stub
                         mBackgroundFillerShown = true;
                     } else if (canBeSeen && !obscured &&
                             (attrFlags&FLAG_BLUR_BEHIND|FLAG_DIM_BEHIND) != 0) {
-                        if (localLOGV) Slog.v(TAG, "Win " + w
-                                + ": blurring=" + blurring
-                                + " obscured=" + obscured
-                                + " displayed=" + displayed);
-                        if ((attrFlags&FLAG_DIM_BEHIND) != 0) {
-                            if (!dimming) {
-                                //Slog.i(TAG, "DIM BEHIND: " + w);
-                                dimming = true;
-                                if (mDimAnimator == null) {
-                                    mDimAnimator = new DimAnimator(mFxSession);
-                                }
-                                mDimAnimator.show(dw, dh);
-                                mDimAnimator.updateParameters(w, currentTime);
-                            }
-                        }
-                        if ((attrFlags&FLAG_BLUR_BEHIND) != 0) {
-                            if (!blurring) {
-                                //Slog.i(TAG, "BLUR BEHIND: " + w);
-                                blurring = true;
-                                if (mBlurSurface == null) {
-                                    if (SHOW_TRANSACTIONS) Slog.i(TAG, "  BLUR "
-                                            + mBlurSurface + ": CREATE");
-                                    try {
-                                        mBlurSurface = new Surface(mFxSession, 0,
-                                                "BlurSurface",
-                                                -1, 16, 16,
-                                                PixelFormat.OPAQUE,
-                                                Surface.FX_SURFACE_BLUR);
-                                    } catch (Exception e) {
-                                        Slog.e(TAG, "Exception creating Blur surface", e);
-                                    }
-                                }
-                                if (mBlurSurface != null) {
-                                    if (SHOW_TRANSACTIONS) Slog.i(TAG, "  BLUR "
-                                            + mBlurSurface + ": pos=(0,0) (" +
-                                            dw + "x" + dh + "), layer=" + (w.mAnimLayer-1));
-                                    mBlurSurface.setPosition(0, 0);
-                                    mBlurSurface.setSize(dw, dh);
-                                    mBlurSurface.setLayer(w.mAnimLayer-2);
-                                    if (!mBlurShown) {
-                                        try {
-                                            if (SHOW_TRANSACTIONS) Slog.i(TAG, "  BLUR "
-                                                    + mBlurSurface + ": SHOW");
-                                            mBlurSurface.show();
-                                        } catch (RuntimeException e) {
-                                            Slog.w(TAG, "Failure showing blur surface", e);
-                                        }
-                                        mBlurShown = true;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
 
@@ -10616,22 +9880,8 @@ public class WindowManagerService extends IWindowManager.Stub
                 // If the desired dim level has changed, then
                 // start an animation to it.
                 mLastDimAnimTime = currentTime;
-                long duration = (w.mAnimating && w.mAnimation != null)
-                        ? w.mAnimation.computeDurationHint()
-                        : DEFAULT_DIM_DURATION;
-                if (target > mDimTargetAlpha) {
-                    // This is happening behind the activity UI,
-                    // so we can make it run a little longer to
-                    // give a stronger impression without disrupting
-                    // the user.
-                    duration *= DIM_DURATION_MULTIPLIER;
-                }
-                if (duration < 1) {
-                    // Don't divide by zero
-                    duration = 1;
-                }
                 mDimTargetAlpha = target;
-                mDimDeltaPerMs = (mDimTargetAlpha-mDimCurrentAlpha) / duration;
+                mDimDeltaPerMs = (mDimTargetAlpha-mDimCurrentAlpha);
             }
         }
 

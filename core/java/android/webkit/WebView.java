@@ -7945,4 +7945,8 @@ public class WebView extends AbsoluteLayout
     // return NO_LEFTEDGE means failure.
     private static final int NO_LEFTEDGE = -1;
     private native int      nativeGetBlockLeftEdge(int x, int y, float scale);
+
+    ViewManager getViewManager() {
+        return mViewManager;
+    }
 }

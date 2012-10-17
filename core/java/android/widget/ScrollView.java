@@ -155,32 +155,12 @@ public class ScrollView extends FrameLayout {
 
     @Override
     protected float getTopFadingEdgeStrength() {
-        if (getChildCount() == 0) {
-            return 0.0f;
-        }
-
-        final int length = getVerticalFadingEdgeLength();
-        if (mScrollY < length) {
-            return mScrollY / (float) length;
-        }
-
-        return 1.0f;
+        return 0.0f;
     }
 
     @Override
     protected float getBottomFadingEdgeStrength() {
-        if (getChildCount() == 0) {
-            return 0.0f;
-        }
-
-        final int length = getVerticalFadingEdgeLength();
-        final int bottomEdge = getHeight() - mPaddingBottom;
-        final int span = getChildAt(0).getBottom() - mScrollY - bottomEdge;
-        if (span < length) {
-            return span / (float) length;
-        }
-
-        return 1.0f;
+        return 0.0f;
     }
 
     /**
@@ -564,9 +544,7 @@ public class ScrollView extends FrameLayout {
                             fling(-initialVelocity);
                         } else {
                             final int bottom = getScrollRange();
-                            if (mScroller.springBack(mScrollX, mScrollY, 0, 0, 0, bottom)) {
-                                invalidate();
-                            }
+                            invalidate();
                         }
                     }
 
@@ -1387,19 +1365,9 @@ public class ScrollView extends FrameLayout {
 
     @Override
     public void setOverScrollMode(int mode) {
-        if (mode != OVER_SCROLL_NEVER) {
-            if (mEdgeGlowTop == null) {
-                final Resources res = getContext().getResources();
-                final Drawable edge = res.getDrawable(R.drawable.overscroll_edge);
-                final Drawable glow = res.getDrawable(R.drawable.overscroll_glow);
-                mEdgeGlowTop = new EdgeGlow(edge, glow);
-                mEdgeGlowBottom = new EdgeGlow(edge, glow);
-            }
-        } else {
-            mEdgeGlowTop = null;
-            mEdgeGlowBottom = null;
-        }
-        super.setOverScrollMode(mode);
+        mEdgeGlowTop = null;
+        mEdgeGlowBottom = null;
+        super.setOverScrollMode(OVER_SCROLL_NEVER);
     }
 
     @Override

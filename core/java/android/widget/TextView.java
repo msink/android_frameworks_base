@@ -3610,35 +3610,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     private void invalidateCursorPath() {
         if (mHighlightPathBogus) {
             invalidateCursor();
-        } else {
-            synchronized (sTempRect) {
-                /*
-                 * The reason for this concern about the thickness of the
-                 * cursor and doing the floor/ceil on the coordinates is that
-                 * some EditTexts (notably textfields in the Browser) have
-                 * anti-aliased text where not all the characters are
-                 * necessarily at integer-multiple locations.  This should
-                 * make sure the entire cursor gets invalidated instead of
-                 * sometimes missing half a pixel.
-                 */
-
-                float thick = FloatMath.ceil(mTextPaint.getStrokeWidth());
-                if (thick < 1.0f) {
-                    thick = 1.0f;
-                }
-
-                thick /= 2;
-
-                mHighlightPath.computeBounds(sTempRect, false);
-
-                int left = getCompoundPaddingLeft();
-                int top = getExtendedPaddingTop() + getVerticalOffset(true);
-
-                invalidate((int) FloatMath.floor(left + sTempRect.left - thick),
-                           (int) FloatMath.floor(top + sTempRect.top - thick),
-                           (int) FloatMath.ceil(left + sTempRect.right + thick),
-                           (int) FloatMath.ceil(top + sTempRect.bottom + thick));
-            }
         }
     }
 
@@ -4083,8 +4054,8 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                     }
 
                     // XXX should pass to skin instead of drawing directly
-                    mHighlightPaint.setColor(mHighlightColor);
-                    mHighlightPaint.setStyle(Paint.Style.FILL);
+                    mHighlightPaint.setColor(0xff000000);
+                    mHighlightPaint.setStyle(Paint.Style.STROKE);
 
                     highlight = mHighlightPath;
                 }
@@ -6972,8 +6943,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                     if (tv.mLayout != null) {
                         tv.invalidateCursorPath();
                     }
-
-                    postAtTime(this, SystemClock.uptimeMillis() + BLINK);
                 }
             }
         }

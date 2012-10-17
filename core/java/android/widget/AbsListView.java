@@ -578,7 +578,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         super(context);
         initAbsListView();
 
-        setVerticalScrollBarEnabled(true);
         TypedArray a = context.obtainStyledAttributes(R.styleable.View);
         initializeScrollbars(a);
         a.recycle();
@@ -648,19 +647,9 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
     @Override
     public void setOverScrollMode(int mode) {
-        if (mode != OVER_SCROLL_NEVER) {
-            if (mEdgeGlowTop == null) {
-                final Resources res = getContext().getResources();
-                final Drawable edge = res.getDrawable(R.drawable.overscroll_edge);
-                final Drawable glow = res.getDrawable(R.drawable.overscroll_glow);
-                mEdgeGlowTop = new EdgeGlow(edge, glow);
-                mEdgeGlowBottom = new EdgeGlow(edge, glow);
-            }
-        } else {
-            mEdgeGlowTop = null;
-            mEdgeGlowBottom = null;
-        }
-        super.setOverScrollMode(mode);
+        mEdgeGlowTop = null;
+        mEdgeGlowBottom = null;
+        super.setOverScrollMode(OVER_SCROLL_NEVER);
     }
 
     /**
@@ -714,7 +703,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
      */
     @Override
     protected boolean isVerticalScrollBarHidden() {
-        return mFastScroller != null && mFastScroller.isVisible();
+        return true;
     }
 
     /**
@@ -1183,38 +1172,12 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
     @Override
     protected float getTopFadingEdgeStrength() {
-        final int count = getChildCount();
-        final float fadeEdge = super.getTopFadingEdgeStrength();
-        if (count == 0) {
-            return fadeEdge;
-        } else {
-            if (mFirstPosition > 0) {
-                return 1.0f;
-            }
-
-            final int top = getChildAt(0).getTop();
-            final float fadeLength = (float) getVerticalFadingEdgeLength();
-            return top < mPaddingTop ? (float) -(top - mPaddingTop) / fadeLength : fadeEdge;
-        }
+        return 0;
     }
 
     @Override
     protected float getBottomFadingEdgeStrength() {
-        final int count = getChildCount();
-        final float fadeEdge = super.getBottomFadingEdgeStrength();
-        if (count == 0) {
-            return fadeEdge;
-        } else {
-            if (mFirstPosition + count - 1 < mItemCount - 1) {
-                return 1.0f;
-            }
-
-            final int bottom = getChildAt(count - 1).getBottom();
-            final int height = getHeight();
-            final float fadeLength = (float) getVerticalFadingEdgeLength();
-            return bottom > height - mPaddingBottom ?
-                    (float) (bottom - height + mPaddingBottom) / fadeLength : fadeEdge;
-        }
+        return 0;
     }
 
     @Override
@@ -1715,8 +1678,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 mFlingRunnable.endFling();
                 if (mScrollY != 0) {
                     mScrollY = 0;
-                    finishGlows();
-                    invalidate();
                 }
             }
             // Always hide the type filter
@@ -1987,22 +1948,10 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     if (!mDataChanged) {
                         layoutChildren();
                         child.setPressed(true);
-                        positionSelector(child);
                         setPressed(true);
 
                         final int longPressTimeout = ViewConfiguration.getLongPressTimeout();
                         final boolean longClickable = isLongClickable();
-
-                        if (mSelector != null) {
-                            Drawable d = mSelector.getCurrent();
-                            if (d != null && d instanceof TransitionDrawable) {
-                                if (longClickable) {
-                                    ((TransitionDrawable) d).startTransition(longPressTimeout);
-                                } else {
-                                    ((TransitionDrawable) d).resetTransition();
-                                }
-                            }
-                        }
 
                         if (longClickable) {
                             if (mPendingCheckForLongPress == null) {
@@ -2073,8 +2022,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
                 if (mScrollY != 0) {
                     mScrollY = 0;
-                    finishGlows();
-                    invalidate();
                 }
             }
         }
@@ -2238,28 +2185,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                                 // Don't allow overfling if we're at the edge.
                                 mVelocityTracker.clear();
                             }
-
-                            final int overscrollMode = getOverScrollMode();
-                            if (overscrollMode == OVER_SCROLL_ALWAYS ||
-                                    (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
-                                            !contentFits())) {
-                                mDirection = 0; // Reset when entering overscroll.
-                                mTouchMode = TOUCH_MODE_OVERSCROLL;
-                                if (rawDeltaY > 0) {
-                                    mEdgeGlowTop.onPull((float) overscroll / getHeight());
-                                    if (!mEdgeGlowBottom.isFinished()) {
-                                        mEdgeGlowBottom.onRelease();
-                                    }
-                                } else if (rawDeltaY < 0) {
-                                    mEdgeGlowBottom.onPull((float) overscroll / getHeight());
-                                    if (!mEdgeGlowTop.isFinished()) {
-                                        mEdgeGlowTop.onRelease();
-                                    }
-                                }
-                            }
                         }
                         mMotionY = y;
-                        invalidate();
                     }
                     mLastY = y;
                 }
@@ -2307,23 +2234,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     } else {
                         overScrollBy(0, -incrementalDeltaY, 0, mScrollY, 0, 0,
                                 0, mOverscrollDistance, true);
-                        final int overscrollMode = getOverScrollMode();
-                        if (overscrollMode == OVER_SCROLL_ALWAYS ||
-                                (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS &&
-                                        !contentFits())) {
-                            if (rawDeltaY > 0) {
-                                mEdgeGlowTop.onPull((float) -incrementalDeltaY / getHeight());
-                                if (!mEdgeGlowBottom.isFinished()) {
-                                    mEdgeGlowBottom.onRelease();
-                                }
-                            } else if (rawDeltaY < 0) {
-                                mEdgeGlowBottom.onPull((float) -incrementalDeltaY / getHeight());
-                                if (!mEdgeGlowTop.isFinished()) {
-                                    mEdgeGlowTop.onRelease();
-                                }
-                            }
-                            invalidate();
-                        }
                         if (Math.abs(mOverscrollDistance) == Math.abs(mScrollY)) {
                             // Don't allow overfling if we're at the edge.
                             mVelocityTracker.clear();
@@ -2373,14 +2283,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                             setSelectedPositionInt(mMotionPosition);
                             layoutChildren();
                             child.setPressed(true);
-                            positionSelector(child);
                             setPressed(true);
-                            if (mSelector != null) {
-                                Drawable d = mSelector.getCurrent();
-                                if (d != null && d instanceof TransitionDrawable) {
-                                    ((TransitionDrawable) d).resetTransition();
-                                }
-                            }
                             postDelayed(new Runnable() {
                                 public void run() {
                                     child.setPressed(false);
@@ -2464,14 +2367,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
             setPressed(false);
 
-            if (mEdgeGlowTop != null) {
-                mEdgeGlowTop.onRelease();
-                mEdgeGlowBottom.onRelease();
-            }
-
-            // Need to redraw since we probably aren't drawing the selector anymore
-            invalidate();
-
             final Handler handler = getHandler();
             if (handler != null) {
                 handler.removeCallbacks(mPendingCheckForLongPress);
@@ -2526,10 +2421,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 }
             }
             
-            if (mEdgeGlowTop != null) {
-                mEdgeGlowTop.onRelease();
-                mEdgeGlowBottom.onRelease();
-            }
             mActivePointerId = INVALID_POINTER;
             break;
         }
@@ -2564,40 +2455,11 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 mVelocityTracker.clear();
             }
         }
-        awakenScrollBars();
     }
 
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        if (mEdgeGlowTop != null) {
-            final int scrollY = mScrollY;
-            if (!mEdgeGlowTop.isFinished()) {
-                final int restoreCount = canvas.save();
-                final int width = getWidth();
-
-                canvas.translate(-width / 2, Math.min(0, scrollY + mFirstPositionDistanceGuess));
-                mEdgeGlowTop.setSize(width * 2, getHeight());
-                if (mEdgeGlowTop.draw(canvas)) {
-                    invalidate();
-                }
-                canvas.restoreToCount(restoreCount);
-            }
-            if (!mEdgeGlowBottom.isFinished()) {
-                final int restoreCount = canvas.save();
-                final int width = getWidth();
-                final int height = getHeight();
-
-                canvas.translate(-width / 2,
-                        Math.max(height, scrollY + mLastPositionDistanceGuess));
-                canvas.rotate(180, width, 0);
-                mEdgeGlowBottom.setSize(width * 2, height);
-                if (mEdgeGlowBottom.draw(canvas)) {
-                    invalidate();
-                }
-                canvas.restoreToCount(restoreCount);
-            }
-        }
         if (mFastScroller != null) {
             final int scrollY = mScrollY;
             if (scrollY != 0) {
@@ -2799,18 +2661,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         void edgeReached(int delta) {
             mScroller.notifyVerticalEdgeReached(mScrollY, 0, mOverflingDistance);
-            final int overscrollMode = getOverScrollMode();
-            if (overscrollMode == OVER_SCROLL_ALWAYS ||
-                    (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS && !contentFits())) {
-                mTouchMode = TOUCH_MODE_OVERFLING;
-                final int vel = (int) mScroller.getCurrVelocity();
-                if (delta > 0) {
-                    mEdgeGlowTop.onAbsorb(vel);
-                } else {
-                    mEdgeGlowBottom.onAbsorb(vel);
-                }
-            }
-            invalidate();
+            mTouchMode = TOUCH_MODE_OVERFLING;
             post(this);
         }
 
@@ -3238,7 +3089,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                             setChildrenDrawingCacheEnabled(false);
                         }
                         if (!isAlwaysDrawnWithCacheEnabled()) {
-                            invalidate();
                         }
                     }
                 }
@@ -3380,8 +3230,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             mFirstPosition += count;
         }
         
-        invalidate();
-
         final int absIncrementalDeltaY = Math.abs(incrementalDeltaY);
         if (spaceAbove < absIncrementalDeltaY || spaceBelow < absIncrementalDeltaY) {
             fillGap(down);
@@ -3397,7 +3245,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         mBlockLayoutRequests = false;
 
         invokeOnItemScrollListener();
-        awakenScrollBars();
         
         return false;
     }
@@ -4243,10 +4090,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
     }
 
     private void finishGlows() {
-        if (mEdgeGlowTop != null) {
-            mEdgeGlowTop.finish();
-            mEdgeGlowBottom.finish();
-        }
     }
 
     /**
