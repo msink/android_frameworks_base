@@ -28,6 +28,7 @@ public class ShutdownActivity extends Activity {
 
     private static final String TAG = "ShutdownActivity";
     private boolean mConfirm;
+    private String mShutdownReason;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +36,13 @@ public class ShutdownActivity extends Activity {
 
         mConfirm = getIntent().getBooleanExtra(Intent.EXTRA_KEY_CONFIRM, false);
         Slog.i(TAG, "onCreate(): confirm=" + mConfirm);
+        mShutdownReason = getIntent().getStringExtra(Intent.EXTRA_SHUTDOWN_REASON);
+        Slog.i(TAG, "onCreate(): reason=" + mShutdownReason);
 
         Handler h = new Handler();
         h.post(new Runnable() {
             public void run() {
-                ShutdownThread.shutdown(ShutdownActivity.this, mConfirm);
+                ShutdownThread.shutdown(ShutdownActivity.this, mConfirm, mShutdownReason);
             }
         });
     }

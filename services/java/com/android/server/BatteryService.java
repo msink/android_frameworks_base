@@ -187,6 +187,7 @@ class BatteryService extends Binder {
         if (mBatteryLevel == 0 && !isPowered() && ActivityManagerNative.isSystemReady()) {
             Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
             intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
+            intent.putExtra(Intent.EXTRA_SHUTDOWN_REASON, "nopower");
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mContext.startActivity(intent);
         }

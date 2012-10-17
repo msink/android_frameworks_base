@@ -90,6 +90,9 @@ public class Power
      */
     @Deprecated
     public static native void shutdown();
+    public static native int idle();
+    public static native int standby();
+    public static native int wake();
 
     /**
      * Reboot the device.

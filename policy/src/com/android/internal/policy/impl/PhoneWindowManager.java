@@ -46,6 +46,7 @@ import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.provider.Settings;
 
+import com.android.internal.app.ShutdownThread;
 import com.android.internal.policy.PolicyManager;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.telephony.ITelephony;
@@ -173,6 +174,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int SW_LID = 0x00;
     private static final int BTN_MOUSE = 0x110;
     
+    static final int POWER_DELAY = 300;
+    static final int MAX_POWER_DELAY_COUNT = 3;
+
     final Object mLock = new Object();
     
     Context mContext;
@@ -442,12 +446,31 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    Runnable mPowerSleep = new Runnable() {
+        public void run() {
+            if (mEatPowerKey) {
+                mEatPowerKey = false;
+            } else {
+
+                int powerDelayCount = mPowerDelayCount;
+                mPowerDelayCount = 0;
+                Log.e("jeffy", "mPowerSleep count:" + powerDelayCount);
+                if ((powerDelayCount % 2) > 0)
+                    mPowerManager.goToSleep(SystemClock.uptimeMillis());
+            }
+        }
+    };
+
+    boolean mEatPowerKey = false;
+    int mPowerDelayCount = 0;
+
     Runnable mPowerLongPress = new Runnable() {
         public void run() {
             mShouldTurnOffOnKeyUp = false;
-            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+
             sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
-            showGlobalActionsDialog();
+
+            ShutdownThread.shutdown(mContext, true);
         }
     };
 
@@ -1145,21 +1168,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Intent intent = new Intent(Intent.ACTION_BUG_REPORT);
                     mContext.sendOrderedBroadcast(intent, null);
                     return true;
-                } else if (SHOW_PROCESSES_ON_ALT_MENU &&
-                        (metaState & KeyEvent.META_ALT_ON) == KeyEvent.META_ALT_ON) {
-                    Intent service = new Intent();
-                    service.setClassName(mContext, "com.android.server.LoadAverageService");
-                    ContentResolver res = mContext.getContentResolver();
-                    boolean shown = Settings.System.getInt(
-                            res, Settings.System.SHOW_PROCESSES, 0) != 0;
-                    if (!shown) {
-                        mContext.startService(service);
-                    } else {
-                        mContext.stopService(service);
-                    }
-                    Settings.System.putInt(
-                            res, Settings.System.SHOW_PROCESSES, shown ? 0 : 1);
-                    return true;
                 }
             }
         } else if (keyCode == KeyEvent.KEYCODE_SEARCH) {
@@ -1742,6 +1750,25 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     @Override
     public int interceptKeyBeforeQueueing(long whenNanos, int keyCode, boolean down,
             int policyFlags, boolean isScreenOn) {
+
+        if (keyCode == KeyEvent.KEYCODE_SHUTDOWN) {
+            Log.d(TAG, "SHUTDOWN key pressed!");
+            sendCloseSystemWindows("globalactions");
+            mHandler.post(new Runnable() {
+                public void run() {
+                    ShutdownThread.shutdown(mContext, false, "nopower");
+                }
+            });
+            return 0;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_RTC_WAKEUP) {
+            Log.d(TAG, "recieved RTC wakeup key event");
+            PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+            pm.pokeSystem();
+            return 0;
+        }
+
         int result = ACTION_PASS_TO_USER;
 
         if (down && (policyFlags & WindowManagerPolicy.FLAG_VIRTUAL) != 0) {
@@ -1856,7 +1883,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             Log.d(TAG, "I'm tired mEndcallBehavior=0x"
                                     + Integer.toHexString(mEndcallBehavior));
                             result &= ~ACTION_POKE_USER_ACTIVITY;
-                            result |= ACTION_GO_TO_SLEEP;
+                            String shuttingDown = SystemProperties.get(ShutdownThread.SHUTDOWN_INDICATOR_PROPERTY, "0");
+                            if (shuttingDown.equals("0")) {
+                                if (!mEatPowerKey) {
+                                    mPowerDelayCount = mPowerDelayCount + 1;
+                                }
+                                Log.e("jeffy", "mPowerDelayCount:" + mPowerDelayCount);
+                                mHandler.removeCallbacks(mPowerSleep);
+                                if (mPowerDelayCount >= 3) {
+                                    mPowerDelayCount = 0;
+                                    mHandler.post(mPowerLongPress);
+                                    mEatPowerKey = true;
+                                    Log.e("jeffy", "act mPowerLongPress");
+                                }
+                                mHandler.postDelayed(mPowerSleep, 300);
+                            }
                         }
                     }
                     result &= ~ACTION_PASS_TO_USER;

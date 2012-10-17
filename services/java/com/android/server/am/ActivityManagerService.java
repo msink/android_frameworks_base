@@ -178,6 +178,9 @@ public final class ActivityManagerService extends ActivityManagerNative
     
     private static final String SYSTEM_SECURE = "ro.secure";
 
+    private static final String PREVENT_ANR_KILL_PROCESS = "persist.anr.disabled";
+    private boolean mPreventAnr = false;
+
     // This is the maximum number of application processes we would like
     // to have running.  Due to the asynchronous nature of things, we can
     // temporarily go beyond this limit.
@@ -1421,6 +1424,8 @@ public final class ActivityManagerService extends ActivityManagerNative
 
         GL_ES_VERSION = SystemProperties.getInt("ro.opengles.version",
             ConfigurationInfo.GL_ES_VERSION_UNDEFINED);
+
+        mPreventAnr = "1".equals(SystemProperties.get(PREVENT_ANR_KILL_PROCESS, "0"));
 
         mConfiguration.setToDefaults();
         mConfiguration.locale = Locale.getDefault();
@@ -2824,6 +2829,7 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     final void appNotResponding(ProcessRecord app, ActivityRecord activity,
             ActivityRecord parent, final String annotation) {
+      if (!mPreventAnr) {
         ArrayList<Integer> firstPids = new ArrayList<Integer>(5);
         SparseArray<Boolean> lastPids = new SparseArray<Boolean>(20);
 
@@ -2967,6 +2973,7 @@ public final class ActivityManagerService extends ActivityManagerNative
     
             mHandler.sendMessage(msg);
         }
+      }
     }
 
     final void showLaunchWarningLocked(final ActivityRecord cur, final ActivityRecord next) {

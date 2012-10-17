@@ -60,6 +60,7 @@ public final class ShutdownThread extends Thread {
 
     // Provides shutdown assurance in case the system_server is killed
     public static final String SHUTDOWN_ACTION_PROPERTY = "sys.shutdown.requested";
+    public static final String SHUTDOWN_INDICATOR_PROPERTY = "sys.shutting.down";
 
     // static instance of this thread
     private static final ShutdownThread sInstance = new ShutdownThread();
@@ -71,6 +72,9 @@ public final class ShutdownThread extends Thread {
     private PowerManager.WakeLock mWakeLock;
     private Handler mHandler;
     
+    AlertDialog mShutdownDialog;
+    private static String mShutdownReason;
+
     private ShutdownThread() {
     }
  
@@ -115,6 +119,11 @@ public final class ShutdownThread extends Thread {
         } else {
             beginShutdownSequence(context);
         }
+    }
+
+    public static void shutdown(final Context context, boolean confirm, String reason) {
+        mShutdownReason = reason;
+        shutdown(context, confirm);
     }
 
     /**
@@ -163,7 +172,7 @@ public final class ShutdownThread extends Thread {
         if (sInstance.mPowerManager.isScreenOn()) {
             try {
                 sInstance.mWakeLock = sInstance.mPowerManager.newWakeLock(
-                        PowerManager.FULL_WAKE_LOCK, "Shutdown");
+                        PowerManager.PARTIAL_WAKE_LOCK, "Shutdown");
                 sInstance.mWakeLock.acquire();
             } catch (SecurityException e) {
                 Log.w(TAG, "No permission to acquire wake lock", e);
@@ -333,6 +342,10 @@ public final class ShutdownThread extends Thread {
             } catch (Exception e) {
                 Log.e(TAG, "Reboot failed, will attempt shutdown instead", e);
             }
+        } else if (mShutdownReason != null && mShutdownReason.equals("nopower")) {
+            sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_NOPOWER);
+        } else {
+            sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_SHUTDOWN);
         }
 
         // Shutdown power

@@ -19,6 +19,10 @@ package com.android.server;
 import android.net.LocalSocketAddress;
 import android.net.LocalSocket;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.util.Slog;
@@ -74,6 +78,9 @@ final class NativeDaemonConnector implements Runnable {
             TAG = logTag;
         mSocket = socket;
         mResponseQueue = new LinkedBlockingQueue<String>(responseQueueSize);
+        mHandlerThreadOnevent = new HandlerThread("Onevent");
+        mHandlerThreadOnevent.start();
+        mHandlerOnevent = new HandleOneventHandler(mHandlerThreadOnevent.getLooper());
     }
 
     public void run() {
@@ -84,6 +91,40 @@ final class NativeDaemonConnector implements Runnable {
             } catch (Exception e) {
                 Slog.e(TAG, "Error in NativeDaemonConnector", e);
                 SystemClock.sleep(5000);
+            }
+        }
+    }
+
+    private static final int H_ONEVENT = 1;
+    private Handler mHandlerOnevent;
+    private HandlerThread mHandlerThreadOnevent;
+
+    class HandleOneventHandler extends Handler {
+        public HandleOneventHandler(Looper looper) {
+            super(looper);
+        }
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+            case H_ONEVENT:
+                String[] tokens = ((String)msg.obj).split(" ");
+                try {
+                    int code = Integer.parseInt(tokens[0]);
+                    if (code >= ResponseCode.UnsolicitedInformational) {
+                        try {
+                            if (!mCallbacks.onEvent(code, (String)msg.obj, tokens)) {
+                                Slog.w(TAG, String.format(
+                                        "Unhandled event (%s)", (String)msg.obj));
+                            }
+                        } catch (Exception ex) {
+                            Slog.e(TAG, String.format(
+                                    "Error handling '%s'", (String)msg.obj), ex);
+                        }
+                    }
+                } catch (NumberFormatException nfe) {
+                    Slog.w(TAG, String.format("Bad msg (%s)", (String)msg.obj));
+                }
+                break;
             }
         }
     }
@@ -122,17 +163,9 @@ final class NativeDaemonConnector implements Runnable {
                         String[] tokens = event.split(" ");
                         try {
                             int code = Integer.parseInt(tokens[0]);
-
                             if (code >= ResponseCode.UnsolicitedInformational) {
-                                try {
-                                    if (!mCallbacks.onEvent(code, event, tokens)) {
-                                        Slog.w(TAG, String.format(
-                                                "Unhandled event (%s)", event));
-                                    }
-                                } catch (Exception ex) {
-                                    Slog.e(TAG, String.format(
-                                            "Error handling '%s'", event), ex);
-                                }
+                                mHandlerOnevent.sendMessage(mHandlerOnevent
+                                               .obtainMessage(H_ONEVENT, event));
                             }
                             try {
                                 mResponseQueue.put(event);

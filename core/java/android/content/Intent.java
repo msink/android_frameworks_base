@@ -2302,6 +2302,9 @@ public class Intent implements Parcelable, Cloneable {
     public static final String EXTRA_CLIENT_INTENT =
             "android.intent.extra.client_intent";
 
+    public static final String EXTRA_SHUTDOWN_REASON =
+            "android.intent.extra.SHUTDOWN_REASON";
+
     // ---------------------------------------------------------------------
     // ---------------------------------------------------------------------
     // Intent flags (see mFlags variable).

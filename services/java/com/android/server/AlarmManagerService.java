@@ -664,8 +664,11 @@ class AlarmManagerService extends IAlarmManager.Stub {
                         TAG, "Checking for alarms... rtc=" + nowRTC
                         + ", elapsed=" + nowELAPSED);
 
-                    if ((result & RTC_WAKEUP_MASK) != 0)
+                    if ((result & RTC_WAKEUP_MASK) != 0) {
                         triggerAlarmsLocked(mRtcWakeupAlarms, triggerList, nowRTC);
+                        PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+                        pm.pokeSystem();
+                    }
                     
                     if ((result & RTC_MASK) != 0)
                         triggerAlarmsLocked(mRtcAlarms, triggerList, nowRTC);

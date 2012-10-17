@@ -1278,6 +1278,7 @@ public final class Settings {
          * The timeout before the screen turns off.
          */
         public static final String SCREEN_OFF_TIMEOUT = "screen_off_timeout";
+        public static final String EPD_FULL_TIMEOUT = "epd_full_timeout";
 
         /**
          * If 0, the compatibility mode is off for all applications.

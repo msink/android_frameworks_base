@@ -369,6 +369,9 @@ public class KeyEvent extends InputEvent implements Parcelable {
     public static final int KEYCODE_DELETE          = 145;
     public static final int KEYCODE_LEFTCTRL        = 146;
     public static final int KEYCODE_RIGHTCTRL       = 147;
+    public static final int KEYCODE_WAKEUP          = 148;
+    public static final int KEYCODE_RTC_WAKEUP      = 149;
+    public static final int KEYCODE_SHUTDOWN        = 150;
 
     // NOTE: If you add a new keycode here you must also add it to:
     //  isSystem()

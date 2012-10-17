@@ -512,6 +512,46 @@ public class PowerManager
         }
     }
 
+    public static final int ANIM_STANDBY = 1;
+    public static final int ANIM_SHUTDOWN = 2;
+    public static final int ANIM_NOPOWER = 3;
+
+    public void enableIdleWakeUp(boolean enable) {
+        try {
+            mService.enableIdleWakeUp(enable);
+        } catch (RemoteException e) {
+        }
+    }
+
+    public int getIdleDelay() {
+        try {
+            return mService.getIdleDelay();
+        } catch (RemoteException e) {
+            return 0;
+        }
+    }
+
+    public void setIdleDelay(int idleDelay) {
+        try {
+            mService.setIdleDelay(idleDelay);
+        } catch (RemoteException e) {
+        }
+    }
+
+    public void pokeSystem() {
+        try {
+            mService.pokeSystem();
+        } catch (RemoteException e) {
+        }
+    }
+
+    public void startSurfaceFlingerAnimation(int mode) {
+        try {
+            mService.startSurfaceFlingerAnimation(mode);
+        } catch (RemoteException e) {
+        }
+    }
+
     private PowerManager()
     {
     }

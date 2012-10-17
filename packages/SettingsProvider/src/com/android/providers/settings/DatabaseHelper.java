@@ -1018,6 +1018,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "1".equals(SystemProperties.get("ro.kernel.qemu")) ? 1 : 0);
             loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
                     R.integer.def_screen_off_timeout);
+            loadSetting(stmt, Settings.System.EPD_FULL_TIMEOUT,
+                    Integer.valueOf(-1));
     
             // Set default cdma emergency tone
             loadSetting(stmt, Settings.System.EMERGENCY_TONE, 0);
@@ -1143,6 +1145,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     
             loadBooleanSetting(stmt, Settings.Secure.WIFI_ON,
                     R.bool.def_wifi_on);
+            loadIntegerSetting(stmt, Settings.Secure.DEVICE_PROVISIONED,
+                    R.integer.def_dev_provisioned);
             loadBooleanSetting(stmt, Settings.Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,
                     R.bool.def_networks_available_notification_on);
     

@@ -119,7 +119,7 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
     /**
      * The default amount of time we stay awake (used for all key input)
      */
-    protected static final int AWAKE_INTERVAL_DEFAULT_MS = 5000;
+    protected static final int AWAKE_INTERVAL_DEFAULT_MS = 10000;
 
 
     /**
@@ -189,7 +189,7 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
     /**
      * External apps (like the phone app) can tell us to disable the keygaurd.
      */
-    private boolean mExternallyEnabled = true;
+    private boolean mExternallyEnabled = false;
 
     /**
      * Remember if an external call to {@link #setKeyguardEnabled} with value
@@ -326,15 +326,6 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
                 // to enable it a little bit later (i.e, give the user a chance
                 // to turn the screen back on within a certain window without
                 // having to unlock the screen)
-                long when = SystemClock.elapsedRealtime() + KEYGUARD_DELAY_MS;
-                Intent intent = new Intent(DELAYED_KEYGUARD_ACTION);
-                intent.putExtra("seq", mDelayedShowingSequence);
-                PendingIntent sender = PendingIntent.getBroadcast(mContext,
-                        0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-                mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, when,
-                        sender);
-                if (DEBUG) Log.d(TAG, "setting alarm to turn off keyguard, seq = "
-                                 + mDelayedShowingSequence);
             } else if (why == WindowManagerPolicy.OFF_BECAUSE_OF_PROX_SENSOR) {
                 // Do not enable the keyguard if the prox sensor forced the screen off.
             } else {
@@ -443,14 +434,14 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
      * Is the keyguard currently showing?
      */
     public boolean isShowing() {
-        return mShowing;
+        return false;
     }
 
     /**
      * Is the keyguard currently showing and not being force hidden?
      */
     public boolean isShowingAndNotHidden() {
-        return mShowing && !mHidden;
+        return false;
     }
 
     /**
@@ -492,7 +483,7 @@ public class KeyguardViewMediator implements KeyguardViewCallback,
      * was suppressed by an app that disabled the keyguard or we haven't been provisioned yet.
      */
     public boolean isInputRestricted() {
-        return mShowing || mNeedToReshowWhenReenabled || !mUpdateMonitor.isDeviceProvisioned();
+        return false;
     }
 
     /**
