@@ -1440,7 +1440,9 @@ public class ListView extends AbsListView {
         try {
             super.layoutChildren();
 
-            invalidate();
+            if (!mPostponeInvalidateInLayoutChildren) {
+                invalidate();
+            }
 
             if (mAdapter == null) {
                 resetList();

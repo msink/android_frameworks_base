@@ -235,6 +235,9 @@ public class Surface implements Parcelable {
     private class CompatibleCanvas extends Canvas {
         // A temp matrix to remember what an application obtained via {@link getMatrix}
         private Matrix mOrigMatrix = null;
+        public CompatibleCanvas() {
+            canvasShowing(true);
+        }
 
         @Override
         public int getWidth() {
@@ -386,6 +389,10 @@ public class Surface implements Parcelable {
 
     public native   void setFlags(int flags, int mask);
 
+    public native void draw(int a, Rect b);
+    public native void holdUpdate();
+    public native void unholdUpdate();
+
     @Override
     public String toString() {
         return "Surface(name=" + mName + ", identity=" + getIdentity() + ")";
@@ -441,4 +448,8 @@ public class Surface implements Parcelable {
     private native void init(Parcel source);
 
     private native int getIdentity();
+
+    public int getId() {
+       return getIdentity();
+    }
 }

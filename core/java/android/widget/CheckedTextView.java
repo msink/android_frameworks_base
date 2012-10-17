@@ -41,6 +41,7 @@ public class CheckedTextView extends TextView implements Checkable {
     private Drawable mCheckMarkDrawable;
     private int mBasePaddingRight;
     private int mCheckMarkWidth;
+    private boolean mIgnoreUpdateCheckMark;
 
     private static final int[] CHECKED_STATE_SET = {
         R.attr.state_checked
@@ -67,6 +68,8 @@ public class CheckedTextView extends TextView implements Checkable {
 
         boolean checked = a.getBoolean(R.styleable.CheckedTextView_checked, false);
         setChecked(checked);
+
+        mIgnoreUpdateCheckMark = a.getBoolean(R.styleable.CheckedTextView_updateCheckMark, false);
 
         a.recycle();
     }
@@ -194,7 +197,9 @@ public class CheckedTextView extends TextView implements Checkable {
             // Set the state of the Drawable
             mCheckMarkDrawable.setState(myDrawableState);
             
-            invalidate();
+            if (!mIgnoreUpdateCheckMark) {
+                invalidate();
+            }
         }
     }
 

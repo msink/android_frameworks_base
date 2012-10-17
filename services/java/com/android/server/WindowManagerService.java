@@ -108,6 +108,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceSession;
 import android.view.View;
+import android.view.ViewRoot;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.WindowManagerImpl;
@@ -251,6 +252,17 @@ public class WindowManagerService extends IWindowManager.Stub
     final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (ViewRoot.ACTION_REDRAW_ALL.equals(intent.getAction())) {
+                Slog.i(TAG, "ACTION_REDRAW_ALL");
+                for (int N = mWindows.size()-1; N >= 0; N--) {
+                    WindowState w = mWindows.get(N);
+                    try {
+                        w.mClient.dispatchRedraw();
+                    } catch (RemoteException e) {
+                    }
+                }
+                return;
+            }
             mPolicy.enableKeyguard(true);
             synchronized(mKeyguardTokenWatcher) {
                 // lazily evaluate this next time we're asked to disable keyguard
@@ -618,6 +630,7 @@ public class WindowManagerService extends IWindowManager.Stub
         // Track changes to DevicePolicyManager state so we can enable/disable keyguard.
         IntentFilter filter = new IntentFilter();
         filter.addAction(DevicePolicyManager.ACTION_DEVICE_POLICY_MANAGER_STATE_CHANGED);
+        filter.addAction(ViewRoot.ACTION_REDRAW_ALL);
         mContext.registerReceiver(mBroadcastReceiver, filter);
 
         mHoldingScreenWakeLock = pmc.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,

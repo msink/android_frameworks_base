@@ -805,6 +805,9 @@ public class SurfaceView extends View {
             // The point of SurfaceView is to let the app control the surface.
         }
 
+        public void dispatchRedraw() {
+        }
+
         public void dispatchGetNewSurface() {
             SurfaceView surfaceView = mSurfaceView.get();
             if (surfaceView != null) {

@@ -25,6 +25,8 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
@@ -547,6 +549,8 @@ public class InputMethodService extends AbstractInputMethodService {
         }
         mTheme = theme;
     }
+
+    private Handler mSendHandler;
     
     @Override public void onCreate() {
         super.setTheme(mTheme);
@@ -557,6 +561,9 @@ public class InputMethodService extends AbstractInputMethodService {
         mWindow = new SoftInputWindow(this, mTheme, mDispatcherState);
         initViews();
         mWindow.getWindow().setLayout(MATCH_PARENT, WRAP_CONTENT);
+        HandlerThread thread = new HandlerThread("KeySender");
+        thread.start();
+        mSendHandler = new Handler(thread.getLooper());
     }
     
     /**
@@ -1331,6 +1338,7 @@ public class InputMethodService extends AbstractInputMethodService {
         
         if (!wasVisible) {
             if (DEBUG) Log.v(TAG, "showWindow: showing!");
+            mInputView.requestEpdMode(View.EPD_AUTO);
             onWindowShown();
             mWindow.show();
         }
@@ -1349,6 +1357,7 @@ public class InputMethodService extends AbstractInputMethodService {
         if (mWindowVisible) {
             mWindow.hide();
             mWindowVisible = false;
+            mInputView.requestEpdMode(View.EPD_PART);
             onWindowHidden();
             mWindowWasVisible = false;
         }
@@ -1759,9 +1768,11 @@ public class InputMethodService extends AbstractInputMethodService {
      * @param keyEventCode The raw key code to send, as defined by
      * {@link KeyEvent}.
      */
-    public void sendDownUpKeyEvents(int keyEventCode) {
-        InputConnection ic = getCurrentInputConnection();
+    public void sendDownUpKeyEvents(final int keyEventCode) {
+        final InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
+      mSendHandler.post(new Runnable() {
+       public void run() {
         long eventTime = SystemClock.uptimeMillis();
         ic.sendKeyEvent(new KeyEvent(eventTime, eventTime,
                 KeyEvent.ACTION_DOWN, keyEventCode, 0, 0, 0, 0,
@@ -1769,6 +1780,8 @@ public class InputMethodService extends AbstractInputMethodService {
         ic.sendKeyEvent(new KeyEvent(SystemClock.uptimeMillis(), eventTime,
                 KeyEvent.ACTION_UP, keyEventCode, 0, 0, 0, 0,
                 KeyEvent.FLAG_SOFT_KEYBOARD|KeyEvent.FLAG_KEEP_TOUCH_MODE));
+       }
+      });
     }
     
     /**

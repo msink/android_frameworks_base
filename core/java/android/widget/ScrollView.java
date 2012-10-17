@@ -34,6 +34,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.AnimationUtils;
+import android.os.Handler;
 
 import java.util.List;
 
@@ -60,6 +61,44 @@ public class ScrollView extends FrameLayout {
 
 
     private long mLastScroll;
+
+    private boolean mInDrag = false;
+    private boolean mInA2Mode = false;
+
+    private Runnable mResetEpdRunnable = new Runnable() {
+        public void run() {
+            if (mInA2Mode) {
+                requestEpdMode(View.EPD_FULL);
+                mInA2Mode = false;
+                postInvalidate();
+            }
+        }
+    };
+
+    private void resetEpdMode() {
+        resetEpdMode(0);
+    }
+
+    private void resetEpdMode(long delay) {
+        delay += 200;
+        Handler handler = getHandler();
+        if (handler == null)
+            return;
+        handler.removeCallbacks(mResetEpdRunnable);
+        if (mInA2Mode) {
+            handler.postDelayed(mResetEpdRunnable, delay);
+        }
+        return;
+    }
+
+    private void setA2Mode() {
+        Handler handler = getHandler();
+        if (handler == null)
+            return;
+        handler.removeCallbacks(this.mResetEpdRunnable);
+        requestEpdMode(View.EPD_A2);
+        mInA2Mode = true;
+    }
 
     private final Rect mTempRect = new Rect();
     private OverScroller mScroller;
@@ -410,6 +449,7 @@ public class ScrollView extends FrameLayout {
                 final int yDiff = (int) Math.abs(y - mLastMotionY);
                 if (yDiff > mTouchSlop) {
                     mIsBeingDragged = true;
+                    mInDrag = true;
                     mLastMotionY = y;
                 }
                 break;
@@ -508,6 +548,9 @@ public class ScrollView extends FrameLayout {
                             0, mOverscrollDistance, true)) {
                         // Break our velocity if we hit a scroll barrier.
                         mVelocityTracker.clear();
+                    }
+                    if (mScrollX != oldX || mScrollY != oldY) {
+                        mInDrag = true;
                     }
                     onScrollChanged(mScrollX, mScrollY, oldX, oldY);
 
@@ -1094,6 +1137,16 @@ public class ScrollView extends FrameLayout {
 
             // Keep on drawing until the animation has finished.
             postInvalidate();
+
+        }
+
+        if (!mIsBeingDragged) {
+            mInDrag = false;
+        }
+        if (!mScroller.isFinished() || mInDrag) {
+            setA2Mode();
+        } else {
+            resetEpdMode();
         }
     }
 

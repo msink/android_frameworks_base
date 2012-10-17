@@ -1223,6 +1223,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             });
         } else {
             // no keyguard stuff to worry about, just launch home!
+            Log.d("======jack======", "no keyguard stuff to worry about, just launch home!");
             try {
                 ActivityManagerNative.getDefault().stopAppSwitches();
             } catch (RemoteException e) {
@@ -1273,6 +1274,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         + mDockBottom + " mContentBottom="
                         + mContentBottom + " mCurBottom=" + mCurBottom);
             }
+        } else {
+            mDockTop = mContentTop = mCurTop =
+                mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
         }
     }
 
@@ -1807,7 +1811,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // a wake key has a sole purpose of waking the device; don't pass
                 // it to the user
                 result |= ACTION_POKE_USER_ACTIVITY;
+              if ((policyFlags & WindowManagerPolicy.FLAG_WAKE_DROPPED) != 0) {
                 result &= ~ACTION_PASS_TO_USER;
+              }
             }
         }
 
@@ -2248,7 +2254,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      * @return whether it did anything
      */
     boolean goHome() {
-        if (false) {
+        Log.d("=======jack======", "goHome() ");
+        if (true) {
             // This code always brings home to the front.
             try {
                 ActivityManagerNative.getDefault().stopAppSwitches();

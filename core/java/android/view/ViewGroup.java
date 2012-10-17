@@ -1568,6 +1568,8 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         Bitmap cache = null;
         if ((flags & FLAG_CHILDREN_DRAWN_WITH_CACHE) == FLAG_CHILDREN_DRAWN_WITH_CACHE ||
                 (flags & FLAG_ALWAYS_DRAWN_WITH_CACHE) == FLAG_ALWAYS_DRAWN_WITH_CACHE) {
+            child.cacheWithA2Dither(canvas.isShowingCanvas(),
+                                    canvas.isA2DitherEnabled(), true);
             cache = child.getDrawingCache(true);
             if (mAttachInfo != null) scalingRequired = mAttachInfo.mScalingRequired;
         }
@@ -1657,7 +1659,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             if (Config.DEBUG && ViewDebug.profileDrawing) {
                 EventLog.writeEvent(60003, hashCode());
             }
+            boolean A2DitherEnabled = canvas.isA2DitherEnabled();
+            canvas.enableA2Dither(false);
             canvas.drawBitmap(cache, 0.0f, 0.0f, cachePaint);
+            canvas.enableA2Dither(A2DitherEnabled);
         }
 
         canvas.restoreToCount(restoreTo);

@@ -371,6 +371,7 @@ public class Toast {
                 }
                 if (localLOGV) Log.v(TAG, "ADD! " + mView + " in " + this);
                 mWM.addView(mView, mParams);
+                mView.requestUnion(mView);
             }
         }
 

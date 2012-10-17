@@ -2021,6 +2021,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                  */
                 openPanelsAfterRestore();
             }
+
+            if (mTitleView != null) {
+                mTitleView.requestUnion(mTitleView);
+            }
         }
 
         @Override

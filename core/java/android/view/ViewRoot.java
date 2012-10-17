@@ -45,6 +45,7 @@ import android.content.pm.PackageManager;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.Intent;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.app.ActivityManagerNative;
@@ -55,6 +56,7 @@ import java.lang.ref.WeakReference;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.*;
 import javax.microedition.khronos.opengles.*;
@@ -134,6 +136,7 @@ public final class ViewRoot extends Handler implements ViewParent,
     View mFocusedView;
     View mRealFocusedView;  // this is not set to null in touch mode
     int mViewVisibility;
+    boolean needRedraw = false;
     boolean mAppVisible = true;
 
     SurfaceHolder.Callback2 mSurfaceHolderCallback;
@@ -221,6 +224,21 @@ public final class ViewRoot extends Handler implements ViewParent,
     AudioManager mAudioManager;
 
     private final int mDensity;
+
+    final public static String ACTION_REDRAW_ALL = "com.rockchip.action.redraw";
+    public final static int SF_FULL = 1020;
+    public final static int SF_SELF_FULL = 1021;
+    public final static int SF_HIDDEN_FULL = 1022;
+    public final static int SF_A2 = 1023;
+    public final static int SF_UNION = 1024;
+    public final static int SF_DEFAULT_MODE = 1025;
+
+    public boolean mCanDraw = true;
+    public boolean mEpdRepaintFullWhenShow = false;
+    public boolean mRequestEpdFull = false;
+    public boolean mInA2 = false;
+    public int mDefaultMode = View.EPD_PART;
+    public List<View> mA2Views = new ArrayList();
 
     public static IWindowSession getWindowSession(Looper mainLooper) {
         synchronized (mStaticInit) {
@@ -644,6 +662,10 @@ public final class ViewRoot extends Handler implements ViewParent,
     public void invalidateChild(View child, Rect dirty) {
         checkThread();
         if (DEBUG_DRAW) Log.v(TAG, "Invalidate child: " + dirty);
+        Context ctx = mView.getContext();
+        if (ctx.getPackageName().contains("systemui")) {
+            needRedraw = true;
+        }
         if (mCurScrollY != 0 || mTranslator != null) {
             mTempRect.set(dirty);
             dirty = mTempRect;
@@ -662,6 +684,8 @@ public final class ViewRoot extends Handler implements ViewParent,
             scheduleTraversals();
         }
     }
+
+    public List<View> mUnionViews = new ArrayList();
 
     public ViewParent getParent() {
         return null;
@@ -1258,6 +1282,11 @@ public final class ViewRoot extends Handler implements ViewParent,
 
         if (!cancelDraw && !newSurface) {
             mFullRedrawNeeded = false;
+            boolean firstDraw = mReportNextDraw ||
+                (relayoutResult&WindowManagerImpl.RELAYOUT_FIRST_TIME) != 0;
+            if (mEpdRepaintFullWhenShow && firstDraw) {
+                mRequestEpdFull = true;
+            }
             draw(fullRedrawNeeded);
 
             if ((relayoutResult&WindowManagerImpl.RELAYOUT_FIRST_TIME) != 0
@@ -1348,6 +1377,12 @@ public final class ViewRoot extends Handler implements ViewParent,
             return;
         }
 
+        boolean requestEpdFull = this.mRequestEpdFull;
+        mRequestEpdFull = false;
+        int defaultMode = mDefaultMode;
+        ArrayList<View> A2Views = new ArrayList<View>(mA2Views);
+        prepareEpdMode(A2Views);
+
         if (!sFirstDrawComplete) {
             synchronized (sFirstDrawHandlers) {
                 sFirstDrawComplete = true;
@@ -1390,7 +1425,7 @@ public final class ViewRoot extends Handler implements ViewParent,
                 Canvas canvas = mGlCanvas;
                 if (mGL != null && canvas != null) {
                     mGL.glDisable(GL_SCISSOR_TEST);
-                    mGL.glClearColor(0, 0, 0, 0);
+                    mGL.glClearColor(1, 1, 1, 0);
                     mGL.glClear(GL_COLOR_BUFFER_BIT);
                     mGL.glEnable(GL_SCISSOR_TEST);
 
@@ -1416,6 +1451,7 @@ public final class ViewRoot extends Handler implements ViewParent,
 
                     mAttachInfo.mIgnoreDirtyState = false;
 
+                    applyEpdMode(requestEpdFull, defaultMode, A2Views);
                     mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
                     checkEglErrors();
 
@@ -1546,6 +1582,7 @@ public final class ViewRoot extends Handler implements ViewParent,
                 }
 
             } finally {
+                applyEpdMode(requestEpdFull, defaultMode, A2Views);
                 surface.unlockCanvasAndPost(canvas);
             }
         }
@@ -1554,7 +1591,11 @@ public final class ViewRoot extends Handler implements ViewParent,
             Log.v(TAG, "Surface " + surface + " unlockCanvasAndPost");
         }
 
-        if (scrolling) {
+        Context context = mView.getContext();
+        if (scrolling || (context.getPackageName().contains("systemui") && needRedraw)) {
+            if (needRedraw) {
+                needRedraw = false;
+            }
             mFullRedrawNeeded = true;
             scheduleTraversals();
         }
@@ -3132,6 +3173,13 @@ public final class ViewRoot extends Handler implements ViewParent,
                 viewRoot.dispatchCloseStatusBar(reason);
             }
         }
+
+        public void dispatchRedraw() {
+            final ViewRoot viewRoot = mViewRoot.get();
+            if (viewRoot != null) {
+                viewRoot.handleRedraw();
+            }
+        }
     }
 
     /**
@@ -3444,4 +3492,164 @@ public final class ViewRoot extends Handler implements ViewParent,
     // inform skia to just abandon its texture cache IDs
     // doesn't call glDeleteTextures
     private static native void nativeAbandonGlCaches();
+
+
+    private void applyEpdMode(boolean requestEpdFull, int defaultMode, ArrayList<View> A2Views) {
+        if (requestEpdFull) {
+            try {
+                IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+                if (surfaceFlinger != null) {
+                    Parcel data = Parcel.obtain();
+                    data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                    data.writeInt(mSurface.getId());
+                    surfaceFlinger.transact(SF_SELF_FULL, data, null, 0);
+                    data.recycle();
+                }
+            } catch (RemoteException ex) {
+            }
+        }
+
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getId());
+                data.writeInt(defaultMode);
+                surfaceFlinger.transact(SF_DEFAULT_MODE, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+        }
+
+        Rect A2Rect = new Rect();
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getId());
+                data.writeInt(A2Views.size());
+                for (View child : A2Views) {
+                    child.getGlobalVisibleRect(A2Rect);
+                    data.writeInt(A2Rect.left);
+                    data.writeInt(A2Rect.top);
+                    data.writeInt(A2Rect.right);
+                    data.writeInt(A2Rect.bottom);
+                }
+                surfaceFlinger.transact(SF_A2, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+        }
+    }
+
+    public void handleRedraw() {
+        mFullRedrawNeeded = true;
+        scheduleTraversals();
+    }
+
+    private void prepareEpdMode(ArrayList<View> A2Views) {
+        Rect rect = new Rect();
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = android.os.Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getId());
+                data.writeInt(mUnionViews.size());
+                for (View v : mUnionViews) {
+                    v.getGlobalVisibleRect(rect);
+                    data.writeInt(rect.left);
+                    data.writeInt(rect.top);
+                    data.writeInt(rect.right);
+                    data.writeInt(rect.bottom);
+                }
+                surfaceFlinger.transact(SF_UNION, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+        }
+        boolean broadcastRedraw = false;
+        boolean wasInA2 = mInA2;
+        if (A2Views.isEmpty()) {
+            if (wasInA2) {
+                mInA2 = false;
+            }
+        } else {
+            if (!wasInA2) {
+                mInA2 = true;
+            }
+        }
+        if (broadcastRedraw) {
+            mView.getContext().sendBroadcast(new Intent(ViewRoot.ACTION_REDRAW_ALL));
+        }
+    }
+
+    public boolean requestDraw(Rect dirty) {
+        try {
+            checkThread();
+        } catch (CalledFromWrongThreadException e) {
+            scheduleTraversals();
+            return false;
+        }
+        unscheduleTraversals();
+        mDirty.union(dirty);
+        performTraversals();
+        return true;
+    }
+
+    public boolean requestEpdMode(int mode) {
+        return false;
+    }
+
+    public boolean requestEpdMode(View child, int mode) {
+        switch (mode) {
+        case View.EPD_A2:
+            if (!mA2Views.contains(child)) {
+                mA2Views.add(child);
+            }
+            return true;
+        case View.EPD_FULL:
+            if (!mA2Views.contains(child)) {
+                mRequestEpdFull = true;
+                break;
+            }
+        case View.EPD_AUTO:
+        case View.EPD_PART:
+        case View.EPD_OED_PART:
+            mDefaultMode = mode;
+            break;
+        }
+        mA2Views.remove(child);
+        return true;
+    }
+
+    public boolean requestFullWhenHidden() {
+        if (mSurface == null || !mSurface.isValid())
+            return false;
+        try {
+            IBinder flinger = ServiceManager.getService("SurfaceFlinger");
+            if (flinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getId());
+                flinger.transact(SF_HIDDEN_FULL, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+        }
+        return true;
+    }
+
+    public boolean requestFullWhenShown() {
+        mEpdRepaintFullWhenShow = true;
+        return true;
+    }
+
+    public boolean requestUnion(View view) {
+        if (!mUnionViews.contains(view))
+            mUnionViews.add(view);
+        return true;
+    }
 }

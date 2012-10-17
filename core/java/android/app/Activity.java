@@ -66,6 +66,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -1181,6 +1182,25 @@ public class Activity extends ContextThemeWrapper
      */
     protected void onUserLeaveHint() {
     }
+
+    void traversalContentViewRecursively(View parent) {
+        if (parent instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) parent;
+            if (!onViewGroupFound(group)) {
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    traversalContentViewRecursively(group.getChildAt(i));
+                }
+            }
+        }
+    }
+
+    boolean onViewGroupFound(ViewGroup viewGroup) {
+        if (viewGroup instanceof AbsListView) {
+            ((AbsListView) viewGroup).slamBrakesOnFlingIfNeeded();
+            return true;
+        }
+        return false;
+    }
     
     /**
      * Generate a new thumbnail for this activity.  This method is called before
@@ -2027,6 +2047,9 @@ public class Activity extends ContextThemeWrapper
      * @see View#onAttachedToWindow
      */
     public void onAttachedToWindow() {
+        if (mDecor != null) {
+            mDecor.getParent().requestFullWhenShown();
+        }
     }
     
     /**

@@ -1134,6 +1134,7 @@ public class PopupWindow {
         if (isShowing() && mPopupView != null) {
             unregisterForScrollChanged();
 
+            mPopupView.requestFullWhenHidden();
             try {
                 mWindowManager.removeView(mPopupView);                
             } finally {

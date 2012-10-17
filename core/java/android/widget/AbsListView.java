@@ -525,6 +525,14 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
      */
     private int mDirection = 0;
 
+    boolean mIsInA2Mode = false;
+
+    boolean mPostponeInvalidateInLayoutChildren = false;
+
+    PerformPositionSelector mPerformPositionSelector;
+
+    private ExitA2ModeAndInvalidate mExitA2;
+
     /**
      * Interface definition for a callback to be invoked when the list or grid
      * has been scrolled.
@@ -952,7 +960,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         SavedState ss = new SavedState(superState);
 
-        boolean haveChildren = getChildCount() > 0;
+        boolean haveChildren = (getChildCount() > 0) && (mItemCount > 0);
         long selectedId = getSelectedItemId();
         ss.selectedId = selectedId;
         ss.height = getHeight();
@@ -967,8 +975,12 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 // Remember the position of the first child
                 View v = getChildAt(0);
                 ss.viewTop = v.getTop();
-                ss.position = mFirstPosition;
-                ss.firstId = mAdapter.getItemId(mFirstPosition);
+                int firstPos = mFirstPosition;
+                if (firstPos >= mItemCount) {
+                    firstPos = mItemCount - 1;
+                }
+                ss.position = firstPos;
+                ss.firstId = mAdapter.getItemId(firstPos);
             } else {
                 ss.viewTop = 0;
                 ss.firstId = INVALID_POSITION;
@@ -1438,6 +1450,11 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             canvas.restoreToCount(saveCount);
             mGroupFlags |= CLIP_TO_PADDING_MASK;
         }
+
+        if (mIsInA2Mode) {
+            setScrollingCacheEnabled(true);
+            createScrollingCache();
+        }
     }
 
     @Override
@@ -1706,6 +1723,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     mLayoutMode = LAYOUT_NORMAL;
                     layoutChildren();
                 }
+            } else if (touchMode == TOUCH_MODE_ON) {
+                hideLongPressSelector();
             }
         }
 
@@ -1773,12 +1792,18 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
                 boolean handled = false;
                 if (sameWindow() && !mDataChanged) {
+                    positionSelector(child);
+                    invalidate();
                     handled = performLongPress(child, longPressPosition, longPressId);
                 }
                 if (handled) {
-                    mTouchMode = TOUCH_MODE_REST;
-                    setPressed(false);
-                    child.setPressed(false);
+                    postDelayed(new Runnable() {
+                        public void run() {
+                            mTouchMode = TOUCH_MODE_REST;
+                            child.setPressed(false);
+                            setPressed(false);
+                        }
+                    }, ViewConfiguration.getPressedStateDuration());
                 } else {
                     mTouchMode = TOUCH_MODE_DONE_WAITING;
                 }
@@ -1946,11 +1971,16 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     mLayoutMode = LAYOUT_NORMAL;
 
                     if (!mDataChanged) {
+                        mPostponeInvalidateInLayoutChildren = true;
                         layoutChildren();
+                        mPostponeInvalidateInLayoutChildren = false;
+                        mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                         child.setPressed(true);
+                        mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                         setPressed(true);
 
-                        final int longPressTimeout = ViewConfiguration.getLongPressTimeout();
+                        final int delayOffset = ViewConfiguration.getLongPressTimeout() -
+                                                ViewConfiguration.getTapTimeout();
                         final boolean longClickable = isLongClickable();
 
                         if (longClickable) {
@@ -1958,14 +1988,31 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                                 mPendingCheckForLongPress = new CheckForLongPress();
                             }
                             mPendingCheckForLongPress.rememberWindowAttachCount();
-                            postDelayed(mPendingCheckForLongPress, longPressTimeout);
+                            postDelayed(mPendingCheckForLongPress, delayOffset);
                         } else {
                             mTouchMode = TOUCH_MODE_DONE_WAITING;
+                            if (child.isEnabled()) {
+                                if (mPerformPositionSelector == null) {
+                                    mPerformPositionSelector = new PerformPositionSelector();
+                                }
+                                postDelayed(mPerformPositionSelector, delayOffset);
+                            }
                         }
                     } else {
                         mTouchMode = TOUCH_MODE_DONE_WAITING;
                     }
                 }
+            }
+        }
+    }
+
+    private final class PerformPositionSelector implements Runnable {
+        public void run() {
+            int motionPosition = mMotionPosition;
+            View child = getChildAt(motionPosition - mFirstPosition);
+            if (child != null && mTouchMode == TOUCH_MODE_DONE_WAITING) {
+                positionSelector(child);
+                invalidate();
             }
         }
     }
@@ -1976,7 +2023,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         final int distance = Math.abs(deltaY);
         final boolean overscroll = mScrollY != 0;
         if (overscroll || distance > mTouchSlop) {
-            createScrollingCache();
+            removeCallbacks(mExitA2);
+            hideLongPressSelector();
             mTouchMode = overscroll ? TOUCH_MODE_OVERSCROLL : TOUCH_MODE_SCROLL;
             mMotionCorrection = deltaY;
             final Handler handler = getHandler();
@@ -2185,6 +2233,16 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                                 // Don't allow overfling if we're at the edge.
                                 mVelocityTracker.clear();
                             }
+                        } else if (incrementalDeltaY != 0) {
+                            if (!mIsInA2Mode) {
+                                requestEpdMode(View.EPD_A2);
+                                mIsInA2Mode = true;
+                                setScrollingCacheEnabled(false);
+                            }
+                            if (!mCachingStarted) {
+                                createScrollingCache();
+                            }
+                            invalidate();
                         }
                         mMotionY = y;
                     }
@@ -2270,9 +2328,9 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     performClick.rememberWindowAttachCount();
 
                     mResurrectToPosition = motionPosition;
+                    final Handler handler = getHandler();
 
                     if (mTouchMode == TOUCH_MODE_DOWN || mTouchMode == TOUCH_MODE_TAP) {
-                        final Handler handler = getHandler();
                         if (handler != null) {
                             handler.removeCallbacks(mTouchMode == TOUCH_MODE_DOWN ?
                                     mPendingCheckForTap : mPendingCheckForLongPress);
@@ -2281,25 +2339,39 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                         if (!mDataChanged && mAdapter.isEnabled(motionPosition)) {
                             mTouchMode = TOUCH_MODE_TAP;
                             setSelectedPositionInt(mMotionPosition);
+                            mPostponeInvalidateInLayoutChildren = true;
                             layoutChildren();
+                            mPostponeInvalidateInLayoutChildren = false;
+                            mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                             child.setPressed(true);
+                            mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                             setPressed(true);
-                            postDelayed(new Runnable() {
+                            post(new Runnable() {
                                 public void run() {
+                                    mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                                     child.setPressed(false);
+                                    mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
                                     setPressed(false);
                                     if (!mDataChanged) {
                                         post(performClick);
                                     }
                                     mTouchMode = TOUCH_MODE_REST;
                                 }
-                            }, ViewConfiguration.getPressedStateDuration());
+                            });
                         } else {
                             mTouchMode = TOUCH_MODE_REST;
                         }
                         return true;
                     } else if (!mDataChanged && mAdapter.isEnabled(motionPosition)) {
+                        if (handler != null) {
+                            handler.removeCallbacks(mPerformPositionSelector);
+                        }
                         post(performClick);
+                        postDelayed(new Runnable() {
+                            public void run() {
+                                hideLongPressSelector();
+                            }
+                        }, ViewConfiguration.getPressedStateDuration());
                     }
                 }
                 mTouchMode = TOUCH_MODE_REST;
@@ -2339,6 +2411,11 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                         } else {
                             mTouchMode = TOUCH_MODE_REST;
                             reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                            if (mExitA2 == null) {
+                                mExitA2 = new ExitA2ModeAndInvalidate();
+                            }
+                            removeCallbacks(mExitA2);
+                            post(mExitA2);
                         }
                     }
                 } else {
@@ -2603,6 +2680,23 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         }
     }
 
+    private final class ExitA2ModeAndInvalidate implements Runnable {
+        public void run() {
+            if (mIsInA2Mode) {
+                requestEpdMode(View.EPD_FULL);
+                mIsInA2Mode = false;
+                setScrollingCacheEnabled(false);
+                invalidate();
+            }
+        }
+    }
+
+    public void slamBrakesOnFlingIfNeeded() {
+        removeCallbacks(mFlingRunnable);
+        removeCallbacks(mExitA2);
+        mIsInA2Mode = false;
+    }
+
     /**
      * Responsible for fling behavior. Use {@link #start(int)} to
      * initiate a fling. Each frame of the fling is handled in {@link #run()}.
@@ -2622,6 +2716,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         FlingRunnable() {
             mScroller = new OverScroller(getContext());
+            mExitA2 = new ExitA2ModeAndInvalidate();
         }
 
         void start(int initialVelocity) {
@@ -2662,6 +2757,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         void edgeReached(int delta) {
             mScroller.notifyVerticalEdgeReached(mScrollY, 0, mOverflingDistance);
             mTouchMode = TOUCH_MODE_OVERFLING;
+            removeCallbacks(mExitA2);
+            post(mExitA2);
             post(this);
         }
 
@@ -2684,6 +2781,9 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             if (mPositionScroller != null) {
                 removeCallbacks(mPositionScroller);
             }
+
+            removeCallbacks(mExitA2);
+            post(mExitA2);
         }
 
         public void run() {
@@ -3291,6 +3391,13 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             setNextSelectedPositionInt(INVALID_POSITION);
             mSelectedTop = 0;
             mSelectorRect.setEmpty();
+        }
+    }
+
+    void hideLongPressSelector() {
+        if (!mSelectorRect.isEmpty()) {
+            mSelectorRect.setEmpty();
+            invalidate();
         }
     }
 

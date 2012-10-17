@@ -1642,6 +1642,8 @@
         <attr name="checked" />
         <!-- Drawable used for the check mark graphic. -->
         <attr name="checkMark" format="reference"/>
+        <!-- -->
+        <attr name="updateCheckMark" format="boolean" />
     </declare-styleable>
     <declare-styleable name="EditText">
     </declare-styleable>

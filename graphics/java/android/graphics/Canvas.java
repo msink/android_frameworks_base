@@ -1680,6 +1680,25 @@ public class Canvas {
         }
     }
 
+    boolean mIsShowingCanvas = false;
+    public boolean isShowingCanvas() {
+        return mIsShowingCanvas;
+    }
+
+    public void canvasShowing(boolean showing) {
+        mIsShowingCanvas = showing;
+    }
+
+    public static native void native_enableA2Dither(int nativeCanvas, boolean enable);
+    public void enableA2Dither(boolean enable) {
+        native_enableA2Dither(mNativeCanvas, enable);
+    }
+
+    public static native boolean native_isA2DitherEnabled(int nativeCanvas);
+    public boolean isA2DitherEnabled() {
+        return native_isA2DitherEnabled(mNativeCanvas);
+    }
+
     /**
      * Free up as much memory as possible from private caches (e.g. fonts,
      * images)

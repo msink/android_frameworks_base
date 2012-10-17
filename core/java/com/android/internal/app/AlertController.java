@@ -119,8 +119,26 @@ public class AlertController {
 
     private Handler mHandler;
 
+    Message mButtonMessage = null;
+
+    private final class SendButtonClickMessage implements Runnable {
+        public void run() {
+            if (mButtonMessage != null) {
+                mButtonMessage.sendToTarget();
+                mButtonMessage = null;
+            }
+        }
+    }
+
+    public void dialogDismissed() {
+        if (mButtonMessage != null) {
+            mHandler.post(new SendButtonClickMessage());
+        }
+    }
+
     View.OnClickListener mButtonHandler = new View.OnClickListener() {
         public void onClick(View v) {
+            v.mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
             Message m = null;
             if (v == mButtonPositive && mButtonPositiveMessage != null) {
                 m = Message.obtain(mButtonPositiveMessage);
@@ -472,6 +490,9 @@ public class AlertController {
         int BIT_BUTTON_NEGATIVE = 2;
         int BIT_BUTTON_NEUTRAL = 4;
         int whichButtons = 0;
+        boolean hasButtonPositive = false;
+        boolean hasButtonNegative = false;
+        boolean hasButtonNeutral = false;
         mButtonPositive = (Button) mWindow.findViewById(R.id.button1);
         mButtonPositive.setOnClickListener(mButtonHandler);
 
@@ -481,6 +502,7 @@ public class AlertController {
             mButtonPositive.setText(mButtonPositiveText);
             mButtonPositive.setVisibility(View.VISIBLE);
             whichButtons = whichButtons | BIT_BUTTON_POSITIVE;
+            hasButtonPositive = true;
         }
 
         mButtonNegative = (Button) mWindow.findViewById(R.id.button2);
@@ -493,6 +515,7 @@ public class AlertController {
             mButtonNegative.setVisibility(View.VISIBLE);
 
             whichButtons = whichButtons | BIT_BUTTON_NEGATIVE;
+            hasButtonNegative = true;
         }
 
         mButtonNeutral = (Button) mWindow.findViewById(R.id.button3);
@@ -505,6 +528,34 @@ public class AlertController {
             mButtonNeutral.setVisibility(View.VISIBLE);
 
             whichButtons = whichButtons | BIT_BUTTON_NEUTRAL;
+            hasButtonNeutral = true;
+        }
+
+        if (hasButtonPositive && hasButtonNegative && !hasButtonNeutral) {
+            View centerSpacer = mWindow.findViewById(R.id.centerSpacer);
+            centerSpacer.setVisibility(View.VISIBLE);
+            LinearLayout.LayoutParams params =
+                (LinearLayout.LayoutParams) mButtonPositive.getLayoutParams();
+            params.weight = 1;
+            mButtonPositive.setLayoutParams(params);
+            params = (LinearLayout.LayoutParams) mButtonNegative.getLayoutParams();
+            params.weight = 1;
+            mButtonNegative.setLayoutParams(params);
+        } else if (hasButtonPositive && hasButtonNegative && hasButtonNeutral) {
+            View leftSpacer = mWindow.findViewById(R.id.leftSpacer);
+            leftSpacer.setVisibility(View.GONE);
+            View rightSpacer = mWindow.findViewById(R.id.rightSpacer);
+            rightSpacer.setVisibility(View.GONE);
+        } else if (hasButtonPositive && !hasButtonNegative && hasButtonNeutral) {
+            View centerSpacer = mWindow.findViewById(R.id.centerSpacer);
+            centerSpacer.setVisibility(View.VISIBLE);
+            LinearLayout.LayoutParams params =
+                (LinearLayout.LayoutParams) mButtonPositive.getLayoutParams();
+            params.weight = 1;
+            mButtonPositive.setLayoutParams(params);
+            params = (LinearLayout.LayoutParams) mButtonNeutral.getLayoutParams();
+            params.weight = 1;
+            mButtonNeutral.setLayoutParams(params);
         }
 
         /*

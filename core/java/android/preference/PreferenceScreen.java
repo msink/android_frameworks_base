@@ -166,6 +166,7 @@ public final class PreferenceScreen extends PreferenceGroup implements AdapterVi
         getPreferenceManager().addPreferencesScreen(dialog);
         
         dialog.show();
+        listView.requestFullWhenShown();
     }
     
     public void onDismiss(DialogInterface dialog) {

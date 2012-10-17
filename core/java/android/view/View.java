@@ -1815,6 +1815,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
     private PerformClick mPerformClick;
     
     private UnsetPressedState mUnsetPressedState;
+    public boolean mIgnoreRefreshDrawableStateTemporarilyForOnce = false;
 
     /**
      * Whether the long press's action has been invoked.  The tap's action is invoked on the
@@ -1862,6 +1863,20 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
 
     // Used for debug only
     static long sInstanceCount = 0;
+
+    final public static int EPD_AUTO = 0;
+    final public static int EPD_FULL = 1;
+    final public static int EPD_A2 = 2;
+    final public static int EPD_PART = 3;
+    final public static int EPD_OED_PART = 10;
+    final public static int EPD_NULL = -1;
+
+    private boolean mIsInA2 = false;
+    private int mDefaultMode = EPD_PART;
+    private boolean mCacheWithA2Dither = false;
+    private boolean mCacheWithShowingCanvas = false;
+    private boolean mNoNeedA2 = false;
+    PerformRefreshDrawableState mPerformRefreshDrawableState;
 
     /**
      * Simple constructor to use when creating a view from code.
@@ -3328,7 +3343,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         } else {
             mPrivateFlags &= ~PRESSED;
         }
-        refreshDrawableState();
+        if (!mIgnoreRefreshDrawableStateTemporarilyForOnce) {
+            refreshDrawableState();
+        } else {
+            mIgnoreRefreshDrawableStateTemporarilyForOnce = false;
+        }
         dispatchSetPressed(pressed);
     }
 
@@ -3912,7 +3931,9 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         } else if (imm != null && (mPrivateFlags & FOCUSED) != 0) {
             imm.focusIn(this);
         }
-        refreshDrawableState();
+        if (hasWindowFocus) {
+            refreshDrawableState();
+        }
     }
 
     /**
@@ -6090,9 +6111,16 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         if (vis != GONE) {
             onWindowVisibilityChanged(vis);
         }
+            requestEpdMode(mDefaultMode);
+        if (mIsInA2) {
+            requestEpdMode(EPD_A2);
+        }
     }
 
     void dispatchDetachedFromWindow() {
+        mIsInA2 = false;
+        requestEpdMode(EPD_PART);
+
         //System.out.println("Detached! " + this);
         AttachInfo info = mAttachInfo;
         if (info != null) {
@@ -6563,6 +6591,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             mPrivateFlags |= DRAWN;
             mPrivateFlags |= DRAWING_CACHE_VALID;
 
+            boolean showingCanvas = canvas.isShowingCanvas();
+            boolean A2DitherEnabled = canvas.isA2DitherEnabled();
+            if (mCacheWithShowingCanvas) {
+                canvas.canvasShowing(true);
+            }
+            if (mCacheWithA2Dither || (canvas.isShowingCanvas() && mIsInA2)) {
+                canvas.enableA2Dither(true);
+            }
+
             // Fast path for layouts with no backgrounds
             if ((mPrivateFlags & SKIP_DRAW) == SKIP_DRAW) {
                 if (ViewDebug.TRACE_HIERARCHY) {
@@ -6574,6 +6611,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
                 draw(canvas);
             }
 
+            canvas.canvasShowing(showingCanvas);
+            canvas.enableA2Dither(A2DitherEnabled);
             canvas.restoreToCount(restoreCount);
 
             if (attachInfo != null) {
@@ -6762,6 +6801,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             ViewDebug.trace(this, ViewDebug.HierarchyTraceType.DRAW);
         }
 
+        boolean A2DitherEnabled = canvas.isA2DitherEnabled();
+        if (mIsInA2 && canvas.isShowingCanvas()) {
+            canvas.enableA2Dither(true);
+        }
+
         final int privateFlags = mPrivateFlags;
         final boolean dirtyOpaque = (privateFlags & DIRTY_MASK) == DIRTY_OPAQUE &&
                 (mAttachInfo == null || !mAttachInfo.mIgnoreDirtyState);
@@ -6818,6 +6862,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             onDrawScrollBars(canvas);
 
             // we're done...
+            canvas.enableA2Dither(A2DitherEnabled);
             return;
         }
 
@@ -6958,6 +7003,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
 
         // Step 6, draw decorations (scrollbars)
         onDrawScrollBars(canvas);
+        canvas.enableA2Dither(A2DitherEnabled);
     }
 
     /**
@@ -8976,6 +9022,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         public void run() {
             if (isPressed() && (mParent != null)
                     && mOriginalWindowAttachCount == mWindowAttachCount) {
+                refreshDrawableState();
                 if (performLongClick()) {
                     mHasPerformedLongPress = true;
                 }
@@ -8991,9 +9038,23 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         public void run() {
             mPrivateFlags &= ~PREPRESSED;
             mPrivateFlags |= PRESSED;
-            refreshDrawableState();
             if ((mViewFlags & LONG_CLICKABLE) == LONG_CLICKABLE) {
                 postCheckForLongClick(ViewConfiguration.getTapTimeout());
+            } else {
+                if (mPerformRefreshDrawableState == null) {
+                    mPerformRefreshDrawableState = new PerformRefreshDrawableState();
+                }
+                postDelayed(mPerformRefreshDrawableState,
+                            ViewConfiguration.getLongPressTimeout() -
+                            ViewConfiguration.getTapTimeout());
+            }
+        }
+    }
+
+    private final class PerformRefreshDrawableState implements Runnable {
+        public void run() {
+            if (isPressed()) {
+                refreshDrawableState();
             }
         }
     }
@@ -9505,6 +9566,57 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
 
     }
 
+    public void cacheWithA2Dither(boolean enable, boolean showing, boolean sync) {
+        if (sync && (mCacheWithA2Dither != enable || mCacheWithShowingCanvas != showing)) {
+            destroyDrawingCache();
+        }
+        mCacheWithA2Dither = enable;
+        mCacheWithShowingCanvas = showing;
+    }
+
+    public boolean requestDraw() {
+        Rect rect = new Rect();
+        getGlobalVisibleRect(rect);
+        return requestDraw(rect);
+    }
+
+    public boolean requestDraw(Rect rect) {
+        return (mParent != null) ? mParent.requestDraw(rect) : false;
+    }
+
+    public boolean requestEpdMode(int mode) {
+        mIsInA2 = (mode == EPD_A2);
+        if (mode == EPD_AUTO || mode == EPD_PART || mode == EPD_OED_PART) {
+            mDefaultMode = mode;
+        }
+        return requestEpdMode(this, mode);
+    }
+
+    public boolean requestEpdMode(View view, int mode) {
+        if (mode == EPD_A2 && mNoNeedA2)
+            return false;
+        if (mParent != null)
+            return mParent.requestEpdMode(view, mode);
+        return false;
+    }
+
+    public boolean requestFullWhenHidden() {
+        return (mParent != null) ? mParent.requestFullWhenHidden() : false;
+    }
+
+    public boolean requestFullWhenShown() {
+        return (mParent != null) ? mParent.requestFullWhenShown() : false;
+    }
+
+    public boolean requestUnion() {
+        return requestUnion(this);
+    }
+
+    public boolean requestUnion(View view)
+    {
+        return (mParent != null) ? mParent.requestUnion(view) : false;
+    }
+
     public void setFrameRec(int left, int top, int right, int bottom) {
         if (mLeft != left || mRight != right || mTop != top || mBottom != bottom) {
             int drawn = mPrivateFlags & DRAWN;
@@ -9528,5 +9640,9 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             mPrivateFlags |= drawn;
             mBackgroundSizeChanged = true;
         }
+    }
+
+    public void setNoNeedA2(boolean mode) {
+        mNoNeedA2 = mode;
     }
 }

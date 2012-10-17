@@ -34,6 +34,7 @@ import android.view.animation.AnimationUtils;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Handler;
 
 import java.util.List;
 
@@ -64,6 +65,43 @@ public class HorizontalScrollView extends FrameLayout {
 
     private static final float MAX_SCROLL_FACTOR = ScrollView.MAX_SCROLL_FACTOR;
 
+    private boolean mInDrag = false;
+    private boolean mInA2Mode = false;
+
+    private Runnable mResetEpdRunnable = new Runnable() {
+        public void run() {
+            if (mInA2Mode) {
+                requestEpdMode(View.EPD_FULL);
+                mInA2Mode = false;
+                postInvalidate();
+            }
+        }
+    };
+
+    private void resetEpdMode() {
+        resetEpdMode(0);
+    }
+
+    private void resetEpdMode(long delay) {
+        delay += 200;
+        Handler handler = getHandler();
+        if (handler == null)
+            return;
+        handler.removeCallbacks(mResetEpdRunnable);
+        if (mInA2Mode) {
+            handler.postDelayed(mResetEpdRunnable, delay);
+        }
+        return;
+    }
+
+    private void setA2Mode() {
+        Handler handler = getHandler();
+        if (handler == null)
+            return;
+        handler.removeCallbacks(this.mResetEpdRunnable);
+        requestEpdMode(View.EPD_A2);
+        mInA2Mode = true;
+    }
 
     private long mLastScroll;
 
@@ -414,6 +452,7 @@ public class HorizontalScrollView extends FrameLayout {
                 final int xDiff = (int) Math.abs(x - mLastMotionX);
                 if (xDiff > mTouchSlop) {
                     mIsBeingDragged = true;
+                    mInDrag = true;
                     mLastMotionX = x;
                     if (mParent != null) mParent.requestDisallowInterceptTouchEvent(true);
                 }
@@ -513,6 +552,9 @@ public class HorizontalScrollView extends FrameLayout {
                             mOverscrollDistance, 0, true)) {
                         // Break our velocity if we hit a scroll barrier.
                         mVelocityTracker.clear();
+                    }
+                    if (mScrollX != oldX || mScrollY != oldY) {
+                        mInDrag = true;
                     }
                     onScrollChanged(mScrollX, mScrollY, oldX, oldY);
 
@@ -1095,6 +1137,15 @@ public class HorizontalScrollView extends FrameLayout {
 
             // Keep on drawing until the animation has finished.
             postInvalidate();
+        }
+
+        if (!mIsBeingDragged) {
+            mInDrag = false;
+        }
+        if (!mScroller.isFinished() || mInDrag) {
+            setA2Mode();
+        } else {
+            resetEpdMode();
         }
     }
 

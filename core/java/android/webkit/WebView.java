@@ -315,6 +315,45 @@ public class WebView extends AbsoluteLayout
 
     static final String LOGTAG = "webview";
 
+    private boolean mInA2Mode = false;
+    private Runnable mResetEpdRunnable = new Runnable() {
+        public void run() {
+            if (mInA2Mode) {
+                requestEpdMode(View.EPD_FULL);
+                mInA2Mode = false;
+                syncZoomButtonsA2Mode();
+                postInvalidate();
+            }
+            return;
+        }
+    };
+
+    private void syncZoomButtonsA2Mode() {
+        if (mZoomButtonsController == null)
+            return;
+        mZoomButtonsController.getContainer().requestEpdMode(mInA2Mode ? View.EPD_A2 : View.EPD_NULL);
+        mZoomButtonsController.getContainer().invalidate();
+    }
+
+    private void resetEpdMode() {
+        resetEpdMode(0);
+    }
+
+    private void resetEpdMode(long delay) {
+        delay += 500;
+        mPrivateHandler.removeCallbacks(mResetEpdRunnable);
+        if (mInA2Mode) {
+            mPrivateHandler.postDelayed(mResetEpdRunnable, delay);
+        }
+    }
+
+    private void setA2Mode() {
+        mPrivateHandler.removeCallbacks(mResetEpdRunnable);
+        requestEpdMode(View.EPD_A2);
+        mInA2Mode = true;
+        syncZoomButtonsA2Mode();
+    }
+
     private static class ExtendedZoomControls extends FrameLayout {
         public ExtendedZoomControls(Context context, AttributeSet attrs) {
             super(context, attrs);
@@ -1045,6 +1084,8 @@ public class WebView extends AbsoluteLayout
         mMaximumFling = configuration.getScaledMaximumFlingVelocity();
         mOverscrollDistance = configuration.getScaledOverscrollDistance();
         mOverflingDistance = configuration.getScaledOverflingDistance();
+        mOverflingDistance = 0;
+        mOverscrollDistance = 0;
     }
 
     @Override
@@ -3722,6 +3763,7 @@ public class WebView extends AbsoluteLayout
             }
         }
         if (animateZoom) {
+            setA2Mode();
             float zoomScale;
             int interval = (int) (SystemClock.uptimeMillis() - mZoomStart);
             if (interval < ZOOM_ANIMATION_LENGTH) {
@@ -3730,6 +3772,7 @@ public class WebView extends AbsoluteLayout
                         + (mInvFinalZoomScale - mInvInitialZoomScale) * ratio);
                 invalidate();
             } else {
+                resetEpdMode();
                 zoomScale = mZoomScale;
                 // set mZoomScale to be 0 as we have done animation
                 mZoomScale = 0;
@@ -4528,6 +4571,10 @@ public class WebView extends AbsoluteLayout
     }
 
     private void setActive(boolean active) {
+        setActive(active, false);
+    }
+
+    private void setActive(boolean active, boolean ignore) {
         if (active) {
             if (hasFocus()) {
                 // If our window regained focus, and we have focus, then begin
@@ -4570,14 +4617,16 @@ public class WebView extends AbsoluteLayout
             }
             setFocusControllerInactive();
         }
+      if (!ignore) {
         invalidate();
+      }
     }
 
     // To avoid drawing the cursor ring, and remove the TextView when our window
     // loses focus.
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
-        setActive(hasWindowFocus);
+        setActive(hasWindowFocus, true);
         if (hasWindowFocus) {
             JWebCoreJavaBridge.setActiveWebView(this);
         } else {
@@ -4908,7 +4957,7 @@ public class WebView extends AbsoluteLayout
                 int sx = getScrollX();
                 int sy = getScrollY() - hiddenHeightOfTitleBar();
                 if (mSX != sx || mSY != sy) {
-                    buildBitmap(sx, sy);
+                    buildBitmap(sx, sy, canvas.isShowingCanvas(), canvas.isA2DitherEnabled());
                     mSX = sx;
                     mSY = sy;
                 }
@@ -4937,11 +4986,13 @@ public class WebView extends AbsoluteLayout
             return false;
         }
 
-        private void buildBitmap(int sx, int sy) {
+        private void buildBitmap(int sx, int sy, boolean showingCanvas, boolean A2DitherEnabled) {
             int w = getWidth();
             int h = getViewHeight();
             Bitmap bm = Bitmap.createBitmap(w, h, offscreenBitmapConfig());
             Canvas canvas = new Canvas(bm);
+            canvas.canvasShowing(showingCanvas);
+            canvas.enableA2Dither(A2DitherEnabled);
             canvas.translate(-sx, -sy);
             drawContent(canvas);
 
@@ -4982,6 +5033,7 @@ public class WebView extends AbsoluteLayout
             ScaleGestureDetector.OnScaleGestureListener {
 
         public boolean onScaleBegin(ScaleGestureDetector detector) {
+            setA2Mode();
             // cancel the single touch handling
             cancelTouch();
             dismissZoomControl();
@@ -4999,6 +5051,7 @@ public class WebView extends AbsoluteLayout
         }
 
         public void onScaleEnd(ScaleGestureDetector detector) {
+            resetEpdMode(200);
             if (mPreviewZoomOnly) {
                 mPreviewZoomOnly = false;
                 mAnchorX = viewToContentX((int) mZoomCenterX + mScrollX);
@@ -5033,6 +5086,7 @@ public class WebView extends AbsoluteLayout
         }
 
         public boolean onScale(ScaleGestureDetector detector) {
+            setA2Mode();
             float scale = (float) (Math.round(detector.getScaleFactor()
                     * mActualScale * 100) / 100.0);
             if (Math.abs(scale - mActualScale) >= MINIMUM_SCALE_INCREMENT) {
@@ -5516,9 +5570,13 @@ public class WebView extends AbsoluteLayout
                             // removing and sending message in
                             // drawCoreAndCursorRing()
                             mHeldMotionless = MOTIONLESS_IGNORE;
-                            doFling();
+                            if (doFling()) {
+                            } else {
+                                resetEpdMode();
+                            }
                             break;
                         } else {
+                            resetEpdMode();
                             if (mScroller.springBack(mScrollX, mScrollY, 0,
                                     computeMaxScrollX(), 0,
                                     computeMaxScrollY())) {
@@ -5542,6 +5600,7 @@ public class WebView extends AbsoluteLayout
                 break;
             }
             case MotionEvent.ACTION_CANCEL: {
+                resetEpdMode();
                 if (mTouchMode == TOUCH_DRAG_MODE) {
                     mScroller.springBack(mScrollX, mScrollY, 0,
                             computeMaxScrollX(), 0, computeMaxScrollY());
@@ -5582,6 +5641,7 @@ public class WebView extends AbsoluteLayout
     }
 
     private void startDrag() {
+        setA2Mode();
         WebViewCore.reducePriority();
         // to get better performance, pause updating the picture
         WebViewCore.pauseUpdatePicture(mWebViewCore);
@@ -5607,6 +5667,7 @@ public class WebView extends AbsoluteLayout
     }
 
     private void doDrag(int deltaX, int deltaY) {
+        setA2Mode();
         if ((deltaX | deltaY) != 0) {
             final int oldX = mScrollX;
             final int oldY = mScrollY;
@@ -6005,9 +6066,9 @@ public class WebView extends AbsoluteLayout
         invalidate();
     }
 
-    private void doFling() {
+    private boolean doFling() {
         if (mVelocityTracker == null) {
-            return;
+            return false;
         }
         int maxX = computeMaxScrollX();
         int maxY = computeMaxScrollY();
@@ -6035,7 +6096,7 @@ public class WebView extends AbsoluteLayout
                     0, computeMaxScrollY())) {
                 invalidate();
             }
-            return;
+            return false;
         }
         float currentVelocity = mScroller.getCurrVelocity();
         if (mLastVelocity > 0 && currentVelocity > 0) {
@@ -6067,7 +6128,7 @@ public class WebView extends AbsoluteLayout
             vy = 0;
         }
 
-        if (mOverscrollDistance < mOverflingDistance) {
+        if (mOverscrollDistance <= mOverflingDistance) {
             if (mScrollX == -mOverscrollDistance || mScrollX == maxX + mOverscrollDistance) {
                 vx = 0;
             }
@@ -6080,6 +6141,14 @@ public class WebView extends AbsoluteLayout
         mLastVelY = vy;
         mLastVelocity = (float) Math.hypot(vx, vy);
 
+        if (vx == 0 && vy == 0) {
+            WebViewCore.resumePriority();
+            WebViewCore.resumeUpdatePicture(mWebViewCore);
+            return false;
+        }
+
+        setA2Mode();
+
         // no horizontal overscroll if the content just fits
         mScroller.fling(mScrollX, mScrollY, -vx, -vy, 0, maxX, 0, maxY,
                 maxX == 0 ? 0 : mOverflingDistance, mOverflingDistance);
@@ -6090,7 +6159,10 @@ public class WebView extends AbsoluteLayout
         // we resume webcore there when the animation is finished.
         final int time = mScroller.getDuration();
         awakenScrollBars(time);
+        resetEpdMode(time + 200);
         invalidate();
+
+        return true;
     }
 
     private boolean zoomWithPreview(float scale, boolean updateTextWrapScale) {
@@ -6206,6 +6278,7 @@ public class WebView extends AbsoluteLayout
             // the middle. Change their layout parameters so they appear on the
             // right.
             View controls = mZoomButtonsController.getZoomControls();
+            syncZoomButtonsA2Mode();
             ViewGroup.LayoutParams params = controls.getLayoutParams();
             if (params instanceof FrameLayout.LayoutParams) {
                 FrameLayout.LayoutParams frameParams = (FrameLayout.LayoutParams) params;

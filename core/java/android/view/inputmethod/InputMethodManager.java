@@ -1140,8 +1140,6 @@ public final class InputMethodManager {
             focusInLocked(focusedView != null ? focusedView : rootView);
         }
         
-        checkFocus();
-        
         synchronized (mH) {
             try {
                 final boolean isTextEditor = focusedView != null &&
@@ -1152,6 +1150,8 @@ public final class InputMethodManager {
             } catch (RemoteException e) {
             }
         }
+
+        checkFocus();
     }
     
     /** @hide */

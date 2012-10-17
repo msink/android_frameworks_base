@@ -208,4 +208,16 @@ public interface ViewParent {
      */
     public boolean requestChildRectangleOnScreen(View child, Rect rectangle,
             boolean immediate);
+
+    public boolean requestDraw(Rect rect);
+
+    public boolean requestFullWhenHidden();
+
+    public boolean requestFullWhenShown();
+
+    public boolean requestUnion(View view);
+
+    public boolean requestEpdMode(int mode);
+
+    public boolean requestEpdMode(View view, int mode);
 }
