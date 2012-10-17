@@ -79,7 +79,7 @@ public class UsbStorageActivity extends Activity
     private StorageManager mStorageManager = null;
     private static final int DLG_CONFIRM_KILL_STORAGE_USERS = 1;
     private static final int DLG_ERROR_SHARING = 2;
-    static final boolean localLOGV = false;
+    static final boolean localLOGV = true;
     private boolean dialogIsThere = false;
     private boolean mWasUsbStorageInUse = false;
 

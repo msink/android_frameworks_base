@@ -88,7 +88,7 @@ class PowerManagerService extends IPowerManager.Stub
     private static final String TAG = "PowerManagerService";
     static final String PARTIAL_NAME = "PowerManagerService";
 
-    private static final boolean LOG_PARTIAL_WL = false;
+    private static final boolean LOG_PARTIAL_WL = true;
 
     // Indicates whether touch-down cycles should be logged as part of the
     // LOG_POWER_SCREEN_STATE log events
