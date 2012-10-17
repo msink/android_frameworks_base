@@ -153,7 +153,7 @@ public class SurfaceView extends View {
     long mLastLockTime = 0;
     
     boolean mVisible = false;
-    boolean draw_able = false;
+    public boolean draw_able = false;
     int mLeft = -1;
     int mTop = -1;
     int mWidth = -1;

@@ -1562,6 +1562,9 @@ public final class ActivityThread {
                 ContextImpl appContext = new ContextImpl();
                 appContext.init(r.packageInfo, r.token, this);
                 appContext.setOuterContext(activity);
+                if (mConfiguration == null) {
+                    mConfiguration = new Configuration();
+                }
                 CharSequence title = r.activityInfo.loadLabel(appContext.getPackageManager());
                 Configuration config = new Configuration(mConfiguration);
                 if (DEBUG_CONFIGURATION) Slog.v(TAG, "Launching activity "

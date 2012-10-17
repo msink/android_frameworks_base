@@ -739,13 +739,10 @@ class MountService extends IMountService.Stub
               if (!path.equals(Environment.getFlashStorageDirectory().getPath()) &&
                       Integer.parseInt(cooked[8]) == 1) {
                 Slog.v(TAG, String.format("Volumn %s inserted.", path));
-                new Thread() {
-                    public void run() {
-                        if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
+                    if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
                             UmsEnableCallBack umscb = new UmsEnableCallBack(path, "ums", true);
                             mHandler.sendMessage(mHandler.obtainMessage(H_UNMOUNT_PM_UPDATE, umscb));
-                            return;
-                        }
+                    } else {
                         try {
                             int rc;
                             if ((rc = doMountVolume(path)) != StorageResultCode.OperationSucceeded) {
@@ -755,17 +752,13 @@ class MountService extends IMountService.Stub
                             Slog.w(TAG, "Failed to mount media on insertion", ex);
                         }
                     }
-                }.start();
               }
               return true;
             } else if (code == VoldResponseCode.VolumePartitionAdded) {
-                new Thread() {
-                    public void run() {
-                        if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
+                    if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
                             UmsEnableCallBack umscb = new UmsEnableCallBack(path, "ums", true);
                             mHandler.sendMessage(mHandler.obtainMessage(H_UNMOUNT_PM_UPDATE, umscb));
-                            return;
-                        }
+                    } else {
                         try {
                             int rc;
                             if ((rc = doMountVolume(path)) != StorageResultCode.OperationSucceeded) {
@@ -775,7 +768,6 @@ class MountService extends IMountService.Stub
                             Slog.w(TAG, "Failed to mount media on partition add", ex);
                         }
                     }
-                }.start();
             } else if (code == VoldResponseCode.VolumeDiskRemoved) {
                 /*
                  * This event gets trumped if we're already in BAD_REMOVAL state
