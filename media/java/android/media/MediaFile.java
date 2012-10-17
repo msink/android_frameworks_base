@@ -36,6 +36,7 @@ import java.util.List;
 public class MediaFile {
     // comma separated list of all file extensions supported by the media scanner
     public final static String sFileExtensions;
+    public final static String sNonVideoExtensions;
 
     // Audio file types
     public static final int FILE_TYPE_MP3     = 1;
@@ -159,7 +160,30 @@ public class MediaFile {
         addFileType("IMY", FILE_TYPE_IMY, "audio/imelody");
         addFileType("RTX", FILE_TYPE_MID, "audio/midi");
         addFileType("OTA", FILE_TYPE_MID, "audio/midi");
+
+        addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg");
+        addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg");
+        addFileType("GIF", FILE_TYPE_GIF, "image/gif");
+        addFileType("PNG", FILE_TYPE_PNG, "image/png");
+        addFileType("BMP", FILE_TYPE_BMP, "image/x-ms-bmp");
+        addFileType("WBMP", FILE_TYPE_WBMP, "image/vnd.wap.wbmp");
+
+        addFileType("M3U", FILE_TYPE_M3U, "audio/x-mpegurl");
+        addFileType("PLS", FILE_TYPE_PLS, "audio/x-scpls");
+        addFileType("WPL", FILE_TYPE_WPL, "application/vnd.ms-wpl");
+
+        // compute file extensions list for native Media Scanner
+        StringBuilder builder = new StringBuilder();
+        Iterator<String> iterator = sFileTypeMap.keySet().iterator();
         
+        while (iterator.hasNext()) {
+            if (builder.length() > 0) {
+                builder.append(',');
+            }
+            builder.append(iterator.next());
+        }
+        sNonVideoExtensions = builder.toString();
+
         addFileType("MPEG", FILE_TYPE_MP4, "video/mpeg");
         addFileType("MP4", FILE_TYPE_MP4, "video/mp4");
         addFileType("MOV", FILE_TYPE_MP4, "video/mp4");
@@ -180,27 +204,15 @@ public class MediaFile {
         addFileType("DAT", FILE_TYPE_MPG, "video/mpg");
         addFileType("VOB", FILE_TYPE_MPG, "video/mpg");
         addFileType("MPEG", FILE_TYPE_MPG, "video/mpg");
-
-        addFileType("JPG", FILE_TYPE_JPEG, "image/jpeg");
-        addFileType("JPEG", FILE_TYPE_JPEG, "image/jpeg");
-        addFileType("GIF", FILE_TYPE_GIF, "image/gif");
-        addFileType("PNG", FILE_TYPE_PNG, "image/png");
-        addFileType("BMP", FILE_TYPE_BMP, "image/x-ms-bmp");
-        addFileType("WBMP", FILE_TYPE_WBMP, "image/vnd.wap.wbmp");
- 
-        addFileType("M3U", FILE_TYPE_M3U, "audio/x-mpegurl");
-        addFileType("PLS", FILE_TYPE_PLS, "audio/x-scpls");
-        addFileType("WPL", FILE_TYPE_WPL, "application/vnd.ms-wpl");
-
         addFileType("TS", FILE_TYPE_MP2TS, "video/mp2ts");
         addFileType("TP", FILE_TYPE_MP2TS, "video/mp2ts");
         addFileType("TRP", FILE_TYPE_MP2TS, "video/mp2ts");
         addFileType("M2TS", FILE_TYPE_MP2TS, "video/mp2ts");
 
         // compute file extensions list for native Media Scanner
-        StringBuilder builder = new StringBuilder();
-        Iterator<String> iterator = sFileTypeMap.keySet().iterator();
-        
+        builder = new StringBuilder();
+        iterator = sFileTypeMap.keySet().iterator();
+
         while (iterator.hasNext()) {
             if (builder.length() > 0) {
                 builder.append(',');

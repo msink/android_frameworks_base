@@ -1232,7 +1232,7 @@ public class MediaScanner
 
             beginTransaction(volumeName);
             for (int i = 0; i < directories.length; i++) {
-                processDirectory(directories[i], MediaFile.sFileExtensions, mClient);
+                processDirectory(directories[i], MediaFile.sNonVideoExtensions, mClient);
             }
             endTransaction(volumeName);
             long scan = System.currentTimeMillis();
