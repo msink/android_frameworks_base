@@ -44,42 +44,10 @@ public class SystemBackupAgent extends BackupAgentHelper {
     @Override
     public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data,
             ParcelFileDescriptor newState) throws IOException {
-        // We only back up the data under the current "wallpaper" schema with metadata
-        WallpaperManagerService wallpaper = (WallpaperManagerService)ServiceManager.getService(
-                Context.WALLPAPER_SERVICE);
-        String[] files = new String[] { WALLPAPER_IMAGE, WALLPAPER_INFO };
-        if (wallpaper != null && wallpaper.mName != null && wallpaper.mName.length() > 0) {
-            // When the wallpaper has a name, back up the info by itself.
-            // TODO: Don't rely on the innards of the service object like this!
-            // TODO: Send a delete for any stored wallpaper image in this case?
-            files = new String[] { WALLPAPER_INFO };
-        }
-        addHelper("wallpaper", new AbsoluteFileBackupHelper(SystemBackupAgent.this, files));
-        super.onBackup(oldState, data, newState);
     }
 
     @Override
     public void onRestore(BackupDataInput data, int appVersionCode, ParcelFileDescriptor newState)
             throws IOException {
-        // On restore, we also support a previous data schema "system_files"
-        addHelper("wallpaper", new AbsoluteFileBackupHelper(SystemBackupAgent.this,
-                new String[] { WALLPAPER_IMAGE, WALLPAPER_INFO }));
-        addHelper("system_files", new AbsoluteFileBackupHelper(SystemBackupAgent.this,
-                new String[] { WALLPAPER_IMAGE }));
-
-        boolean success = false;
-        try {
-            super.onRestore(data, appVersionCode, newState);
-
-            WallpaperManagerService wallpaper = (WallpaperManagerService)ServiceManager.getService(
-                    Context.WALLPAPER_SERVICE);
-            wallpaper.settingsRestored();
-        } catch (IOException ex) {
-            // If there was a failure, delete everything for the wallpaper, this is too aggresive,
-            // but this is hopefully a rare failure.
-            Slog.d(TAG, "restore failed", ex);
-            (new File(WALLPAPER_IMAGE)).delete();
-            (new File(WALLPAPER_INFO)).delete();
-        }
     }
 }

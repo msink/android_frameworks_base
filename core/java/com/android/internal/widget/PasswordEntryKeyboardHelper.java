@@ -51,7 +51,6 @@ public class PasswordEntryKeyboardHelper implements OnKeyboardActionListener {
     private View mTargetView;
     private KeyboardView mKeyboardView;
     private long[] mVibratePattern;
-    private Vibrator mVibrator;
 
     public PasswordEntryKeyboardHelper(Context context, KeyboardView keyboardView, View targetView) {
         mContext = context;
@@ -59,7 +58,6 @@ public class PasswordEntryKeyboardHelper implements OnKeyboardActionListener {
         mKeyboardView = keyboardView;
         createKeyboards();
         mKeyboardView.setOnKeyboardActionListener(this);
-        mVibrator = new Vibrator();
     }
 
     public boolean isAlpha() {
@@ -234,9 +232,6 @@ public class PasswordEntryKeyboardHelper implements OnKeyboardActionListener {
     }
 
     public void onPress(int primaryCode) {
-        if (mVibratePattern != null) {
-            mVibrator.vibrate(mVibratePattern, -1);
-        }
     }
 
     public void onRelease(int primaryCode) {

@@ -375,7 +375,7 @@ public class GpsLocationProvider implements LocationProviderInterface {
     }
 
     public static boolean isSupported() {
-        return native_is_supported();
+        return false;
     }
 
     public GpsLocationProvider(Context context, ILocationManager locationManager) {

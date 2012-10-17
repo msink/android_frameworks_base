@@ -122,6 +122,9 @@ public final class Geocoder {
      */
     public List<Address> getFromLocation(double latitude, double longitude, int maxResults)
         throws IOException {
+        if (mService == null)
+            return null;
+
         if (latitude < -90.0 || latitude > 90.0) {
             throw new IllegalArgumentException("latitude == " + latitude);
         }
@@ -167,6 +170,9 @@ public final class Geocoder {
      * I/O problem occurs
      */
     public List<Address> getFromLocationName(String locationName, int maxResults) throws IOException {
+        if (mService == null)
+            return null;
+
         if (locationName == null) {
             throw new IllegalArgumentException("locationName == null");
         }
@@ -223,6 +229,9 @@ public final class Geocoder {
     public List<Address> getFromLocationName(String locationName, int maxResults,
         double lowerLeftLatitude, double lowerLeftLongitude,
         double upperRightLatitude, double upperRightLongitude) throws IOException {
+        if (mService == null)
+            return null;
+
         if (locationName == null) {
             throw new IllegalArgumentException("locationName == null");
         }

@@ -69,10 +69,6 @@ public class ConnectivityService extends IConnectivityManager.Stub {
     private static final String NETWORK_RESTORE_DELAY_PROP_NAME =
             "android.telephony.apn-restore";
 
-
-    private Tethering mTethering;
-    private boolean mTetheringConfigValid = false;
-
     /**
      * Sometimes we want to refer to the individual network state
      * trackers separately, and sometimes we just want to treat them
@@ -400,13 +396,6 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                 continue;
             }
         }
-
-        mTethering = new Tethering(mContext, mHandler.getLooper());
-        mTetheringConfigValid = (((mNetTrackers[ConnectivityManager.TYPE_MOBILE_DUN] != null) ||
-                                  !mTethering.isDunRequired()) &&
-                                 (mTethering.getTetherableUsbRegexs().length != 0 ||
-                                  mTethering.getTetherableWifiRegexs().length != 0) &&
-                                 mTethering.getUpstreamIfaceRegexs().length != 0);
 
         if (DBG) {
             mInetLog = new ArrayList();
@@ -881,11 +870,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
      * @see ConnectivityManager#getMobileDataEnabled()
      */
     public boolean getMobileDataEnabled() {
-        enforceAccessPermission();
-        boolean retVal = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.MOBILE_DATA, 1) == 1;
-        if (DBG) Slog.d(TAG, "getMobileDataEnabled returning " + retVal);
-        return retVal;
+        return false;
     }
 
     /**
@@ -1071,6 +1056,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     if (mNetAttributes[checkType].mPriority > newPriority) {
                         newType = checkType;
                         newPriority = mNetAttributes[newType].mPriority;
+                        break;
                     }
                 }
             }
@@ -1483,8 +1469,6 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         }
         pw.println();
 
-        mTethering.dump(fd, pw, args);
-
         if (mInetLog != null) {
             pw.println();
             pw.println("Inet condition reports:");
@@ -1628,82 +1612,47 @@ public class ConnectivityService extends IConnectivityManager.Stub {
 
     // javadoc from interface
     public int tether(String iface) {
-        enforceTetherChangePermission();
-
-        if (isTetheringSupported()) {
-            return mTethering.tether(iface);
-        } else {
-            return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
-        }
+        return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
     }
 
     // javadoc from interface
     public int untether(String iface) {
-        enforceTetherChangePermission();
-
-        if (isTetheringSupported()) {
-            return mTethering.untether(iface);
-        } else {
-            return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
-        }
+        return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
     }
 
     // javadoc from interface
     public int getLastTetherError(String iface) {
-        enforceTetherAccessPermission();
-
-        if (isTetheringSupported()) {
-            return mTethering.getLastTetherError(iface);
-        } else {
-            return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
-        }
+        return ConnectivityManager.TETHER_ERROR_UNSUPPORTED;
     }
 
     // TODO - proper iface API for selection by property, inspection, etc
     public String[] getTetherableUsbRegexs() {
-        enforceTetherAccessPermission();
-        if (isTetheringSupported()) {
-            return mTethering.getTetherableUsbRegexs();
-        } else {
-            return new String[0];
-        }
+        return new String[0];
     }
 
     public String[] getTetherableWifiRegexs() {
-        enforceTetherAccessPermission();
-        if (isTetheringSupported()) {
-            return mTethering.getTetherableWifiRegexs();
-        } else {
-            return new String[0];
-        }
+        return new String[0];
     }
 
     // TODO - move iface listing, queries, etc to new module
     // javadoc from interface
     public String[] getTetherableIfaces() {
-        enforceTetherAccessPermission();
-        return mTethering.getTetherableIfaces();
+        return null;
     }
 
     public String[] getTetheredIfaces() {
-        enforceTetherAccessPermission();
-        return mTethering.getTetheredIfaces();
+        return null;
     }
 
     public String[] getTetheringErroredIfaces() {
-        enforceTetherAccessPermission();
-        return mTethering.getErroredIfaces();
+        return null;
     }
 
     // if ro.tether.denied = true we default to no tethering
     // gservices could set the secure setting to 1 though to enable it on a build where it
     // had previously been turned off.
     public boolean isTetheringSupported() {
-        enforceTetherAccessPermission();
-        int defaultVal = (SystemProperties.get("ro.tether.denied").equals("true") ? 0 : 1);
-        boolean tetherEnabledInSettings = (Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.TETHER_SUPPORTED, defaultVal) != 0);
-        return tetherEnabledInSettings && mTetheringConfigValid;
+        return false;
     }
 
     // 100 percent is full good, 0 is full bad.

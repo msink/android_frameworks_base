@@ -116,6 +116,7 @@ public class NetInitiatedActivity extends AlertActivity implements DialogInterfa
         if (DEBUG) Log.d(TAG, "sendUserResponse, response: " + response);
         LocationManager locationManager = (LocationManager)
             this.getSystemService(Context.LOCATION_SERVICE);
+      if (locationManager != null)
         locationManager.sendNiResponse(notificationId, response);
     }
 

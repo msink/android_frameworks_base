@@ -63,16 +63,20 @@ final class GeolocationService implements LocationListener {
      * Start listening for location updates.
      */
     public void start() {
+      if (mLocationManager != null) {
         registerForLocationUpdates();
         mIsRunning = true;
+      }
     }
 
     /**
      * Stop listening for location updates.
      */
     public void stop() {
+      if (mLocationManager != null) {
         unregisterFromLocationUpdates();
         mIsRunning = false;
+      }
     }
 
     /**

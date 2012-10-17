@@ -1052,8 +1052,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     }
 
     void vibrate() {
-        android.os.Vibrator vib = (android.os.Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
-        vib.vibrate(250);
     }
 
     Runnable mStartTracing = new Runnable() {

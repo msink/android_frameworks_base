@@ -100,7 +100,6 @@ public class VolumePanel extends Handler
 
     // Synchronize when accessing this
     private ToneGenerator mToneGenerators[];
-    private Vibrator mVibrator;
 
     public VolumePanel(Context context, AudioService volumeService) {
         mContext = context;
@@ -119,7 +118,6 @@ public class VolumePanel extends Handler
         mLevel = (ProgressBar) view.findViewById(com.android.internal.R.id.level);
 
         mToneGenerators = new ToneGenerator[AudioSystem.getNumStreamTypes()];
-        mVibrator = new Vibrator();
     }
 
     public void postVolumeChanged(int streamType, int flags) {
@@ -310,7 +308,6 @@ public class VolumePanel extends Handler
             return;
         }
 
-        mVibrator.vibrate(VIBRATE_DURATION);
     }
 
     /**

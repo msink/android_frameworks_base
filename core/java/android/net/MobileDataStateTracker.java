@@ -233,7 +233,7 @@ public class MobileDataStateTracker extends NetworkStateTracker {
                                 setDetailedState(DetailedState.CONNECTING, reason, apnName);
                                 break;
                             case SUSPENDED:
-                                setDetailedState(DetailedState.SUSPENDED, reason, apnName);
+                                //setDetailedState(DetailedState.SUSPENDED, reason, apnName);
                                 break;
                             case CONNECTED:
                                 mInterfaceName = intent.getStringExtra(Phone.DATA_IFACE_NAME_KEY);

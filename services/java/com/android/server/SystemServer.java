@@ -139,9 +139,6 @@ class ServerThread extends Thread {
             Slog.i(TAG, "Activity Manager");
             context = ActivityManagerService.main(factoryTest);
 
-            Slog.i(TAG, "Telephony Registry");
-            ServiceManager.addService("telephony.registry", new TelephonyRegistry(context));
-
             AttributeCache.init(context);
 
             Slog.i(TAG, "Package Manager");
@@ -175,9 +172,6 @@ class ServerThread extends Thread {
             Slog.i(TAG, "Lights Service");
             lights = new LightsService(context);
 
-            Slog.i(TAG, "Vibrator Service");
-            ServiceManager.addService("vibrator", new VibratorService(context));
-
             // only initialize the power service after we have started the
             // lights service, content providers and the battery service.
             power.init(context, lights, ActivityManagerService.getDefault(), battery);
@@ -201,13 +195,10 @@ class ServerThread extends Thread {
             // Skip Bluetooth if we have an emulator kernel
             // TODO: Use a more reliable check to see if this product should
             // support Bluetooth - see bug 988521
-            if (SystemProperties.get("ro.kernel.qemu").equals("1")) {
-                Slog.i(TAG, "Registering null Bluetooth Service (emulator)");
-                ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, null);
-            } else if (factoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL) {
+            if (factoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL) {
                 Slog.i(TAG, "Registering null Bluetooth Service (factory test)");
                 ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, null);
-            } else {
+            } else if (SystemProperties.getBoolean("ro.service.bt.enabled", false)) {
                 Slog.i(TAG, "Bluetooth Service");
                 bluetooth = new BluetoothService(context);
                 ServiceManager.addService(BluetoothAdapter.BLUETOOTH_SERVICE, bluetooth);
@@ -245,9 +236,19 @@ class ServerThread extends Thread {
             }
 
             try {
+                Slog.i(TAG, "Audio Service");
+                ServiceManager.addService(Context.AUDIO_SERVICE, new AudioService(context));
+            } catch (Throwable e) {
+                Slog.e(TAG, "Failure starting Audio Service", e);
+            }
+
+            try {
                 Slog.i(TAG, "Status Bar");
                 statusBar = new StatusBarManagerService(context);
                 ServiceManager.addService(Context.STATUS_BAR_SERVICE, statusBar);
+                if (statusBar != null) {
+                    statusBar.systemReady2();
+                }
             } catch (Throwable e) {
                 Slog.e(TAG, "Failure starting StatusBarManagerService", e);
             }
@@ -269,13 +270,6 @@ class ServerThread extends Thread {
             }
 
             try {
-                Slog.i(TAG, "NetStat Service");
-                ServiceManager.addService("netstat", new NetStatService(context));
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting NetStat Service", e);
-            }
-
-            try {
                 Slog.i(TAG, "NetworkManagement Service");
                 ServiceManager.addService(
                         Context.NETWORKMANAGEMENT_SERVICE,
@@ -290,15 +284,6 @@ class ServerThread extends Thread {
                 ServiceManager.addService(Context.CONNECTIVITY_SERVICE, connectivity);
             } catch (Throwable e) {
                 Slog.e(TAG, "Failure starting Connectivity Service", e);
-            }
-
-            try {
-                Slog.i(TAG, "Throttle Service");
-                throttle = new ThrottleService(context);
-                ServiceManager.addService(
-                        Context.THROTTLE_SERVICE, throttle);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting ThrottleService", e);
             }
 
             try {
@@ -336,6 +321,7 @@ class ServerThread extends Thread {
                 Slog.e(TAG, "Failure starting DeviceStorageMonitor service", e);
             }
 
+          if (SystemProperties.getBoolean("ro.service.location.enabled", false)) {
             try {
                 Slog.i(TAG, "Location Manager");
                 location = new LocationManagerService(context);
@@ -343,6 +329,7 @@ class ServerThread extends Thread {
             } catch (Throwable e) {
                 Slog.e(TAG, "Failure starting Location Manager", e);
             }
+          }
 
             try {
                 Slog.i(TAG, "Search Service");
@@ -366,50 +353,11 @@ class ServerThread extends Thread {
             }
 
             try {
-                Slog.i(TAG, "Wallpaper Service");
-                wallpaper = new WallpaperManagerService(context);
-                ServiceManager.addService(Context.WALLPAPER_SERVICE, wallpaper);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting Wallpaper Service", e);
-            }
-
-            try {
-                Slog.i(TAG, "Audio Service");
-                ServiceManager.addService(Context.AUDIO_SERVICE, new AudioService(context));
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting Audio Service", e);
-            }
-
-            try {
-                Slog.i(TAG, "Headset Observer");
-                // Listen for wired headset changes
-                headset = new HeadsetObserver(context);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting HeadsetObserver", e);
-            }
-
-            try {
-                Slog.i(TAG, "Dock Observer");
-                // Listen for dock station changes
-                dock = new DockObserver(context, power);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting DockObserver", e);
-            }
-
-            try {
                 Slog.i(TAG, "USB Observer");
                 // Listen for USB changes
                 usb = new UsbObserver(context);
             } catch (Throwable e) {
                 Slog.e(TAG, "Failure starting UsbObserver", e);
-            }
-
-            try {
-                Slog.i(TAG, "UI Mode Manager Service");
-                // Listen for UI mode changes
-                uiMode = new UiModeManagerService(context);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting UiModeManagerService", e);
             }
 
             try {
@@ -428,13 +376,6 @@ class ServerThread extends Thread {
                 Slog.e(TAG, "Failure starting AppWidget Service", e);
             }
 
-            try {
-                Slog.i(TAG, "Recognition Service");
-                recognition = new RecognitionManagerService(context);
-            } catch (Throwable e) {
-                Slog.e(TAG, "Failure starting Recognition Service", e);
-            }
-            
             try {
                 Slog.i(TAG, "DiskStats Service");
                 ServiceManager.addService("diskstats", new DiskStatsService(context));
@@ -512,7 +453,6 @@ class ServerThread extends Thread {
             public void run() {
                 Slog.i(TAG, "Making services ready");
 
-                if (statusBarF != null) statusBarF.systemReady2();
                 if (batteryF != null) batteryF.systemReady();
                 if (connectivityF != null) connectivityF.systemReady();
                 if (dockF != null) dockF.systemReady();

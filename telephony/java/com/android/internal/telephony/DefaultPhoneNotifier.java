@@ -31,100 +31,36 @@ public class DefaultPhoneNotifier implements PhoneNotifier {
 
     static final String LOG_TAG = "GSM";
     private static final boolean DBG = true;
-    private ITelephonyRegistry mRegistry;
 
     /*package*/
     DefaultPhoneNotifier() {
-        mRegistry = ITelephonyRegistry.Stub.asInterface(ServiceManager.getService(
-                    "telephony.registry"));
     }
 
     public void notifyPhoneState(Phone sender) {
-        Call ringingCall = sender.getRingingCall();
-        String incomingNumber = "";
-        if (ringingCall != null && ringingCall.getEarliestConnection() != null){
-            incomingNumber = ringingCall.getEarliestConnection().getAddress();
-        }
-        try {
-            mRegistry.notifyCallState(convertCallState(sender.getState()), incomingNumber);
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyServiceState(Phone sender) {
-        try {
-            mRegistry.notifyServiceState(sender.getServiceState());
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifySignalStrength(Phone sender) {
-        try {
-            mRegistry.notifySignalStrength(sender.getSignalStrength());
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyMessageWaitingChanged(Phone sender) {
-        try {
-            mRegistry.notifyMessageWaitingChanged(sender.getMessageWaitingIndicator());
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyCallForwardingChanged(Phone sender) {
-        try {
-            mRegistry.notifyCallForwardingChanged(sender.getCallForwardingIndicator());
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyDataActivity(Phone sender) {
-        try {
-            mRegistry.notifyDataActivity(convertDataActivityState(sender.getDataActivityState()));
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyDataConnection(Phone sender, String reason) {
-        TelephonyManager telephony = TelephonyManager.getDefault();
-        try {
-            mRegistry.notifyDataConnection(
-                    convertDataState(sender.getDataConnectionState()),
-                    sender.isDataConnectivityPossible(), reason,
-                    sender.getActiveApn(),
-                    sender.getActiveApnTypes(),
-                    sender.getInterfaceName(null),
-                    ((telephony!=null) ? telephony.getNetworkType() :
-                    TelephonyManager.NETWORK_TYPE_UNKNOWN),
-                    sender.getGateway(null));
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyDataConnectionFailed(Phone sender, String reason) {
-        try {
-            mRegistry.notifyDataConnectionFailed(reason);
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     public void notifyCellLocation(Phone sender) {
-        Bundle data = new Bundle();
-        sender.getCellLocation().fillInNotifierBundle(data);
-        try {
-            mRegistry.notifyCellLocation(data);
-        } catch (RemoteException ex) {
-            // system process is dead
-        }
     }
 
     private void log(String s) {

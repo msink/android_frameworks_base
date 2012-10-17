@@ -67,9 +67,9 @@ public abstract class OrientationEventListener {
      * SENSOR_DELAY_NORMAL} for simple screen orientation change detection.
      */
     public OrientationEventListener(Context context, int rate) {
-        mSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = null;
         mRate = rate;
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensor = null;
         if (mSensor != null) {
             // Create listener only if sensors do exist
             mSensorEventListener = new SensorEventListenerImpl();

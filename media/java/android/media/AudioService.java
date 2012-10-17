@@ -292,7 +292,6 @@ public class AudioService extends IAudioService.Stub {
         setRingerModeInt(getRingerMode(), false);
 
         AudioSystem.setErrorCallback(mAudioSystemCallback);
-        loadSoundEffects();
 
         mBluetoothHeadsetConnected = false;
         mBluetoothHeadset = new BluetoothHeadset(context,
@@ -311,11 +310,6 @@ public class AudioService extends IAudioService.Stub {
         intentFilter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
         intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         context.registerReceiver(mMediaButtonReceiver, intentFilter);
-
-        // Register for phone state monitoring
-        TelephonyManager tmgr = (TelephonyManager)
-                context.getSystemService(Context.TELEPHONY_SERVICE);
-        tmgr.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
     private void createAudioSystemThread() {

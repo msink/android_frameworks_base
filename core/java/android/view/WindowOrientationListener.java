@@ -68,9 +68,9 @@ public abstract class WindowOrientationListener {
      * no way to get the period from SensorManager based on the rate constant.
      */
     private WindowOrientationListener(Context context, int rate) {
-        mSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = null;
         mRate = rate;
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensor = null;
         if (mSensor != null) {
             // Create listener only if sensors do exist
             mSensorEventListener = new SensorEventListenerImpl(this);

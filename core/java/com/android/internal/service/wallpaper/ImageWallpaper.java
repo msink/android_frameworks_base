@@ -39,13 +39,11 @@ import android.content.BroadcastReceiver;
  * Default built-in wallpaper that simply shows a static image.
  */
 public class ImageWallpaper extends WallpaperService {
-    WallpaperManager mWallpaperManager;
     private HandlerThread mThread;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mWallpaperManager = (WallpaperManager) getSystemService(WALLPAPER_SERVICE);
         Looper looper = WindowManagerPolicyThread.getLooper();
         if (looper != null) {
             setCallbackLooper(looper);
@@ -169,11 +167,6 @@ public class ImageWallpaper extends WallpaperService {
 
         void updateWallpaper() {
             synchronized (mLock) {
-                try {
-                    mBackground = mWallpaperManager.getFastDrawable();
-                } catch (RuntimeException e) {
-                    Log.w("ImageWallpaper", "Unable to load wallpaper!", e);
-                }
             }
         }
     }

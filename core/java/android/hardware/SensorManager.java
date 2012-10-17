@@ -1107,15 +1107,17 @@ public class SensorManager
             for (int i=0 ; i<size ; i++) {
                 ListenerDelegate l = sListeners.get(i);
                 if (l.getListener() == listener) {
+                  if (l.hasSensor(sensor)) {
+                    disableSensorLocked(sensor);
                     if (l.removeSensor(sensor) == 0) {
                         // if we have no more sensors enabled on this listener,
                         // take it off the list.
                         sListeners.remove(i);
                     }
+                  }
                     break;
                 }
             }
-            disableSensorLocked(sensor);
         }
     }
 

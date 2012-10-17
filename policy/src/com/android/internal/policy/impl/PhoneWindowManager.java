@@ -180,22 +180,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     LocalPowerManager mPowerManager;
     boolean isForceOutStatusbar;
     boolean isShowStatusBarTemp;
-    Vibrator mVibrator; // Vibrator for giving feedback of orientation changes
-
-    // Vibrator pattern for haptic feedback of a long press.
-    long[] mLongPressVibePattern;
-    
-    // Vibrator pattern for haptic feedback of virtual key press.
-    long[] mVirtualKeyVibePattern;
-    
-    // Vibrator pattern for a short vibration.
-    long[] mKeyboardTapVibePattern;
-
-    // Vibrator pattern for haptic feedback during boot when safe mode is disabled.
-    long[] mSafeModeDisabledVibePattern;
-    
-    // Vibrator pattern for haptic feedback during boot when safe mode is enabled.
-    long[] mSafeModeEnabledVibePattern;
 
     /** If true, hitting shift & menu will broadcast Intent.ACTION_BUG_REPORT */
     boolean mEnableShiftMenuBugReports = false;
@@ -490,14 +474,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      */
     Runnable mHomeLongPress = new Runnable() {
         public void run() {
-            /*
-             * Eat the longpress so it won't dismiss the recent apps dialog when
-             * the user lets go of the home key
-             */
-            mHomePressed = false;
-            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
-            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS);
-            showRecentAppsDialog();
         }
     };
 
@@ -567,17 +543,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mDockMode = intent.getIntExtra(Intent.EXTRA_DOCK_STATE,
                     Intent.EXTRA_DOCK_STATE_UNDOCKED);
         }
-        mVibrator = new Vibrator();
-        mLongPressVibePattern = getLongIntArray(mContext.getResources(),
-                com.android.internal.R.array.config_longPressVibePattern);
-        mVirtualKeyVibePattern = getLongIntArray(mContext.getResources(),
-                com.android.internal.R.array.config_virtualKeyVibePattern);
-        mKeyboardTapVibePattern = getLongIntArray(mContext.getResources(),
-                com.android.internal.R.array.config_keyboardTapVibePattern);
-        mSafeModeDisabledVibePattern = getLongIntArray(mContext.getResources(),
-                com.android.internal.R.array.config_safeModeDisabledVibePattern);
-        mSafeModeEnabledVibePattern = getLongIntArray(mContext.getResources(),
-                com.android.internal.R.array.config_safeModeEnabledVibePattern);
     }
 
     public void updateSettings() {
@@ -1044,7 +1009,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
     
     static ITelephony getPhoneInterface() {
-        return ITelephony.Stub.asInterface(ServiceManager.checkService(Context.TELEPHONY_SERVICE));
+        return null;
     }
 
     static IAudioService getAudioInterface() {
@@ -1130,26 +1095,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     mHomePressed = false;
                     
                     if (!canceled) {
-                        // If an incoming call is ringing, HOME is totally disabled.
-                        // (The user is already on the InCallScreen at this point,
-                        // and his ONLY options are to answer or reject the call.)
-                        boolean incomingRinging = false;
-                        try {
-                            ITelephony phoneServ = getPhoneInterface();
-                            if (phoneServ != null) {
-                                incomingRinging = phoneServ.isRinging();
-                            } else {
-                                Log.w(TAG, "Unable to find ITelephony interface");
-                            }
-                        } catch (RemoteException ex) {
-                            Log.w(TAG, "RemoteException from getPhoneInterface()", ex);
-                        }
-        
-                        if (incomingRinging) {
-                            Log.i(TAG, "Ignoring HOME; there's a ringing incoming call.");
-                        } else {
                             launchHomeFromHotKey();
-                        }
                     } else {
                         Log.i(TAG, "Ignoring HOME; event canceled.");
                     }
@@ -1733,17 +1679,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      * @return Whether a telephone call is in progress right now.
      */
     boolean isInCall() {
-        final ITelephony phone = getPhoneInterface();
-        if (phone == null) {
-            Log.w(TAG, "couldn't get ITelephony reference");
-            return false;
-        }
-        try {
-            return phone.isOffhook();
-        } catch (RemoteException e) {
-            Log.w(TAG, "ITelephony.isOffhhook threw RemoteException " + e);
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -1805,7 +1741,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         int result = ACTION_PASS_TO_USER;
 
         if (down && (policyFlags & WindowManagerPolicy.FLAG_VIRTUAL) != 0) {
-            performHapticFeedbackLw(null, HapticFeedbackConstants.VIRTUAL_KEY, false);
         }
 
         final boolean isWakeKey = (policyFlags
@@ -1881,36 +1816,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (down) {
                 boolean handled = false;
                 boolean hungUp = false;
-                // key repeats are generated by the window manager, and we don't see them
-                // here, so unless the driver is doing something it shouldn't be, we know
-                // this is the real press event.
-                ITelephony phoneServ = getPhoneInterface();
-                if (phoneServ != null) {
-                    try {
-                        if (keyCode == KeyEvent.KEYCODE_ENDCALL) {
-                            handled = hungUp = phoneServ.endCall();
-                        } else if (keyCode == KeyEvent.KEYCODE_POWER) {
-                            if (phoneServ.isRinging()) {
-                                // Pressing Power while there's a ringing incoming
-                                // call should silence the ringer.
-                                phoneServ.silenceRinger();
-                                handled = true;
-                            } else if (phoneServ.isOffhook() &&
-                                       ((mIncallPowerBehavior
-                                         & Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_HANGUP)
-                                        != 0)) {
-                                // Otherwise, if "Power button ends call" is enabled,
-                                // the Power button will hang up any current active call.
-                                handled = hungUp = phoneServ.endCall();
-                            }
-                        }
-                    } catch (RemoteException ex) {
-                        Log.w(TAG, "ITelephony threw RemoteException" + ex);
-                    }
-                } else {
-                    Log.w(TAG, "!!! Unable to find ITelephony interface !!!");
-                }
-
                 if (!isScreenOn
                         || (handled && keyCode != KeyEvent.KEYCODE_POWER)
                         || (handled && hungUp && keyCode == KeyEvent.KEYCODE_POWER)) {
@@ -1967,63 +1872,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mHandler.post(new PassHeadsetKey(keyEvent));
             }
         } else if (keyCode == KeyEvent.KEYCODE_CALL) {
-            // If an incoming call is ringing, answer it!
-            // (We handle this key here, rather than in the InCallScreen, to make
-            // sure we'll respond to the key even if the InCallScreen hasn't come to
-            // the foreground yet.)
-
-            // We answer the call on the DOWN event, to agree with
-            // the "fallback" behavior in the InCallScreen.
             if (down) {
-                try {
-                    ITelephony phoneServ = getPhoneInterface();
-                    if (phoneServ != null) {
-                        if (phoneServ.isRinging()) {
-                            Log.i(TAG, "interceptKeyTq:"
-                                  + " CALL key-down while ringing: Answer the call!");
-                            phoneServ.answerRingingCall();
-
-                            // And *don't* pass this key thru to the current activity
-                            // (which is presumably the InCallScreen.)
-                            result &= ~ACTION_PASS_TO_USER;
-                        }
-                    } else {
-                        Log.w(TAG, "CALL button: Unable to find ITelephony interface");
-                    }
-                } catch (RemoteException ex) {
-                    Log.w(TAG, "CALL button: RemoteException from getPhoneInterface()", ex);
-                }
             }
         } else if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP)
                    || (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)) {
-            // If an incoming call is ringing, either VOLUME key means
-            // "silence ringer".  We handle these keys here, rather than
-            // in the InCallScreen, to make sure we'll respond to them
-            // even if the InCallScreen hasn't come to the foreground yet.
-
-            // Look for the DOWN event here, to agree with the "fallback"
-            // behavior in the InCallScreen.
             if (down) {
-                try {
-                    ITelephony phoneServ = getPhoneInterface();
-                    if (phoneServ != null) {
-                        if (phoneServ.isRinging()) {
-                            Log.i(TAG, "interceptKeyTq:"
-                                  + " VOLUME key-down while ringing: Silence ringer!");
-                            // Silence the ringer.  (It's safe to call this
-                            // even if the ringer has already been silenced.)
-                            phoneServ.silenceRinger();
-
-                            // And *don't* pass this key thru to the current activity
-                            // (which is probably the InCallScreen.)
-                            result &= ~ACTION_PASS_TO_USER;
-                        }
-                    } else {
-                        Log.w(TAG, "VOLUME button: Unable to find ITelephony interface");
-                    }
-                } catch (RemoteException ex) {
-                    Log.w(TAG, "VOLUME button: RemoteException from getPhoneInterface()", ex);
-                }
             }
         }
 
@@ -2248,9 +2101,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             int dpadState = mWindowManager.getDPadKeycodeState(KeyEvent.KEYCODE_DPAD_CENTER);
             int trackballState = mWindowManager.getTrackballScancodeState(BTN_MOUSE);
             mSafeMode = menuState > 0 || sState > 0 || dpadState > 0 || trackballState > 0;
-            performHapticFeedbackLw(null, mSafeMode
-                    ? HapticFeedbackConstants.SAFE_MODE_ENABLED
-                    : HapticFeedbackConstants.SAFE_MODE_DISABLED, true);
             if (mSafeMode) {
                 Log.i(TAG, "SAFE MODE ENABLED (menu=" + menuState + " s=" + sState
                         + " dpad=" + dpadState + " trackball=" + trackballState + ")");
@@ -2390,14 +2240,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
     
     void startDockOrHome() {
-        Intent dock = createHomeDockIntent();
-        if (dock != null) {
-            try {
-                mContext.startActivity(dock);
-                return;
-            } catch (ActivityNotFoundException e) {
-            }
-        }
         mContext.startActivity(mHomeIntent);
     }
     
@@ -2459,38 +2301,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     public boolean performHapticFeedbackLw(WindowState win, int effectId, boolean always) {
-        final boolean hapticsDisabled = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.HAPTIC_FEEDBACK_ENABLED, 0) == 0;
-        if (!always && (hapticsDisabled || mKeyguardMediator.isShowingAndNotHidden())) {
-            return false;
-        }
-        long[] pattern = null;
-        switch (effectId) {
-            case HapticFeedbackConstants.LONG_PRESS:
-                pattern = mLongPressVibePattern;
-                break;
-            case HapticFeedbackConstants.VIRTUAL_KEY:
-                pattern = mVirtualKeyVibePattern;
-                break;
-            case HapticFeedbackConstants.KEYBOARD_TAP:
-                pattern = mKeyboardTapVibePattern;
-                break;
-            case HapticFeedbackConstants.SAFE_MODE_DISABLED:
-                pattern = mSafeModeDisabledVibePattern;
-                break;
-            case HapticFeedbackConstants.SAFE_MODE_ENABLED:
-                pattern = mSafeModeEnabledVibePattern;
-                break;
-            default:
-                return false;
-        }
-        if (pattern.length == 1) {
-            // One-shot vibration
-            mVibrator.vibrate(pattern[0]);
-        } else {
-            // Pattern vibration
-            mVibrator.vibrate(pattern, -1);
-        }
         return true;
     }
     

@@ -166,7 +166,9 @@ public abstract class LocationProvider {
      */
     public void reportLocation(Location location) {
         try {
+          if (mLocationManager != null) {
             mLocationManager.reportLocation(location, false);
+          }
         } catch (RemoteException e) {
             Log.e(TAG, "RemoteException in reportLocation: ", e);
         }

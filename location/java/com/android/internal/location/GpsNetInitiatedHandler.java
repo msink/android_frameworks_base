@@ -158,7 +158,9 @@ public class GpsNetInitiatedHandler {
             !notif.needNotify && !notif.needVerify ||
              notif.privacyOverride)
         {
+          if (mLocationManager != null) {
             mLocationManager.sendNiResponse(notif.notificationId, GPS_NI_RESPONSE_ACCEPT);
+          }
         }
 
         //////////////////////////////////////////////////////////////////////////

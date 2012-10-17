@@ -106,7 +106,6 @@ public class NotificationManagerService extends INotificationManager.Stub
     private int mDisabledNotifications;
 
     private NotificationRecord mVibrateNotification;
-    private Vibrator mVibrator = new Vibrator();
 
     // for enabling and disabling notification pulse behavior
     private boolean mScreenOn = true;
@@ -264,14 +263,6 @@ public class NotificationManagerService extends INotificationManager.Stub
                     finally {
                         Binder.restoreCallingIdentity(identity);
                     }
-
-                    identity = Binder.clearCallingIdentity();
-                    try {
-                        mVibrator.cancel();
-                    }
-                    finally {
-                        Binder.restoreCallingIdentity(identity);
-                    }
                 }
             }
         }
@@ -292,16 +283,6 @@ public class NotificationManagerService extends INotificationManager.Stub
                 long identity = Binder.clearCallingIdentity();
                 try {
                     mSound.stop();
-                }
-                finally {
-                    Binder.restoreCallingIdentity(identity);
-                }
-
-                // vibrate
-                mVibrateNotification = null;
-                identity = Binder.clearCallingIdentity();
-                try {
-                    mVibrator.cancel();
                 }
                 finally {
                     Binder.restoreCallingIdentity(identity);
@@ -826,18 +807,6 @@ public class NotificationManagerService extends INotificationManager.Stub
                         }
                     }
                 }
-
-                // vibrate
-                final boolean useDefaultVibrate =
-                    (notification.defaults & Notification.DEFAULT_VIBRATE) != 0;
-                if ((useDefaultVibrate || notification.vibrate != null)
-                        && audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)) {
-                    mVibrateNotification = r;
-
-                    mVibrator.vibrate(useDefaultVibrate ? DEFAULT_VIBRATE_PATTERN
-                                                        : notification.vibrate,
-                              ((notification.flags & Notification.FLAG_INSISTENT) != 0) ? 0: -1);
-                }
             }
 
             // this option doesn't shut off the lights
@@ -902,18 +871,6 @@ public class NotificationManagerService extends INotificationManager.Stub
             long identity = Binder.clearCallingIdentity();
             try {
                 mSound.stop();
-            }
-            finally {
-                Binder.restoreCallingIdentity(identity);
-            }
-        }
-
-        // vibrate
-        if (mVibrateNotification == r) {
-            mVibrateNotification = null;
-            long identity = Binder.clearCallingIdentity();
-            try {
-                mVibrator.cancel();
             }
             finally {
                 Binder.restoreCallingIdentity(identity);

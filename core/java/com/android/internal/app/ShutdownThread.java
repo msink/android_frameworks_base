@@ -51,9 +51,6 @@ public final class ShutdownThread extends Thread {
     private static final int MAX_BROADCAST_TIME = 10*1000;
     private static final int MAX_SHUTDOWN_WAIT_TIME = 20*1000;
 
-    // length of vibration before shutting down
-    private static final int SHUTDOWN_VIBRATE_MS = 500;
-    
     // state tracking
     private static Object sIsStartedGuard = new Object();
     private static boolean sIsStarted = false;
@@ -243,8 +240,6 @@ public final class ShutdownThread extends Thread {
             }
         }
         
-        final ITelephony phone =
-                ITelephony.Stub.asInterface(ServiceManager.checkService("phone"));
         final IBluetooth bluetooth =
                 IBluetooth.Stub.asInterface(ServiceManager.checkService(
                         BluetoothAdapter.BLUETOOTH_SERVICE));
@@ -265,18 +260,7 @@ public final class ShutdownThread extends Thread {
             bluetoothOff = true;
         }
 
-        try {
-            radioOff = phone == null || !phone.isRadioOn();
-            if (!radioOff) {
-                Log.w(TAG, "Turning off radio...");
-                phone.setRadio(false);
-            }
-        } catch (RemoteException ex) {
-            Log.e(TAG, "RemoteException during radio shutdown", ex);
-            radioOff = true;
-        }
-
-        Log.i(TAG, "Waiting for Bluetooth and Radio...");
+        Log.i(TAG, "Waiting for Bluetooth...");
         
         // Wait a max of 32 seconds for clean shutdown
         for (int i = 0; i < MAX_NUM_PHONE_STATE_READS; i++) {
@@ -289,15 +273,7 @@ public final class ShutdownThread extends Thread {
                     bluetoothOff = true;
                 }
             }
-            if (!radioOff) {
-                try {
-                    radioOff = !phone.isRadioOn();
-                } catch (RemoteException ex) {
-                    Log.e(TAG, "RemoteException during radio shutdown", ex);
-                    radioOff = true;
-                }
-            }
-            if (radioOff && bluetoothOff) {
+            if (bluetoothOff) {
                 Log.i(TAG, "Radio and Bluetooth shutdown complete.");
                 break;
             }
@@ -356,21 +332,6 @@ public final class ShutdownThread extends Thread {
                 Power.reboot(reason);
             } catch (Exception e) {
                 Log.e(TAG, "Reboot failed, will attempt shutdown instead", e);
-            }
-        } else if (SHUTDOWN_VIBRATE_MS > 0) {
-            // vibrate before shutting down
-            Vibrator vibrator = new Vibrator();
-            try {
-                vibrator.vibrate(SHUTDOWN_VIBRATE_MS);
-            } catch (Exception e) {
-                // Failure to vibrate shouldn't interrupt shutdown.  Just log it.
-                Log.w(TAG, "Failed to vibrate during shutdown.", e);
-            }
-
-            // vibrator is asynchronous so we need to wait to avoid shutting down too soon.
-            try {
-                Thread.sleep(SHUTDOWN_VIBRATE_MS);
-            } catch (InterruptedException unused) {
             }
         }
 

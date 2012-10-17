@@ -68,7 +68,6 @@ public class SlidingTab extends ViewGroup {
     private OnTriggerListener mOnTriggerListener;
     private int mGrabbedState = OnTriggerListener.NO_HANDLE;
     private boolean mTriggered = false;
-    private Vibrator mVibrator;
     private float mDensity; // used to scale dimensions for bitmaps.
 
     /**
@@ -805,11 +804,6 @@ public class SlidingTab extends ViewGroup {
      * Triggers haptic feedback.
      */
     private synchronized void vibrate(long duration) {
-        if (mVibrator == null) {
-            mVibrator = (android.os.Vibrator)
-                    getContext().getSystemService(Context.VIBRATOR_SERVICE);
-        }
-        mVibrator.vibrate(duration);
     }
 
     /**

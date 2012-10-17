@@ -51,8 +51,12 @@ public final class ServiceManager {
             IBinder service = sCache.get(name);
             if (service != null) {
                 return service;
+            }
+            service = getIServiceManager().getService(name);
+            if (service != null) {
+                return service;
             } else {
-                return getIServiceManager().getService(name);
+                Log.e(TAG, "No such service published: " + name);
             }
         } catch (RemoteException e) {
             Log.e(TAG, "error in getService", e);

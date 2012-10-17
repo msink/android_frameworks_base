@@ -104,11 +104,6 @@ public class RotarySelector extends View {
      */
     private boolean mTriggered = false;
 
-    // Vibration (haptic feedback)
-    private Vibrator mVibrator;
-    private static final long VIBRATE_SHORT = 20;  // msec
-    private static final long VIBRATE_LONG = 20;  // msec
-
     /**
      * The drawable for the arrows need to be scrunched this many dips towards the rotary bg below
      * it.
@@ -516,12 +511,10 @@ public class RotarySelector extends View {
                     mRotaryOffsetX = eventX - mLeftHandleX;
                     setGrabbedState(LEFT_HANDLE_GRABBED);
                     invalidate();
-                    vibrate(VIBRATE_SHORT);
                 } else if (eventX > mRightHandleX - hitWindow) {
                     mRotaryOffsetX = eventX - mRightHandleX;
                     setGrabbedState(RIGHT_HANDLE_GRABBED);
                     invalidate();
-                    vibrate(VIBRATE_SHORT);
                 }
                 break;
 
@@ -667,11 +660,6 @@ public class RotarySelector extends View {
      * Triggers haptic feedback.
      */
     private synchronized void vibrate(long duration) {
-        if (mVibrator == null) {
-            mVibrator = (android.os.Vibrator)
-                    getContext().getSystemService(Context.VIBRATOR_SERVICE);
-        }
-        mVibrator.vibrate(duration);
     }
 
     /**
@@ -701,7 +689,6 @@ public class RotarySelector extends View {
      * Dispatches a trigger event to our listener.
      */
     private void dispatchTriggerEvent(int whichHandle) {
-        vibrate(VIBRATE_LONG);
         if (mOnDialTriggerListener != null) {
             mOnDialTriggerListener.onDialTrigger(this, whichHandle);
         }

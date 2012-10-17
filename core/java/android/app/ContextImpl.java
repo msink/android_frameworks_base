@@ -88,6 +88,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.StatFs;
+import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.os.FileUtils.FileStatus;
 import android.os.storage.StorageManager;
@@ -938,27 +939,34 @@ class ContextImpl extends Context {
         } else if (CONNECTIVITY_SERVICE.equals(name)) {
             return getConnectivityManager();
         } else if (THROTTLE_SERVICE.equals(name)) {
-            return getThrottleManager();
+            Log.e(TAG, "THROTTLE_SERVICE is not available");
+            return null;
         } else if (WIFI_SERVICE.equals(name)) {
             return getWifiManager();
         } else if (ETHERNET_SERVICE.equals(name)) {
-            return getEthernetManager();
+            Log.e(TAG, "ETHERNET_SERVICE is not available");
+            return null;
         } else if (NOTIFICATION_SERVICE.equals(name)) {
             return getNotificationManager();
         } else if (KEYGUARD_SERVICE.equals(name)) {
-            return new KeyguardManager();
+            Log.e(TAG, "KEYGUARD_SERVICE is not available");
+            return null;
         } else if (ACCESSIBILITY_SERVICE.equals(name)) {
             return AccessibilityManager.getInstance(this);
         } else if (LOCATION_SERVICE.equals(name)) {
-            return getLocationManager();
+            if (SystemProperties.getBoolean("ro.service.location.enabled", false))
+                return getLocationManager();
+            return null;
         } else if (SEARCH_SERVICE.equals(name)) {
             return getSearchManager();
         } else if (SENSOR_SERVICE.equals(name)) {
-            return getSensorManager();
+            Log.e(TAG, "SENSOR_SERVICE is not available");
+            return null;
         } else if (STORAGE_SERVICE.equals(name)) {
             return getStorageManager();
         } else if (VIBRATOR_SERVICE.equals(name)) {
-            return getVibrator();
+            Log.e(TAG, "VIBRATOR_SERVICE is not available");
+            return null;
         } else if (STATUS_BAR_SERVICE.equals(name)) {
             synchronized (mSync) {
                 if (mStatusBarManager == null) {
@@ -969,17 +977,20 @@ class ContextImpl extends Context {
         } else if (AUDIO_SERVICE.equals(name)) {
             return getAudioManager();
         } else if (TELEPHONY_SERVICE.equals(name)) {
+            Log.w(TAG, "TELEPHONY_SERVICE is not available");
             return getTelephonyManager();
         } else if (CLIPBOARD_SERVICE.equals(name)) {
             return getClipboardManager();
         } else if (WALLPAPER_SERVICE.equals(name)) {
-            return getWallpaperManager();
+            Log.e(TAG, "WALLPAPER_SERVICE is not available");
+            return null;
         } else if (DROPBOX_SERVICE.equals(name)) {
             return getDropBoxManager();
         } else if (DEVICE_POLICY_SERVICE.equals(name)) {
             return getDevicePolicyManager();
         } else if (UI_MODE_SERVICE.equals(name)) {
-            return getUiModeManager();
+            Log.e(TAG, "UI_MODE_SERVICE is not available");
+            return null;
         } else if (DOWNLOAD_SERVICE.equals(name)) {
             return getDownloadManager();
         }

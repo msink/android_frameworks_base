@@ -56,13 +56,10 @@ public class TelephonyManager {
     private static final String TAG = "TelephonyManager";
 
     private Context mContext;
-    private ITelephonyRegistry mRegistry;
 
     /** @hide */
     public TelephonyManager(Context context) {
         mContext = context;
-        mRegistry = ITelephonyRegistry.Stub.asInterface(ServiceManager.getService(
-                    "telephony.registry"));
     }
 
     /** @hide */
@@ -166,13 +163,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getDeviceSoftwareVersion() {
-        try {
-            return getSubscriberInfo().getDeviceSvn();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+        return "123456";
     }
 
     /**
@@ -183,13 +174,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getDeviceId() {
-        try {
-            return getSubscriberInfo().getDeviceId();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+        return "358673013795895";
     }
 
     /**
@@ -201,17 +186,7 @@ public class TelephonyManager {
      * {@link android.Manifest.permission#ACCESS_COARSE_LOCATION ACCESS_FINE_LOCATION}.
      */
     public CellLocation getCellLocation() {
-        try {
-            Bundle bundle = getITelephony().getCellLocation();
-            CellLocation cl = CellLocation.newFromBundle(bundle);
-            if (cl.isEmpty())
-                return null;
-            return cl;
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -224,11 +199,6 @@ public class TelephonyManager {
      * @hide
      */
     public void enableLocationUpdates() {
-        try {
-            getITelephony().enableLocationUpdates();
-        } catch (RemoteException ex) {
-        } catch (NullPointerException ex) {
-        }
     }
 
     /**
@@ -241,11 +211,6 @@ public class TelephonyManager {
      * @hide
      */
     public void disableLocationUpdates() {
-        try {
-            getITelephony().disableLocationUpdates();
-        } catch (RemoteException ex) {
-        } catch (NullPointerException ex) {
-        }
     }
 
     /**
@@ -257,13 +222,7 @@ public class TelephonyManager {
      * (@link android.Manifest.permission#ACCESS_COARSE_UPDATES}
      */
     public List<NeighboringCellInfo> getNeighboringCellInfo() {
-        try {
-            return getITelephony().getNeighboringCellInfo();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+        return null;
     }
 
     /** No phone radio. */
@@ -281,23 +240,7 @@ public class TelephonyManager {
      * @see #PHONE_TYPE_CDMA
      */
     public int getPhoneType() {
-        try{
-            ITelephony telephony = getITelephony();
-            if (telephony != null) {
-                return telephony.getActivePhoneType();
-            } else {
-                // This can happen when the ITelephony interface is not up yet.
-                return getPhoneTypeFromProperty();
-            }
-        } catch (RemoteException ex) {
-            // This shouldn't happen in the normal case, as a backup we
-            // read from the system property.
-            return getPhoneTypeFromProperty();
-        } catch (NullPointerException ex) {
-            // This shouldn't happen in the normal case, as a backup we
-            // read from the system property.
-            return getPhoneTypeFromProperty();
-        }
+        return PHONE_TYPE_NONE;
     }
 
 
@@ -414,21 +357,7 @@ public class TelephonyManager {
      * @see #NETWORK_TYPE_1xRTT
      */
     public int getNetworkType() {
-        try{
-            ITelephony telephony = getITelephony();
-            if (telephony != null) {
-                return telephony.getNetworkType();
-            } else {
-                // This can happen when the ITelephony interface is not up yet.
-                return NETWORK_TYPE_UNKNOWN;
-            }
-        } catch(RemoteException ex) {
-            // This shouldn't happen in the normal case
-            return NETWORK_TYPE_UNKNOWN;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return NETWORK_TYPE_UNKNOWN;
-        }
+        return NETWORK_TYPE_UNKNOWN;
     }
 
     /**
@@ -493,15 +422,7 @@ public class TelephonyManager {
      * @return true if a ICC card is present
      */
     public boolean hasIccCard() {
-        try {
-            return getITelephony().hasIccCard();
-        } catch (RemoteException ex) {
-            // Assume no ICC card if remote exception which shouldn't happen
-            return false;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -575,14 +496,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getSimSerialNumber() {
-        try {
-            return getSubscriberInfo().getIccSerialNumber();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     //
@@ -599,14 +513,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getSubscriberId() {
-        try {
-            return getSubscriberInfo().getSubscriberId();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -617,14 +524,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getLine1Number() {
-        try {
-            return getSubscriberInfo().getLine1Number();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -637,14 +537,7 @@ public class TelephonyManager {
      * nobody seems to call this.
      */
     public String getLine1AlphaTag() {
-        try {
-            return getSubscriberInfo().getLine1AlphaTag();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -654,14 +547,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getVoiceMailNumber() {
-        try {
-            return getSubscriberInfo().getVoiceMailNumber();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -673,14 +559,7 @@ public class TelephonyManager {
      * @hide
      */
     public String getCompleteVoiceMailNumber() {
-        try {
-            return getSubscriberInfo().getCompleteVoiceMailNumber();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -691,14 +570,7 @@ public class TelephonyManager {
      * @hide
      */
     public int getVoiceMessageCount() {
-        try {
-            return getITelephony().getVoiceMessageCount();
-        } catch (RemoteException ex) {
-            return 0;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return 0;
-        }
+        return 0;
     }
 
     /**
@@ -709,14 +581,7 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getVoiceMailAlphaTag() {
-        try {
-            return getSubscriberInfo().getVoiceMailAlphaTag();
-        } catch (RemoteException ex) {
-            return null;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return null;
-        }
+        return null;
     }
 
     private IPhoneSubInfo getSubscriberInfo() {
@@ -740,15 +605,7 @@ public class TelephonyManager {
      * Returns a constant indicating the call state (cellular) on the device.
      */
     public int getCallState() {
-        try {
-            return getITelephony().getCallState();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return CALL_STATE_IDLE;
-        } catch (NullPointerException ex) {
-          // the phone process is restarting.
-          return CALL_STATE_IDLE;
-      }
+        return CALL_STATE_IDLE;
     }
 
     /** Data connection activity: No traffic. */
@@ -776,15 +633,7 @@ public class TelephonyManager {
      * @see #DATA_ACTIVITY_DORMANT
      */
     public int getDataActivity() {
-        try {
-            return getITelephony().getDataActivity();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return DATA_ACTIVITY_NONE;
-        } catch (NullPointerException ex) {
-          // the phone process is restarting.
-          return DATA_ACTIVITY_NONE;
-      }
+        return DATA_ACTIVITY_NONE;
     }
 
     /** Data connection state: Disconnected. IP traffic not available. */
@@ -808,18 +657,11 @@ public class TelephonyManager {
      * @see #DATA_SUSPENDED
      */
     public int getDataState() {
-        try {
-            return getITelephony().getDataState();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return DATA_DISCONNECTED;
-        } catch (NullPointerException ex) {
-            return DATA_DISCONNECTED;
-        }
+        return DATA_DISCONNECTED;
     }
 
     private ITelephony getITelephony() {
-        return ITelephony.Stub.asInterface(ServiceManager.getService(Context.TELEPHONY_SERVICE));
+        return null;
     }
 
     //
@@ -852,15 +694,6 @@ public class TelephonyManager {
      *               LISTEN_ flags.
      */
     public void listen(PhoneStateListener listener, int events) {
-        String pkgForDebug = mContext != null ? mContext.getPackageName() : "<unknown>";
-        try {
-            Boolean notifyNow = (getITelephony() != null);
-            mRegistry.listen(pkgForDebug, listener.callback, events, notifyNow);
-        } catch (RemoteException ex) {
-            // system process dead
-        } catch (NullPointerException ex) {
-            // system process dead
-        }
     }
 
     /**
@@ -869,14 +702,7 @@ public class TelephonyManager {
      * @hide
      */
     public int getCdmaEriIconIndex() {
-        try {
-            return getITelephony().getCdmaEriIconIndex();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return -1;
-        } catch (NullPointerException ex) {
-            return -1;
-        }
+        return -1;
     }
 
     /**
@@ -887,14 +713,7 @@ public class TelephonyManager {
      * @hide
      */
     public int getCdmaEriIconMode() {
-        try {
-            return getITelephony().getCdmaEriIconMode();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return -1;
-        } catch (NullPointerException ex) {
-            return -1;
-        }
+        return 0;
     }
 
     /**
@@ -903,13 +722,6 @@ public class TelephonyManager {
      * @hide
      */
     public String getCdmaEriText() {
-        try {
-            return getITelephony().getCdmaEriText();
-        } catch (RemoteException ex) {
-            // the phone process is restarting.
-            return null;
-        } catch (NullPointerException ex) {
-            return null;
-        }
+        return null;
     }
 }

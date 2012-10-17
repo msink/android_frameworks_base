@@ -123,11 +123,6 @@ public class LockPatternView extends View {
     private int mBitmapWidth;
     private int mBitmapHeight;
 
-
-    private Vibrator vibe; // Vibrator for creating tactile feedback
-
-    private long[] mVibePattern;
-
     private int mAspect;
 
     /**
@@ -243,7 +238,6 @@ public class LockPatternView extends View {
 
     public LockPatternView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        vibe = new Vibrator();
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.LockPatternView);
 
@@ -282,9 +276,6 @@ public class LockPatternView extends View {
         // we assume all bitmaps have the same size
         mBitmapWidth = mBitmapBtnDefault.getWidth();
         mBitmapHeight = mBitmapBtnDefault.getHeight();
-
-        // allow vibration pattern to be customized
-        mVibePattern = loadVibratePattern(com.android.internal.R.array.config_virtualKeyVibePattern);
     }
 
     private long[] loadVibratePattern(int id) {
@@ -503,9 +494,6 @@ public class LockPatternView extends View {
                 addCellToPattern(fillInGapCell);
             }
             addCellToPattern(cell);
-            if (mTactileFeedbackEnabled){
-                vibe.vibrate(mVibePattern, -1); // Generate tactile feedback
-            }
             return cell;
         }
         return null;
