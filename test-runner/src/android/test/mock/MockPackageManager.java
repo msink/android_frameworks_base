@@ -494,14 +494,4 @@ public class MockPackageManager extends PackageManager {
     public void setPackageObbPath(String packageName, String path) {
         throw new UnsupportedOperationException();
     }
-
-    @Override
-    public boolean isCompatiblePackage(String pkgName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setCompatiblePackageEnable(String pkgName, boolean enable) {
-        throw new UnsupportedOperationException();
-    }
 }

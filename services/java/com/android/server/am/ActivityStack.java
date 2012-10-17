@@ -43,7 +43,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.IPackageManager;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
@@ -56,7 +55,6 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.Slog;
@@ -1093,7 +1091,6 @@ public class ActivityStack {
         // appropriate for it.
         mStoppingActivities.remove(next);
         mWaitingVisibleActivities.remove(next);
-        checkCompatibility(next);
 
         if (DEBUG_SWITCH) Slog.v(TAG, "Resuming " + next);
 
@@ -3556,27 +3553,5 @@ public class ActivityStack {
         }
 
         return true;
-    }
-
-    private void checkCompatibility(Object obj) {
-        String title = "none";
-        IPackageManager pm = AppGlobals.getPackageManager();
-        if (obj instanceof ActivityRecord) {
-            title = ((ActivityRecord)obj).packageName;
-        } else if (obj instanceof Intent) {
-            title = ((Intent)obj).getComponent().getPackageName();
-        }
-        if (title != null) {
-            try {
-                if (pm.isCompatiblePackage(title)) {
-                    Log.v("testlauncher", "enter compatibility mode.");
-                    SystemProperties.set("sys.compatibility.mode", "enter");
-                    mService.mWindowManager.enterCompatibilityMode();
-                } else {
-                    SystemProperties.set("sys.compatibility.mode", "exit");
-                }
-            } catch (RemoteException e) {
-            }
-        }
     }
 }

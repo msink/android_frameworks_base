@@ -323,7 +323,4 @@ interface IPackageManager {
     int getInstallLocation();
 
     void setPackageObbPath(String packageName, String path);
-
-    boolean isCompatiblePackage(String pkgName);
-    void setCompatiblePackageEnable(String pkgName, boolean enable);
 }

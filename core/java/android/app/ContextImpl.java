@@ -2726,24 +2726,6 @@ class ContextImpl extends Context {
             }
         }
 
-        @Override
-        public boolean isCompatiblePackage(String pkgName) {
-            try {
-                return mPM.isCompatiblePackage(pkgName);
-            } catch (RemoteException E) {
-            }
-            return false;
-        }
-
-        @Override
-        public void setCompatiblePackageEnable(String pkgName, boolean enable) {
-            try {
-                mPM.setCompatiblePackageEnable(pkgName, enable);
-            } catch (RemoteException e) {
-                // Should never happen!
-            }
-        }
-
         private final ContextImpl mContext;
         private final IPackageManager mPM;
 

@@ -470,6 +470,9 @@ public final class ViewRoot extends Handler implements ViewParent,
                     mTranslator.translateWindowLayout(attrs);
                 }
                 if (DEBUG_LAYOUT) Log.d(TAG, "WindowLayout in setView:" + attrs);
+                Log.d("testcompa", "win title: " + attrs.getTitle()
+                    + " ;support: " + compatibilityInfo.supportsScreen()
+                    + " ;targetVersion: " + mView.getContext().getApplicationInfo().targetSdkVersion);
 
                 if (!compatibilityInfo.supportsScreen()) {
                     attrs.flags |= WindowManager.LayoutParams.FLAG_COMPATIBLE_WINDOW;
