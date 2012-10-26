@@ -262,6 +262,7 @@ int ConfigurableGraphicPlane::initPlane(SurfaceFlinger* sf)
     else
         hw = new DisplayHardware(sf, mCurrentParam.displayId);
     setDisplayHardware(hw);
+    setOrientation(sf->graphicPlane(0).getOrientation());
     const DisplayHardware& dh(sf->graphicPlane(0).displayHardware());
     dh.makeCurrent();
 

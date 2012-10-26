@@ -24,6 +24,7 @@
 #include <utils/Errors.h>
 #include <utils/String8.h>
 #include <utils/Vector.h>
+#include <cutils/properties.h>
 
 #include <hardware/hardware.h>
 
@@ -157,7 +158,15 @@ void HWComposer::adjustDisplayParam(hwc_rect_t *rect, int keepRate, int defaultW
     rth = (float)dh/(float)defaultHeight;
     dlw = displayWidth - dw;
     dlh = displayHeight - dh;
-    if(orientation & 1)
+
+    int rotate = 0;
+    char property[PROPERTY_VALUE_MAX];
+    if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
+        rotate = atoi(property);
+    }
+
+    if(((orientation & ISurfaceComposer::eOrientationSwapMask) && (rotate == 0)) ||
+        (!(orientation & ISurfaceComposer::eOrientationSwapMask) && (rotate == 270 || rotate == 90)))
         adjustRectParam(rect, rth, rtw, dlh, dlw);
     else
         adjustRectParam(rect, rtw, rth, dlw, dlh);
@@ -175,7 +184,15 @@ void HWComposer::adjustRectScale(hwc_rect_t *rect, int dw, int dh, int xScale, i
     rth = (100.0 - (float)yScale)/100.0;
     dlw = (int)((float)dw * (float)xScale / 100.0);
     dlh = (int)((float)dh * (float)yScale / 100.0);
-    if(orientation & 1)
+
+    int rotate = 0;
+    char property[PROPERTY_VALUE_MAX];
+    if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
+        rotate = atoi(property);
+    }
+
+    if(((orientation & ISurfaceComposer::eOrientationSwapMask) && (rotate == 0)) ||
+        (!(orientation & ISurfaceComposer::eOrientationSwapMask) && (rotate == 270 || rotate == 90)))
         adjustRectParam(rect, rth, rtw, dlh, dlw);
     else
         adjustRectParam(rect, rtw, rth, dlw, dlh);
