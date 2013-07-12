@@ -961,7 +961,7 @@ class ContextImpl extends Context {
             return getSearchManager();
         } else if (SENSOR_SERVICE.equals(name)) {
             Log.e(TAG, "SENSOR_SERVICE is not available");
-            return null;
+            return getSensorManager();
         } else if (STORAGE_SERVICE.equals(name)) {
             return getStorageManager();
         } else if (VIBRATOR_SERVICE.equals(name)) {

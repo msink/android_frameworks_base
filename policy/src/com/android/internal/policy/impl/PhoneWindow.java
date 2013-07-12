@@ -1143,6 +1143,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         //        + " flags=0x" + Integer.toHexString(event.getFlags()));
         
         switch (keyCode) {
+            case KeyEvent.KEYCODE_KEYBOARD:
+                InputMethodManager m = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+                break;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN: {
                 AudioManager audioManager = (AudioManager) getContext().getSystemService(
@@ -1207,7 +1211,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
 
             case KeyEvent.KEYCODE_MENU: {
+              if (!event.isLongPress()) {
                 onKeyDownPanel((featureId < 0) ? FEATURE_OPTIONS_PANEL : featureId, event);
+              }
                 return true;
             }
 

@@ -67,6 +67,7 @@ import android.util.Slog;
 import android.util.PrintWriterPrinter;
 import android.util.Printer;
 import android.view.IWindowManager;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputMethod;
@@ -1101,6 +1102,7 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
             }
         } finally {
             Binder.restoreCallingIdentity(ident);
+            new View(mContext).requestFullWhenHidden();
         }
     }
 

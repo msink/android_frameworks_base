@@ -171,8 +171,10 @@ static const KeycodeLabel KEYCODES[] = {
     { "DELETE", 145 },
     { "LEFTCTRL", 146 },
     { "RIGHTCTRL", 147 },
-    { "RTC_WAKEUP", 149 },
-    { "SHUTDOWN", 150 },
+    { "KEYBOARD", 148 },
+    { "BRIGHTNESS_CONTROL", 149 },
+    { "RTC_WAKEUP", 151 },
+    { "SHUTDOWN", 152 },
 
     // NOTE: If you add a new keycode here you must also add it to several other files.
     //       Refer to frameworks/base/core/java/android/view/KeyEvent.java for the full list.

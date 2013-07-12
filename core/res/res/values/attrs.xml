@@ -990,9 +990,11 @@
         <enum name="KEYCODE_DELETE" value="145" />
         <enum name="KEYCODE_LEFTCTRL" value="146" />
         <enum name="KEYCODE_RIGHTCTRL" value="147" />
-        <enum name="KEYCODE_WAKEUP" value="148" />
-        <enum name="KEYCODE_RTC_WAKEUP" value="149" />
-        <enum name="KEYCODE_SHUTDOWN" value="150" />
+        <enum name="KEYCODE_KEYBOARD" value="148" />
+        <enum name="KEYCODE_BRIGHTNESS_CONTROL" value="149" />
+        <enum name="KEYCODE_WAKEUP" value="150" />
+        <enum name="KEYCODE_RTC_WAKEUP" value="151" />
+        <enum name="KEYCODE_SHUTDOWN" value="152" />
     </attr>
 
     <!-- ***************************************************************** -->
