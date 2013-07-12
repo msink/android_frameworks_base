@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* //device/apps/common/res/layout/alert_dialog.xml
+**
+** Copyright 2006, The Android Open Source Project
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:background="@drawable/brightness_panel_background"
+    >
+
+    <ImageView android:id="@+android:id/brightness_icon"
+        android:layout_width="80dip"
+        android:layout_height="80dip"
+        android:paddingTop="10dip"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:src="@drawable/brightness_icon"
+        />
+
+    <LinearLayout
+        android:layout_width="450dip"
+        android:layout_height="180dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_weight="3"
+        >
+
+        <ImageView android:id="@+android:id/brightness_lower"
+            android:layout_width="50dip"
+            android:layout_height="50dip"
+            android:src="@drawable/brightness_lower"
+            android:layout_weight="1"
+            />
+
+        <SeekBar android:id="@+android:id/brightness_level"
+            android:layout_width="250dip"
+            android:layout_height="30dip"
+            android:focusable="false"
+            android:focusableInTouchMode="true"
+            android:clickable="false"
+            android:progressDrawable="@drawable/brightness_seekbar_style"
+            android:thumb="@null"
+            android:layout_weight="1"
+            style="?android:attr/progressBarStyleHorizontal"
+            />
+
+        <ImageView android:id="@+android:id/brightness_raise"
+            android:layout_width="50dip"
+            android:layout_height="50dip"
+            android:src="@drawable/brightness_raise"
+            android:layout_weight="1"
+            />
+
+    </LinearLayout>
+</LinearLayout>

@@ -99,6 +99,7 @@ class PowerManagerService extends IPowerManager.Stub
 
     // Default timeout for screen off, if not found in settings database = 15 seconds.
     private static final int DEFAULT_SCREEN_OFF_TIMEOUT = 15000;
+    private static final int DEFAULT_SCREEN_BRIGHTNESS = 102;
 
     // flags for setPowerState
     private static final int SCREEN_ON_BIT          = 0x00000001;
@@ -263,6 +264,9 @@ class PowerManagerService extends IPowerManager.Stub
     final private String TIME_TASK_ACTION = "time_task_action";
     private int mStandbyDelay;
     private int mStandbyTimeoutSetting = 120000;
+    private int mScreenBrightnessSetting = DEFAULT_SCREEN_BRIGHTNESS;
+    private LightsService mLightsService;
+    private LightsService.Light mLcdLight;
     private long mStandbyTime = 0;
     private long mIdleTime = 0;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
@@ -518,7 +522,9 @@ class PowerManagerService extends IPowerManager.Stub
                     mEpdFullTimeout = epdFullTimeoutSetting;
                     updateEpdFullRunnable();
                 }
+                mScreenBrightnessSetting = getInt("screen_brightness", DEFAULT_SCREEN_BRIGHTNESS);
                 updateTimeoutSettingsLocked();
+                updateLightsLocked();
             }
         }
     }
@@ -548,6 +554,8 @@ class PowerManagerService extends IPowerManager.Stub
         mActivityService = activity;
         mBatteryStats = BatteryStatsService.getService();
         mBatteryService = battery;
+        mLightsService = lights;
+        mLcdLight = lights.getLight(0);
 
         nativeInit();
         synchronized (mLocks) {
@@ -1437,10 +1445,29 @@ class PowerManagerService extends IPowerManager.Stub
 
     public void setScreenBrightnessOverride(int brightness) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+        if (mSpew) Slog.d(TAG, "setScreenBrightnessOverride " + brightness);
+        synchronized (mLocks) {
+            if (isScreenOn()) {
+                updateLightsLocked();
+            }
+        }
     }
 
     public void setButtonBrightnessOverride(int brightness) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+    }
+
+    private void updateLightsLocked() {
+        if (mSpew) Slog.d(TAG, "updateLightsLocked:mScreenBrightnessSetting = " + mScreenBrightnessSetting);
+        long identity = Binder.clearCallingIdentity();
+        try {
+            mBatteryStats.noteScreenBrightness(this.mScreenBrightnessSetting);
+            mBatteryStats.noteScreenOn();
+        } catch (RemoteException e) {
+            Slog.w(TAG, "RemoteException calling noteScreenOn on BatteryStatsService", e);
+        } finally {
+            Binder.restoreCallingIdentity(identity);
+        }
     }
 
     private int setScreenStateLocked(boolean on) {
@@ -1511,16 +1538,8 @@ class PowerManagerService extends IPowerManager.Stub
                 Slog.d(TAG, "setPowerState: screen state change, on:" + newScreenOn);
                 if (newScreenOn) {
 
-                        err = setScreenStateLocked(true);
-                        long identity = Binder.clearCallingIdentity();
-                        try {
-                            mBatteryStats.noteScreenBrightness(getPreferredBrightness());
-                            mBatteryStats.noteScreenOn();
-                        } catch (RemoteException e) {
-                            Slog.w(TAG, "RemoteException calling noteScreenOn on BatteryStatsService", e);
-                        } finally {
-                            Binder.restoreCallingIdentity(identity);
-                        }
+                    err = setScreenStateLocked(true);
+                    updateLightsLocked();
 
                     mLastTouchDown = 0;
                     mTotalTouchDownTime = 0;
@@ -1568,17 +1587,6 @@ class PowerManagerService extends IPowerManager.Stub
     private boolean batteryIsLow() {
         return (!mIsPowered &&
                 mBatteryService.getBatteryLevel() <= Power.LOW_BATTERY_THRESHOLD);
-    }
-
-    private int getPreferredBrightness() {
-        try {
-            final int brightness = Settings.System.getInt(mContext.getContentResolver(),
-                                                          SCREEN_BRIGHTNESS);
-             // Don't let applications turn the screen all the way off
-            return Math.max(brightness, Power.BRIGHTNESS_DIM);
-        } catch (SettingNotFoundException snfe) {
-            return Power.BRIGHTNESS_ON;
-        }
     }
 
     public boolean isScreenOn() {
@@ -1993,16 +2001,7 @@ class PowerManagerService extends IPowerManager.Stub
         synchronized (mLocks) {
             Slog.d(TAG, "system ready!");
             mDoneBooting = true;
-
-            long identity = Binder.clearCallingIdentity();
-            try {
-                mBatteryStats.noteScreenBrightness(getPreferredBrightness());
-                mBatteryStats.noteScreenOn();
-            } catch (RemoteException e) {
-                // Nothing interesting to do.
-            } finally {
-                Binder.restoreCallingIdentity(identity);
-            }
+            updateLightsLocked();
         }
     }
 
@@ -2029,18 +2028,13 @@ class PowerManagerService extends IPowerManager.Stub
     }
 
     public void setBacklightBrightness(int brightness) {
+        if (mSpew) {
+            Slog.d(TAG, "setBacklightBrightness: brightness = " + brightness);
+        }
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
-        // Don't let applications turn the screen all the way off
         synchronized (mLocks) {
-            brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
-            long identity = Binder.clearCallingIdentity();
-            try {
-                mBatteryStats.noteScreenBrightness(brightness);
-            } catch (RemoteException e) {
-                Slog.w(TAG, "RemoteException calling noteScreenBrightness on BatteryStatsService", e);
-            } finally {
-                Binder.restoreCallingIdentity(identity);
-            }
+            mLcdLight.setBrightness(brightness);
+            updateLightsLocked();
         }
     }
 
