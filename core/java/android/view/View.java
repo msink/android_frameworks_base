@@ -1871,10 +1871,12 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
     final public static int EPD_OED_PART = 10;
     final public static int EPD_NULL = -1;
 
+    private KeyEvent.DispatcherState dispatcher = null;
     private boolean mIsInA2 = false;
     private int mDefaultMode = EPD_PART;
     private boolean mCacheWithA2Dither = false;
     private boolean mCacheWithShowingCanvas = false;
+    private boolean isNeedFull = false;
     private boolean mNoNeedA2 = false;
     PerformRefreshDrawableState mPerformRefreshDrawableState;
 
@@ -3833,6 +3835,24 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         if (mOnKeyListener != null && (mViewFlags & ENABLED_MASK) == ENABLED
                 && mOnKeyListener.onKey(this, event.getKeyCode(), event)) {
             return true;
+        }
+
+        dispatcher = (dispatcher == null) ? new KeyEvent.DispatcherState() : dispatcher;
+
+        if ((event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP ||
+                     event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN ||
+                     event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT ||
+                     event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) &&
+                     event.getAction() == 0) {
+            if (event.getRepeatCount() == 0) {
+                dispatcher.startTracking(event, this);
+            }
+            if (event.isLongPress() && dispatcher.isTracking(event)) {
+                dispatcher.performedLongPress(event);
+                if ((event.getRepeatCount() % 10) != 0) {
+                    return true;
+                }
+            }
         }
 
         return event.dispatch(this, mAttachInfo != null
@@ -9585,7 +9605,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
     }
 
     public boolean requestEpdMode(int mode) {
+      if (!SystemProperties.getBoolean("ro.caration.isA2", true) && (mode == EPD_A2)) {
+        mode = EPD_PART;
+        isNeedFull = true;
+        mIsInA2 = isNeedFull;
+      } else {
         mIsInA2 = (mode == EPD_A2);
+      }
         if (mode == EPD_AUTO || mode == EPD_PART || mode == EPD_OED_PART) {
             mDefaultMode = mode;
         }

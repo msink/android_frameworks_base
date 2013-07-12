@@ -52,7 +52,7 @@ import com.android.internal.app.AlertController;
  * input method UI.  You can modify this behavior by forcing the flag to your
  * desired mode after calling {@link #onCreate}.
  */
-public class AlertDialog extends Dialog implements DialogInterface {
+public class AlertDialog extends Dialog implements DialogInterface, Dialog.onDismissedCallback {
     private AlertController mAlert;
 
     protected AlertDialog(Context context) {
@@ -62,6 +62,7 @@ public class AlertDialog extends Dialog implements DialogInterface {
     protected AlertDialog(Context context, int theme) {
         super(context, theme);
         mAlert = new AlertController(context, this, getWindow());
+        mCallback = this;
     }
 
     protected AlertDialog(Context context, boolean cancelable, OnCancelListener cancelListener) {
@@ -69,6 +70,11 @@ public class AlertDialog extends Dialog implements DialogInterface {
         setCancelable(cancelable);
         setOnCancelListener(cancelListener);
         mAlert = new AlertController(context, this, getWindow());
+        mCallback = this;
+    }
+
+    public void onDismissed() {
+        mAlert.dialogDismissed();
     }
 
     /**

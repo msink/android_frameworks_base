@@ -103,7 +103,7 @@ public class DatePicker extends FrameLayout {
         mMonthPicker = (NumberPicker) findViewById(R.id.month);
         mMonthPicker.setFormatter(NumberPicker.TWO_DIGIT_FORMATTER);
         DateFormatSymbols dfs = new DateFormatSymbols();
-        String[] months = dfs.getShortMonths();
+        String[] months = new String[]{"01","02","03","04","05","06","07","08","09","10","11","12"};
 
         /*
          * If the user is in a locale where the month names are numeric,
