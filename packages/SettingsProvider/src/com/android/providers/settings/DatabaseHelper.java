@@ -1018,6 +1018,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "1".equals(SystemProperties.get("ro.kernel.qemu")) ? 1 : 0);
             loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
                     R.integer.def_screen_off_timeout);
+            loadIntegerSetting(stmt, Settings.System.AUTO_SHUTDOWN_TIMEOUT,
+                    R.integer.def_auto_shutdown_timeout);
             loadSetting(stmt, Settings.System.EPD_FULL_TIMEOUT,
                     Integer.valueOf(-1));
     

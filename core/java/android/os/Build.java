@@ -53,6 +53,8 @@ public class Build {
     /** The end-user-visible name for the end product. */
     public static final String MODEL = getString("ro.product.model");
 
+    public static final String CARATIONMODEL = getString("ro.caration.product.model");
+
     /** The system bootloader version number. */
     public static final String BOOTLOADER = getString("ro.bootloader");
 

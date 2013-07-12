@@ -1278,7 +1278,9 @@ public final class Settings {
          * The timeout before the screen turns off.
          */
         public static final String SCREEN_OFF_TIMEOUT = "screen_off_timeout";
+        public static final String AUTO_SHUTDOWN_TIMEOUT = "auto_shutdown_timeout";
         public static final String EPD_FULL_TIMEOUT = "epd_full_timeout";
+        public static final String EPD_REFRESH_MODE = "epd_refresh_mode";
 
         /**
          * If 0, the compatibility mode is off for all applications.
@@ -1769,6 +1771,7 @@ public final class Settings {
             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
             DIM_SCREEN,
             SCREEN_OFF_TIMEOUT,
+            AUTO_SHUTDOWN_TIMEOUT,
             SCREEN_BRIGHTNESS,
             SCREEN_BRIGHTNESS_MODE,
             VIBRATE_ON,
