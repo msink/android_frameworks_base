@@ -96,6 +96,7 @@ public class UsbStorageActivity extends Activity
             if (intent.getAction().equals(Usb.ACTION_USB_STATE)) {
                 handleUsbStateChanged(intent);
             } else if (intent.getAction().equals(Intent.ACTION_CLOSE_STATUSBAR_USB)) {
+                Log.i(TAG, "receive ACTION_CLOSE_STATUSBAR_USB broadcast");
                 if (dialogIsThere) {
                     dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
                     dialogIsThere = false;
@@ -207,8 +208,9 @@ public class UsbStorageActivity extends Activity
     protected void onResume() {
         super.onResume();
 
-        mMountButton.setEnabled(true);
         mUnmountButton.setEnabled(true);
+        mMountButton.setEnabled(true);
+        mMountButton.setFocusable(false);
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
         filter.addAction(Usb.ACTION_USB_STATE);
@@ -383,6 +385,26 @@ public class UsbStorageActivity extends Activity
             mUnmountButton.setEnabled(false);
             switchUsbMassStorage(false);
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (!mWasUsbStorageInUse) {
+                mMountButton.setEnabled(false);
+                mUnmountButton.setEnabled(true);
+                checkStorageUsers();
+            } else {
+                mMountButton.setEnabled(true);
+                mUnmountButton.setEnabled(false);
+                switchUsbMassStorage(false);
+            }
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            return false;
+        }
+        return true;
     }
 
     public void onCancel(DialogInterface dialog) {
