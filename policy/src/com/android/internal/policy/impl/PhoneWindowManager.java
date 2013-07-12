@@ -1751,12 +1751,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public int interceptKeyBeforeQueueing(long whenNanos, int keyCode, boolean down,
             int policyFlags, boolean isScreenOn) {
 
+        if (keyCode != KeyEvent.KEYCODE_POWER
+                && keyCode != KeyEvent.KEYCODE_RTC_WAKEUP
+                && keyCode != KeyEvent.KEYCODE_SHUTDOWN
+                && !isScreenOn) {
+            return ACTION_GO_TO_SLEEP;
+        }
+
         if (keyCode == KeyEvent.KEYCODE_SHUTDOWN) {
             Log.d(TAG, "SHUTDOWN key pressed!");
             sendCloseSystemWindows("globalactions");
             mHandler.post(new Runnable() {
                 public void run() {
-                    ShutdownThread.shutdown(mContext, false, "nopower");
+                    ShutdownThread.shutdown(mContext, false);
                 }
             });
             return 0;

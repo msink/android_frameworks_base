@@ -253,7 +253,7 @@ class PowerManagerService extends IPowerManager.Stub
             cancel();
             mWakeTime = wakeTime;
             if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
-                mWakeTime = mWakeTime - mWakeTime % 60000;
+                mWakeTime = mWakeTime;
             }
             mHandler.removeCallbacks(mSetRunnable);
             mHandler.post(mSetRunnable);
@@ -269,10 +269,12 @@ class PowerManagerService extends IPowerManager.Stub
     private LightsService.Light mLcdLight;
     private long mStandbyTime = 0;
     private long mIdleTime = 0;
+    private StorageManager mStorageManager = null;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
             if (!isScreenOn()) {
+                nativeStartSurfaceFlingerAnimation(1);
                 standby();
                 return;
             }
@@ -330,6 +332,13 @@ class PowerManagerService extends IPowerManager.Stub
             mIdleTime = System.currentTimeMillis() + mIdleDelay;
             mHandler.postDelayed(mIdleTimer, mIdleDelay);
         }
+    }
+
+    public void cancelGoToAutoShutdown() {
+        Log.w("", "cancelGoToAutoShutdown!");
+        Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+        intent.putExtra("IS_SHUTDOWN", false);
+        mContext.startService(intent);
     }
 
     private void cancelAlarms() {
@@ -619,8 +628,9 @@ class PowerManagerService extends IPowerManager.Stub
         SettingsObserver settingsObserver = new SettingsObserver();
         mSettings.addObserver(settingsObserver);
 
-        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
+        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 10000);
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
+
         // pretend that the settings changed so we will get their initial state
         settingsObserver.update(mSettings, null);
 
@@ -1165,7 +1175,6 @@ class PowerManagerService extends IPowerManager.Stub
                 } else {
                     mStandbyTime = System.currentTimeMillis() - SystemClock.uptimeMillis() + when;
                     if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
-                        mStandbyTime += 60000;
                     }
                     mTimeoutTaskAlarmHelper.setAlarm(mStandbyTime);
                 }
@@ -1199,6 +1208,26 @@ class PowerManagerService extends IPowerManager.Stub
                     case SCREEN_ON:
                         setTimeoutLocked(now, remainingTimeoutOverride, SCREEN_OFF);
                         break;
+                }
+
+                int shutdownTime = -1;
+                try {
+                    shutdownTime = Settings.System.getInt(mContext.getContentResolver(),
+                        "auto_shutdown_timeout");
+                } catch (Exception e) {
+                }
+                if (shutdownTime > -1) {
+                    new Thread(new Runnable() {
+                        public void run() {
+                            try {
+                                Thread.sleep(500);
+                            } catch (Exception e) {
+                            }
+                            Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+                            intent.putExtra("IS_SHUTDOWN", true);
+                            mContext.startService(intent);
+                        }
+                    }).start();
                 }
             }
         }
@@ -1491,7 +1520,7 @@ class PowerManagerService extends IPowerManager.Stub
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
-    private boolean mIdleWakeUp = true;
+    private boolean mIdleWakeUp = false;
 
     public void enableIdleWakeUp(boolean enable) {
         mIdleWakeUp = enable;
@@ -1499,6 +1528,8 @@ class PowerManagerService extends IPowerManager.Stub
 
     private void setPowerState(int state)
     {
+        if (state == 0 && Environment.getFlashStorageState().equals("shared"))
+            return;
         setPowerState(state, WindowManagerPolicy.OFF_BECAUSE_OF_TIMEOUT);
     }
 

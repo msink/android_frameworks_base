@@ -19,6 +19,7 @@ package com.android.internal.app;
 
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
+import android.app.Instrumentation;
 import android.app.ProgressDialog;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -27,6 +28,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Power;
 import android.os.PowerManager;
@@ -38,9 +42,11 @@ import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
 
-import com.android.internal.telephony.ITelephony;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -99,23 +105,34 @@ public final class ShutdownThread extends Thread {
         Log.d(TAG, "Notifying thread to start radio shutdown");
 
         if (confirm) {
-            final AlertDialog dialog = new AlertDialog.Builder(context)
+            if (sInstance.mShutdownDialog == null) {
+                sInstance.mShutdownDialog = new AlertDialog.Builder(context)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(com.android.internal.R.string.power_off)
                     .setMessage(com.android.internal.R.string.shutdown_confirm)
                     .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            SystemProperties.set("sys.shutting.down", "1");
                             beginShutdownSequence(context);
                         }
                     })
                     .setNegativeButton(com.android.internal.R.string.no, null)
                     .create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-            if (!context.getResources().getBoolean(
-                    com.android.internal.R.bool.config_sf_slowBlur)) {
-                dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+                sInstance.mShutdownDialog.getWindow()
+                    .setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
             }
-            dialog.show();
+            sInstance.mShutdownDialog.show();
+            new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(PHONE_STATE_POLL_SLEEP_MSEC);
+                        Instrumentation inst = new Instrumentation();
+                        inst.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT);
+                    } catch (Exception e) {
+                        Log.e("Exception when sendPointerSync", e.toString());
+                    }
+                }
+            }.start();
         } else {
             beginShutdownSequence(context);
         }
@@ -150,20 +167,16 @@ public final class ShutdownThread extends Thread {
             sIsStarted = true;
         }
 
-        // throw up an indeterminate system dialog to indicate radio is
-        // shutting down.
-        ProgressDialog pd = new ProgressDialog(context);
-        pd.setTitle(context.getText(com.android.internal.R.string.power_off));
-        pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
-        pd.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-        if (!context.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
-            pd.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+        Intent shutdownIntent = new Intent();
+        shutdownIntent.setClassName("com.rockchip.ebookreader.activity",
+                                    "com.rockchip.ebookreader.activity.ShutDownActivity");
+        shutdownIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(shutdownIntent);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        pd.show();
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;
