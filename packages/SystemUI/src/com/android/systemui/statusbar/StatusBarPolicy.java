@@ -123,7 +123,7 @@ public class StatusBarPolicy {
     private boolean mBluetoothEnabled;
 
     // wifi
-    private static final int[][] sWifiSignalImages = {
+    public static final int[][] sWifiSignalImages = {
             { R.drawable.stat_sys_wifi_signal_1,
               R.drawable.stat_sys_wifi_signal_2,
               R.drawable.stat_sys_wifi_signal_3,

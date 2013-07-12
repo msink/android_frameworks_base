@@ -47,6 +47,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.text.format.DateFormat;
 import android.text.TextUtils;
 import android.util.Slog;
 import android.util.Log;
@@ -73,6 +74,7 @@ import android.widget.FrameLayout;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -154,6 +156,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
     // for disabling the status bar
     int mDisabled = StatusBarManager.DISABLE_NOTIFICATION_ICONS;
+
+    private Context mContext;
+    private Calendar mCalendar;
+    TextView mDate_s;
 
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
@@ -240,6 +246,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // Constructing the view
     // ================================================================================
     private void makeStatusBarView(Context context) {
+        mContext = context;
         Resources res = context.getResources();
 
         mIconSize = res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_icon_size);
@@ -266,7 +273,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
-        mDateView = (DateView)expanded.findViewById(R.id.date);
         mExpandedContents = expanded.findViewById(R.id.notificationLinearLayout);
         mOngoingTitle = (TextView)expanded.findViewById(R.id.ongoingTitle);
         mOngoingItems = (LinearLayout)expanded.findViewById(R.id.ongoingItems);
@@ -291,18 +297,30 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         // set the inital view visibility
         setAreThereNotifications();
 
+        mDate_s = (TextView)sb.findViewById(R.id.date_s);
+        updateClock();
+
         // receive broadcasts
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
+        filter.addAction(Intent.ACTION_TIME_TICK);
+        filter.addAction(Intent.ACTION_TIME_CHANGED);
+        filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
         context.registerReceiver(mBroadcastReceiver, filter);
     }
 
     protected void addStatusBarView() {
         Resources res = getResources();
-        final int height= res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
+        final int height;
+        String statusBarOne = SystemProperties.get("ro.caration.statusbar_one");
+        if ("1".equals(statusBarOne)) {
+            height = res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
+        } else {
+            height = 34;
+        }
 
         final StatusBarView view = mStatusBarView;
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
@@ -317,6 +335,13 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         lp.windowAnimations = com.android.internal.R.style.Animation_StatusBar;
 
         WindowManagerImpl.getDefault().addView(view, lp);
+    }
+
+    private final void updateClock() {
+        mCalendar = Calendar.getInstance();
+        mCalendar.setTimeInMillis(System.currentTimeMillis());
+        String str = DateFormat.getDateFormat(mContext).format(mCalendar.getTime());
+        mDate_s.setText(str + "  ");
     }
 
     public void addIcon(String slot, int index, int viewIndex, StatusBarIcon icon) {
@@ -930,8 +955,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     }
 
     void setDateViewVisibility(boolean visible) {
-        mDateView.setUpdates(visible);
-        mDateView.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     void setNotificationIconVisibility(boolean visible) {
@@ -1027,6 +1050,16 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             }
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updateResources();
+                updateClock();
+            }
+            else if (action.equals(Intent.ACTION_TIME_TICK) ||
+                     action.equals(Intent.ACTION_TIME_CHANGED)) {
+                updateClock();
+            }
+            else if (action.equals(Intent.ACTION_TIMEZONE_CHANGED)) {
+                String tz = intent.getStringExtra("time-zone");
+                mCalendar = Calendar.getInstance();
+                updateClock();
             }
         }
     };
