@@ -51,4 +51,6 @@
          power usage activity to find out what drained the battery. -->
     <string name="battery_low_why">Battery use</string>
 
+    <string name="backlight_mins">MINS</string>
+    <string name="backlight_plus">PLUS</string>
 </resources>

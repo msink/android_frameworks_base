@@ -360,15 +360,6 @@ public class StatusBarPolicy {
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                         | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 if (intent.resolveActivity(mContext.getPackageManager()) != null) {
-                    b.setNegativeButton(R.string.battery_low_why,
-                            new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            mContext.startActivity(intent);
-                            if (mLowBatteryDialog != null) {
-                                mLowBatteryDialog.dismiss();
-                            }
-                        }
-                    });
                 }
 
             AlertDialog d = b.create();

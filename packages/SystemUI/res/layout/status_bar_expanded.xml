@@ -80,7 +80,8 @@
         <ScrollView
             android:id="@+id/scroll"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingTop="13dip"
             android:fadingEdge="none"
             android:overScrollMode="ifContentScrolls"
             >
@@ -97,16 +98,17 @@
                     android:background="@drawable/shade_bgcolor"
                     android:paddingLeft="5dp"
                     android:textAppearance="@style/TextAppearance.StatusBar.Title"
+                    android:textSize="20sp"
                     android:textColor="#fff"
                     android:text="@string/status_bar_no_notifications_title"
                     />
-
                 <TextView android:id="@+id/ongoingTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/shade_bgcolor"
                     android:paddingLeft="5dp"
                     android:textAppearance="@style/TextAppearance.StatusBar.Title"
+                    android:textSize="20sp"
                     android:textColor="#fff"
                     android:text="@string/status_bar_ongoing_events_title"
                     />
@@ -122,6 +124,7 @@
                     android:background="@drawable/shade_bgcolor"
                     android:paddingLeft="5dp"
                     android:textAppearance="@style/TextAppearance.StatusBar.Title"
+                    android:textSize="20sp"
                     android:text="@string/status_bar_latest_events_title"
                     />
                 <LinearLayout android:id="@+id/latestItems"

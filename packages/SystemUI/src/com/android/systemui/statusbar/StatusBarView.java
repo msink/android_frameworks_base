@@ -33,6 +33,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -57,8 +58,8 @@ public class StatusBarView extends RelativeLayout {
     TextView mbut_menu;
     TextView mbut_add;
     TextView mbut_sub;
-    TextView mbut_left;
-    TextView mbut_right;
+    LinearLayout mLin_bac;
+    LinearLayout mLin_home;
 
     boolean is_down = false;
     final private int ADJUST_VOLUME_DELAY = 250;
@@ -78,11 +79,14 @@ public class StatusBarView extends RelativeLayout {
         mNotificationIcons = (ViewGroup)findViewById(R.id.notificationIcons);
         mStatusIcons = (ViewGroup)findViewById(R.id.statusIcons);
 
+        mLin_home = (LinearLayout) findViewById(R.id.button_layout_Home);
         mbut_home = (TextView) findViewById(R.id.status_bar_home);
         mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
+        mLin_bac = (LinearLayout) findViewById(R.id.lin_status_bar_back);
         mbut_bac = (TextView) findViewById(R.id.status_bar_back);
         mbut_add = (TextView) findViewById(R.id.status_bar_add);
         mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
+/*******
         mbut_left = (TextView) findViewById(R.id.status_bar_left);
         mbut_right = (TextView) findViewById(R.id.status_bar_right);
 
@@ -103,12 +107,15 @@ public class StatusBarView extends RelativeLayout {
                 }
             }
         });
+********/
 
-        mbut_home.setOnTouchListener(new View.OnTouchListener() {
+        mLin_home.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    mbut_home.setBackgroundResource(R.drawable.home_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    mbut_home.setBackgroundResource(R.drawable.home_normal);
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
                 }
                 return true;
@@ -118,9 +125,24 @@ public class StatusBarView extends RelativeLayout {
         mbut_menu.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                    mbut_menu.setBackgroundResource(R.drawable.menu_normal_fcs);
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 113, true);
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                    mbut_menu.setBackgroundResource(R.drawable.menu_normal);
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 113, false);
+                }
+                return true;
+            }
+        });
+
+        mbut_home.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    mbut_home.setBackgroundResource(R.drawable.home_normal_fcs);
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    mbut_home.setBackgroundResource(R.drawable.home_normal);
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
                 }
                 return true;
             }
@@ -129,8 +151,23 @@ public class StatusBarView extends RelativeLayout {
         mbut_bac.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    mbut_bac.setBackgroundResource(R.drawable.back_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
                 } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    mbut_bac.setBackgroundResource(R.drawable.back_normal);
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                }
+                return true;
+            }
+        });
+
+        mLin_bac.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    mbut_bac.setBackgroundResource(R.drawable.back_normal_fcs);
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    mbut_bac.setBackgroundResource(R.drawable.back_normal);
                     sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
                 }
                 return true;
