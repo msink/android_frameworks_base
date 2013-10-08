@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.view.MotionEvent;
 import android.util.Log;
 
 public class ChooserActivity extends ResolverActivity {
@@ -52,5 +53,10 @@ public class ChooserActivity extends ResolverActivity {
             }
         }
         super.onCreate(savedInstanceState, target, title, initialIntents, false);
+    }
+
+    public boolean onTouchEvent(MotionEvent event) {
+        finish();
+        return super.onTouchEvent(event);
     }
 }
