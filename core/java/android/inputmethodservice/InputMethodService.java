@@ -216,7 +216,7 @@ import java.io.PrintWriter;
  */
 public class InputMethodService extends AbstractInputMethodService {
     static final String TAG = "InputMethodService";
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     
     InputMethodManager mImm;
     

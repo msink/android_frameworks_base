@@ -123,6 +123,7 @@ public class Clock extends TextView {
 
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
+        System.out.println("shy System UI clock==" + getSmallTime());
         setText(getSmallTime());
     }
 

@@ -94,7 +94,7 @@ import com.android.internal.R;
  */
 public class WifiService extends IWifiManager.Stub {
     private static final String TAG = "WifiService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final Pattern scanResultPattern = Pattern.compile("\t+");
     private final WifiStateTracker mWifiStateTracker;
     /* TODO: fetch a configurable interface */
@@ -1652,7 +1652,9 @@ public class WifiService extends IWifiManager.Stub {
             long idleMillis =
                 Settings.Secure.getLong(mContext.getContentResolver(),
                                         Settings.Secure.WIFI_IDLE_MS, DEFAULT_IDLE_MILLIS);
+            Slog.d(TAG, "    DBG   idleMillis  00 = " + idleMillis + " ms..");
             idleMillis = 5000;
+            Slog.d(TAG, "    DBG   idleMillis = " + idleMillis + " ms..");
             int stayAwakeConditions =
                 Settings.System.getInt(mContext.getContentResolver(),
                                        Settings.System.STAY_ON_WHILE_PLUGGED_IN, 0);
@@ -1675,7 +1677,7 @@ public class WifiService extends IWifiManager.Stub {
                 }
             } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                 if (DBG) {
-                    Slog.d(TAG, "ACTION_SCREEN_OFF");
+                    Slog.d(TAG, "shy   ACTION_SCREEN_OFF");
                 }
                 mScreenOff = true;
                 mWifiStateTracker.enableRssiPolling(false);
@@ -1694,7 +1696,8 @@ public class WifiService extends IWifiManager.Stub {
                         // TODO - fix the race conditions and switch back to the immediate turn-off
                         long triggerTime = System.currentTimeMillis() + idleMillis;
                         if (DBG) {
-                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 120,000 ms");
+                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 11 triggerTime " + triggerTime
+                                   + " ms....idleMillis==" + idleMillis + "ms,");
                         }
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
                         //  // do not keep Wifi awake when screen is off if Wifi is not associated
@@ -1703,8 +1706,8 @@ public class WifiService extends IWifiManager.Stub {
                     } else {
                         long triggerTime = System.currentTimeMillis() + idleMillis;
                         if (DBG) {
-                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for " + idleMillis
-                                    + "ms");
+                            Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 22 idleMillis " + idleMillis
+                                    + "ms,," + " triggerTime == " + triggerTime + "ms");
                         }
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
                     }
@@ -1733,7 +1736,8 @@ public class WifiService extends IWifiManager.Stub {
                         !shouldWifiStayAwake(stayAwakeConditions, pluggedType)) {
                     long triggerTime = System.currentTimeMillis() + idleMillis;
                     if (DBG) {
-                        Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for " + idleMillis + "ms");
+                        Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 33  idleMillis== " + idleMillis + "ms"
+                                     + "  triggerTime==" + triggerTime + "ms");
                     }
                     mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
                     mPluggedType = pluggedType;

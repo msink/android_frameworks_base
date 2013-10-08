@@ -126,11 +126,13 @@ public final class ShutdownThread extends Thread {
             final AlertDialog dialog = new AlertDialog.Builder(context).create();
             btnOk.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
+                    System.out.println("   0509-  begin shutdown sequence;; Ok is click..");
                     beginShutdownSequence(context);
                 }
             });
             btnCancel.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
+                    System.out.println("--<  0509-  cancel click");
                     dialog.dismiss();
                 }
             });
@@ -183,6 +185,7 @@ public final class ShutdownThread extends Thread {
             progeBar.setVisibility(View.GONE);
             layout.setBackgroundColor(0xffffffff);
             layout.requestEpdMode(View.EPD_FULL);
+            System.out.println("shy 0228 first refresh");
             handlerDecoder_2_Anim.postDelayed(decoderThread_2_Anim, 200);
             handlerDecoder_Anim.removeCallbacks(decoderThread_Anim);
         }
@@ -193,6 +196,7 @@ public final class ShutdownThread extends Thread {
         public void run() {
             layout.setBackgroundColor(0xffffffff);
             layout.requestEpdMode(View.EPD_FULL);
+            System.out.println("shy 0228 second refresh");
             handlerDecoder_2_Anim.removeCallbacks(decoderThread_2_Anim);
         }
     };
@@ -241,6 +245,7 @@ public final class ShutdownThread extends Thread {
                                        WindowManager.LayoutParams.MATCH_PARENT);
         dialog_2.getWindow().setContentView(layout);
         dialog_2.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+        System.out.println("0329  Shutdown  0329 33 systemClock===" + System.currentTimeMillis());
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;
@@ -316,11 +321,16 @@ public final class ShutdownThread extends Thread {
         }
         
         Log.i(TAG, "Shutting down activity manager...");
+        System.out.println("0329  Shutdown  0329  systemClock==="   + System.currentTimeMillis());
         try {
+            System.out.println("0329  Shutdown  0329 11 systemClock===" + System.currentTimeMillis());
             Thread.sleep(6000);
         } catch (InterruptedException e) {
+            System.out.println("0329  Shutdown  0329 22 systemClock===" + System.currentTimeMillis());
             e.printStackTrace();
         }
+
+        System.out.println("0329  Shutdown  0329 33 systemClock===" + System.currentTimeMillis());
         
         final IActivityManager am =
             ActivityManagerNative.asInterface(ServiceManager.checkService("activity"));

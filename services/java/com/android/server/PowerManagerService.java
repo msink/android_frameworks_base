@@ -273,6 +273,7 @@ class PowerManagerService extends IPowerManager.Stub
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
             if (!isScreenOn()) {
+                System.out.println("shy PowerManagerService  mIdleTimer ");
                 standby();
                 return;
             }
@@ -619,6 +620,8 @@ class PowerManagerService extends IPowerManager.Stub
 
         mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
+        System.out.println("PowerManagerService  shy mIdleDelay=" + mIdleDelay);
+
         // pretend that the settings changed so we will get their initial state
         settingsObserver.update(mSettings, null);
 
@@ -1458,6 +1461,7 @@ class PowerManagerService extends IPowerManager.Stub
             nativeStopSurfaceFlingerAnimation();
         } else {
             secondStandby = true;
+            System.out.println("shy standby setScreenStateLocked: nativeStartSurfaceFlingerAnimation secondStandby==" + secondStandby);
             nativeStartSurfaceFlingerAnimation(1);
             err = standby();
         }
@@ -1469,6 +1473,7 @@ class PowerManagerService extends IPowerManager.Stub
 
     public void startSurfaceFlingerAnimation(int mode)  {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+        System.out.println("shy standby  startSurfaceFlingerAnimation");
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
@@ -1519,6 +1524,7 @@ class PowerManagerService extends IPowerManager.Stub
                 Slog.d(TAG, "setPowerState: screen state change, on:" + newScreenOn);
                 if (newScreenOn) {
                     secondStandby = false;
+                    System.out.println("shy standby PowerManagerService ..secondStandby-->" + secondStandby);
 
                         err = setScreenStateLocked(true);
                         long identity = Binder.clearCallingIdentity();
@@ -1557,6 +1563,7 @@ class PowerManagerService extends IPowerManager.Stub
                             mTotalTouchDownTime, mTouchCycles);
                     mLastTouchDown = 0;
                     secondStandby = true;
+                    System.out.println("shy standby PowerManagerService  22..secondStandby-->" + secondStandby);
                     err = setScreenStateLocked(false);
                     if (err == 0) {
                         mScreenOffReason = reason;
@@ -2047,6 +2054,7 @@ class PowerManagerService extends IPowerManager.Stub
           if (isScreenOn()) {
             brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
           }
+            Slog.e("jeffy", "setBacklightbrightness:" + brightness);
             mLcdLight.setBrightness(brightness);
             long identity = Binder.clearCallingIdentity();
             try {

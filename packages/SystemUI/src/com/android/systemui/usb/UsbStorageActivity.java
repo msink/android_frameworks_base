@@ -93,9 +93,12 @@ public class UsbStorageActivity extends Activity
     private BroadcastReceiver mUsbStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            System.out.println(" usb disconnect broadcast   intent.getAction()-->" + intent.getAction());
             if (intent.getAction().equals(Usb.ACTION_USB_STATE)) {
                 handleUsbStateChanged(intent);
             } else if (intent.getAction().equals(Intent.ACTION_CLOSE_STATUSBAR_USB)) {
+                Log.i(TAG, "receive ACTION_CLOSE_STATUSBAR_USB broadcast");
+                System.out.println(" usb disconnect broadcast dialogIsThere-->" + dialogIsThere);
                 if (dialogIsThere) {
                     dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
                     dialogIsThere = false;
@@ -240,6 +243,7 @@ public class UsbStorageActivity extends Activity
         boolean connected = intent.getExtras().getBoolean(Usb.USB_CONNECTED);
         if (!connected) {
             // It was disconnected from the plug, so finish
+            System.out.println("handleUsbStateChanged-dialogIsThere->" + dialogIsThere);
             if (dialogIsThere) {
                 dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
                 dialogIsThere = false;

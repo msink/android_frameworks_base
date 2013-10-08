@@ -467,6 +467,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     Runnable mPowerLongPress = new Runnable() {
         public void run() {
             mShouldTurnOffOnKeyUp = false;
+            System.out.println(" phoneWindowManager mPowerLongPress");
 
             sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
 
@@ -1756,6 +1757,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             sendCloseSystemWindows("globalactions");
             mHandler.post(new Runnable() {
                 public void run() {
+                    System.out.println(" 0329 PhoneWindownManager shutdown nopower");
                     ShutdownThread.shutdown(mContext, false, "nopower");
                 }
             });
@@ -1792,7 +1794,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                         mKeyguardMediator.isShowingAndNotHidden() :
                                         mKeyguardMediator.isShowing());
 
-        if (false) {
+        if (true) {
             Log.d(TAG, "interceptKeyTq keycode=" + keyCode
                   + " screenIsOn=" + isScreenOn + " keyguardActive=" + keyguardActive);
         }
@@ -1856,11 +1858,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 } else {
                     // Only try to turn off the screen if we didn't already hang up.
                     mShouldTurnOffOnKeyUp = true;
+                    System.out.println(" phone mPowerLongPress 22");
                     mHandler.postDelayed(mPowerLongPress,
                             ViewConfiguration.getGlobalActionKeyTimeout());
                     result &= ~ACTION_PASS_TO_USER;
                 }
             } else {
+                System.out.println(" phone mPowerLongPress 33 mShouldTurnOffOnKeyUp-->" + mShouldTurnOffOnKeyUp);
                 mHandler.removeCallbacks(mPowerLongPress);
                 if (mShouldTurnOffOnKeyUp) {
                     mShouldTurnOffOnKeyUp = false;
@@ -1892,6 +1896,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                 mHandler.removeCallbacks(mPowerSleep);
                                 if (mPowerDelayCount >= 3) {
                                     mPowerDelayCount = 0;
+                                    System.out.println(" phone mPowerLongPress 44");
                                     mHandler.post(mPowerLongPress);
                                     mEatPowerKey = true;
                                     Log.e("jeffy", "act mPowerLongPress");
