@@ -189,6 +189,10 @@ class PowerManagerService extends IPowerManager.Stub
     private long mLastTouchDown;
     private int mTouchCycles;
 
+    public static boolean secondStandby = false;
+    private LightsService mLightsService;
+    private LightsService.Light mLcdLight;
+
     // could be either static or controllable at runtime
     private static boolean mSpew;
     
@@ -544,10 +548,12 @@ class PowerManagerService extends IPowerManager.Stub
 
     void init(Context context, LightsService lights, IActivityManager activity,
             BatteryService battery) {
+        mLightsService = lights;
         mContext = context;
         mActivityService = activity;
         mBatteryStats = BatteryStatsService.getService();
         mBatteryService = battery;
+        mLcdLight = lights.getLight(0);
 
         nativeInit();
         synchronized (mLocks) {
@@ -1448,8 +1454,10 @@ class PowerManagerService extends IPowerManager.Stub
         int err = 0;
         if (on) {
             err = wake();
+            secondStandby = false;
             nativeStopSurfaceFlingerAnimation();
         } else {
+            secondStandby = true;
             nativeStartSurfaceFlingerAnimation(1);
             err = standby();
         }
@@ -1510,6 +1518,7 @@ class PowerManagerService extends IPowerManager.Stub
             if (oldScreenOn != newScreenOn) {
                 Slog.d(TAG, "setPowerState: screen state change, on:" + newScreenOn);
                 if (newScreenOn) {
+                    secondStandby = false;
 
                         err = setScreenStateLocked(true);
                         long identity = Binder.clearCallingIdentity();
@@ -1547,6 +1556,7 @@ class PowerManagerService extends IPowerManager.Stub
                     EventLog.writeEvent(EventLogTags.POWER_SCREEN_STATE, 0, reason,
                             mTotalTouchDownTime, mTouchCycles);
                     mLastTouchDown = 0;
+                    secondStandby = true;
                     err = setScreenStateLocked(false);
                     if (err == 0) {
                         mScreenOffReason = reason;
@@ -1555,6 +1565,7 @@ class PowerManagerService extends IPowerManager.Stub
                 }
             }
             
+            setBacklightBrightness(getPreferredBrightness());
             updateNativePowerStateLocked();
         }
     }
@@ -1575,6 +1586,7 @@ class PowerManagerService extends IPowerManager.Stub
             final int brightness = Settings.System.getInt(mContext.getContentResolver(),
                                                           SCREEN_BRIGHTNESS);
              // Don't let applications turn the screen all the way off
+            if (!isScreenOn()) return 0;
             return Math.max(brightness, Power.BRIGHTNESS_DIM);
         } catch (SettingNotFoundException snfe) {
             return Power.BRIGHTNESS_ON;
@@ -2032,7 +2044,10 @@ class PowerManagerService extends IPowerManager.Stub
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         // Don't let applications turn the screen all the way off
         synchronized (mLocks) {
+          if (isScreenOn()) {
             brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
+          }
+            mLcdLight.setBrightness(brightness);
             long identity = Binder.clearCallingIdentity();
             try {
                 mBatteryStats.noteScreenBrightness(brightness);

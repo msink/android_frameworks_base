@@ -1652,6 +1652,7 @@ public class WifiService extends IWifiManager.Stub {
             long idleMillis =
                 Settings.Secure.getLong(mContext.getContentResolver(),
                                         Settings.Secure.WIFI_IDLE_MS, DEFAULT_IDLE_MILLIS);
+            idleMillis = 5000;
             int stayAwakeConditions =
                 Settings.System.getInt(mContext.getContentResolver(),
                                        Settings.System.STAY_ON_WHILE_PLUGGED_IN, 0);
@@ -1691,7 +1692,7 @@ public class WifiService extends IWifiManager.Stub {
                         // we don't have time to track down for this release.  Delay instead, but not
                         // as long as we would if connected (below)
                         // TODO - fix the race conditions and switch back to the immediate turn-off
-                        long triggerTime = System.currentTimeMillis() + (2*60*1000); // 2 min
+                        long triggerTime = System.currentTimeMillis() + idleMillis;
                         if (DBG) {
                             Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 120,000 ms");
                         }

@@ -282,6 +282,12 @@
 
     <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, there will be a confirmation dialog.  This is the message. -->
     <string name="shutdown_confirm">Your device will shut down.</string>
+    <string name="shutdown_message_1">Are you sure you want to completely power off (shutdown)the device?</string>
+    <string name="usb_note">Warning</string>
+    <string name="shutdowning">Power Off ....</string>
+    <string name="usbnote_confirm">Please disconnect the usb before power off.</string>
+    <string name="shutdown_attention">Do you really want to shut down the device?</string>
+    <string name="shutdown_device">Device Shutdown</string>
 
     <!-- Recent Tasks dialog: title -->
     <string name="recent_tasks_title">Recent</string>
