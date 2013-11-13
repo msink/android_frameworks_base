@@ -16,6 +16,8 @@
 
 package android.text.method;
 
+import android.content.Context;
+import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.view.View;
 import android.text.*;
@@ -219,6 +221,15 @@ public abstract class MetaKeyKeyListener {
 
         if (keyCode == KeyEvent.KEYCODE_SYM) {
             press(content, SYM);
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_KEYBOARD) {
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager)
+                    view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
+            }
             return true;
         }
 
