@@ -372,6 +372,11 @@ public class KeyEvent extends InputEvent implements Parcelable {
     public static final int KEYCODE_WAKEUP          = 148;
     public static final int KEYCODE_RTC_WAKEUP      = 149;
     public static final int KEYCODE_SHUTDOWN        = 150;
+    public static final int KEYCODE_KEYBOARD        = 151;
+    public static final int KEYCODE_CRZOOM          = 152;
+    public static final int KEYCODE_CRSEARCH        = 153;
+    public static final int KEYCODE_CARATION_UP     = 154;
+    public static final int KEYCODE_CARATION_DOWN   = 155;
 
     // NOTE: If you add a new keycode here you must also add it to:
     //  isSystem()
@@ -389,7 +394,7 @@ public class KeyEvent extends InputEvent implements Parcelable {
     //  those new codes.  This is intended to maintain a consistent
     //  set of key code definitions across all Android devices.
    
-    private static final int LAST_KEYCODE           = KEYCODE_BUTTON_MODE;
+    private static final int LAST_KEYCODE           = KEYCODE_CARATION_DOWN;
     
     /**
      * @deprecated There are now more than MAX_KEYCODE keycodes.

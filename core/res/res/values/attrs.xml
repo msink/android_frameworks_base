@@ -993,6 +993,11 @@
         <enum name="KEYCODE_WAKEUP" value="148" />
         <enum name="KEYCODE_RTC_WAKEUP" value="149" />
         <enum name="KEYCODE_SHUTDOWN" value="150" />
+        <enum name="KEYCODE_KEYBOARD" value="151" />
+        <enum name="KEYCODE_CRZOOM" value="152" />
+        <enum name="KEYCODE_CRSEARCH" value="153" />
+        <enum name="KEYCODE_CARATION_UP" value="154" />
+        <enum name="KEYCODE_CARATION_DOWN" value="155" />
     </attr>
 
     <!-- ***************************************************************** -->

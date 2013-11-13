@@ -30,6 +30,7 @@ import com.android.internal.view.menu.MenuDialogHelper;
 import com.android.internal.view.menu.MenuView;
 import com.android.internal.view.menu.SubMenuBuilder;
 
+import android.app.Activity;
 import android.app.KeyguardManager;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -1143,6 +1144,17 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         //        + " flags=0x" + Integer.toHexString(event.getFlags()));
         
         switch (keyCode) {
+            case KeyEvent.KEYCODE_KEYBOARD:
+            case KeyEvent.KEYCODE_CRSEARCH:
+                Log.i(TAG, "PhoneWindow onKeyDown KEYCODE_KEYBOARD");
+                try {
+                    View view = ((Activity)getContext()).getCurrentFocus();
+                    if (view != null && view.onCheckIsTextEditor()) {
+                        InputMethodManager m = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        m.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+                    }
+                } catch (Exception e) { }
+                return true;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN: {
                 AudioManager audioManager = (AudioManager) getContext().getSystemService(
@@ -1207,7 +1219,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
 
             case KeyEvent.KEYCODE_MENU: {
+              if (!event.isLongPress()) {
                 onKeyDownPanel((featureId < 0) ? FEATURE_OPTIONS_PANEL : featureId, event);
+              }
                 return true;
             }
 
@@ -1603,6 +1617,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         public boolean dispatchKeyEvent(KeyEvent event) {
             final int keyCode = event.getKeyCode();
             final boolean isDown = event.getAction() == KeyEvent.ACTION_DOWN;
+            final KeyEvent.DispatcherState dispatcher =
+                    mDecor != null ? mDecor.getKeyDispatcherState() : null;
 
             /*
              * If the user hits another key within the play sound delay, then
@@ -1664,6 +1680,21 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     : super.dispatchKeyEvent(event);
             if (handled) {
                 return true;
+            }
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_UP
+                    || keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+                    || keyCode == KeyEvent.KEYCODE_DPAD_LEFT
+                    || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+                    && isDown) {
+                if (event.getRepeatCount() == 0) {
+                    dispatcher.startTracking(event, this);
+                }
+                if (event.isLongPress() && dispatcher.isTracking(event)) {
+                    dispatcher.performedLongPress(event);
+                    if ((event.getRepeatCount() % 10) != 0) {
+                        return true;
+                    }
+                }
             }
             return isDown ? PhoneWindow.this.onKeyDown(mFeatureId, event.getKeyCode(), event)
                     : PhoneWindow.this.onKeyUp(mFeatureId, event.getKeyCode(), event);
