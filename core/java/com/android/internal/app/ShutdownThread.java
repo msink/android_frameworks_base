@@ -180,6 +180,7 @@ public final class ShutdownThread extends Thread {
                 dialog.show();
                 dialog.getWindow().setContentView(view);
                 dialog.getWindow().setLayout(768, 1024);
+                Thread.sleep(3000);
             } catch (Exception e) {
                 Log.e(TAG, "show shutdown logo fail!");
                 e.printStackTrace();

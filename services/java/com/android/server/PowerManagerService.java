@@ -332,7 +332,7 @@ class PowerManagerService extends IPowerManager.Stub
     }
 
     public void cancelGoToAutoShutdown() {
-        Log.w("", "cancelGoToAutoShutdown!");
+        Log.w(TAG, "cancelGoToAutoShutdown!");
         Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
         intent.putExtra("IS_SHUTDOWN", false);
         mContext.startService(intent);

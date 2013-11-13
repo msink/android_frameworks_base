@@ -1390,6 +1390,9 @@ class MountService extends IMountService.Stub
                 break;
             n++;
         }
+        if (n >= mDeviceState.length) {
+            n = 0;
+        }
         return mDeviceState[n];
     }
 
