@@ -281,7 +281,7 @@
     <string name="shutdown_progress">Shutting down\u2026</string>
 
     <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, there will be a confirmation dialog.  This is the message. -->
-    <string name="shutdown_confirm">Your device will shut down.</string>
+    <string name="shutdown_confirm">Shutdown device!</string>
 
     <!-- Recent Tasks dialog: title -->
     <string name="recent_tasks_title">Recent</string>

@@ -545,6 +545,13 @@ public class PowerManager
         }
     }
 
+    public void cancelGoToAutoShutdown() {
+        try {
+            mService.cancelGoToAutoShutdown();
+        } catch (RemoteException e) {
+        }
+    }
+
     public void startSurfaceFlingerAnimation(int mode) {
         try {
             mService.startSurfaceFlingerAnimation(mode);

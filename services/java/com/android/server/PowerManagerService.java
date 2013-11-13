@@ -265,9 +265,12 @@ class PowerManagerService extends IPowerManager.Stub
     private int mStandbyTimeoutSetting = 120000;
     private long mStandbyTime = 0;
     private long mIdleTime = 0;
+    private StorageManager mStorageManager = null;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
+            if (mIdleTime == 0)
+                return;
             if (!isScreenOn()) {
                 standby();
                 return;
@@ -326,6 +329,13 @@ class PowerManagerService extends IPowerManager.Stub
             mIdleTime = System.currentTimeMillis() + mIdleDelay;
             mHandler.postDelayed(mIdleTimer, mIdleDelay);
         }
+    }
+
+    public void cancelGoToAutoShutdown() {
+        Log.w(TAG, "cancelGoToAutoShutdown!");
+        Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+        intent.putExtra("IS_SHUTDOWN", false);
+        mContext.startService(intent);
     }
 
     private void cancelAlarms() {
@@ -611,8 +621,9 @@ class PowerManagerService extends IPowerManager.Stub
         SettingsObserver settingsObserver = new SettingsObserver();
         mSettings.addObserver(settingsObserver);
 
-        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
+        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 7000);
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
+
         // pretend that the settings changed so we will get their initial state
         settingsObserver.update(mSettings, null);
 
@@ -1192,6 +1203,27 @@ class PowerManagerService extends IPowerManager.Stub
                         setTimeoutLocked(now, remainingTimeoutOverride, SCREEN_OFF);
                         break;
                 }
+
+                int shutdownTime = -1;
+                try {
+                    shutdownTime = Settings.System.getInt(mContext.getContentResolver(),
+                        "auto_shutdown_timeout");
+                } catch (Exception e) {
+                }
+                if (shutdownTime > -1) {
+                    new Thread(new Runnable() {
+                        public void run() {
+                            try {
+                                Thread.sleep(500);
+                            } catch (Exception e) {
+                            }
+                            Log.w("", "send shutdown broadcast!");
+                            Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+                            intent.putExtra("IS_SHUTDOWN", true);
+                            mContext.startService(intent);
+                        }
+                    }).start();
+                }
             }
         }
     }
@@ -1464,7 +1496,7 @@ class PowerManagerService extends IPowerManager.Stub
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
-    private boolean mIdleWakeUp = true;
+    private boolean mIdleWakeUp = false;
 
     public void enableIdleWakeUp(boolean enable) {
         mIdleWakeUp = enable;
@@ -1472,6 +1504,8 @@ class PowerManagerService extends IPowerManager.Stub
 
     private void setPowerState(int state)
     {
+        if (state == 0 && Environment.getFlashStorageState().equals("shared"))
+            return;
         setPowerState(state, WindowManagerPolicy.OFF_BECAUSE_OF_TIMEOUT);
     }
 
@@ -1514,7 +1548,7 @@ class PowerManagerService extends IPowerManager.Stub
                         err = setScreenStateLocked(true);
                         long identity = Binder.clearCallingIdentity();
                         try {
-                            mBatteryStats.noteScreenBrightness(getPreferredBrightness());
+                            mBatteryStats.noteScreenBrightness(Power.BRIGHTNESS_ON);
                             mBatteryStats.noteScreenOn();
                         } catch (RemoteException e) {
                             Slog.w(TAG, "RemoteException calling noteScreenOn on BatteryStatsService", e);
@@ -1568,17 +1602,6 @@ class PowerManagerService extends IPowerManager.Stub
     private boolean batteryIsLow() {
         return (!mIsPowered &&
                 mBatteryService.getBatteryLevel() <= Power.LOW_BATTERY_THRESHOLD);
-    }
-
-    private int getPreferredBrightness() {
-        try {
-            final int brightness = Settings.System.getInt(mContext.getContentResolver(),
-                                                          SCREEN_BRIGHTNESS);
-             // Don't let applications turn the screen all the way off
-            return Math.max(brightness, Power.BRIGHTNESS_DIM);
-        } catch (SettingNotFoundException snfe) {
-            return Power.BRIGHTNESS_ON;
-        }
     }
 
     public boolean isScreenOn() {
@@ -1808,6 +1831,8 @@ class PowerManagerService extends IPowerManager.Stub
 
         if (mLastEventTime <= time) {
             mLastEventTime = time;
+            resetIdle(false);
+            cancelAlarms();
             // cancel all of the wake locks
             mWakeLockState = SCREEN_OFF;
             int N = mLocks.size();
@@ -1823,8 +1848,6 @@ class PowerManagerService extends IPowerManager.Stub
             mStillNeedSleepNotification = true;
             mUserState = SCREEN_OFF;
             setPowerState(SCREEN_OFF, reason);
-            resetIdle(false);
-            cancelAlarms();
         }
     }
 
@@ -1996,7 +2019,7 @@ class PowerManagerService extends IPowerManager.Stub
 
             long identity = Binder.clearCallingIdentity();
             try {
-                mBatteryStats.noteScreenBrightness(getPreferredBrightness());
+                mBatteryStats.noteScreenBrightness(Power.BRIGHTNESS_ON);
                 mBatteryStats.noteScreenOn();
             } catch (RemoteException e) {
                 // Nothing interesting to do.
@@ -2030,18 +2053,6 @@ class PowerManagerService extends IPowerManager.Stub
 
     public void setBacklightBrightness(int brightness) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
-        // Don't let applications turn the screen all the way off
-        synchronized (mLocks) {
-            brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
-            long identity = Binder.clearCallingIdentity();
-            try {
-                mBatteryStats.noteScreenBrightness(brightness);
-            } catch (RemoteException e) {
-                Slog.w(TAG, "RemoteException calling noteScreenBrightness on BatteryStatsService", e);
-            } finally {
-                Binder.restoreCallingIdentity(identity);
-            }
-        }
     }
 
     public void setAttentionLight(boolean on, int color) {

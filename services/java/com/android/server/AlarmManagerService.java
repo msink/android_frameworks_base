@@ -634,6 +634,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
         }
     }
     
+    boolean bolTimeChanged = false;
+
     private class AlarmThread extends Thread
     {
         public AlarmThread()
@@ -652,6 +654,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
                 if ((result & TIME_CHANGED_MASK) != 0) {
                     remove(mTimeTickSender);
                     mClockReceiver.scheduleTimeTickEvent();
+                    bolTimeChanged = true;
                     Intent intent = new Intent(Intent.ACTION_TIME_CHANGED);
                     intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
                     mContext.sendBroadcast(intent);
@@ -668,6 +671,10 @@ class AlarmManagerService extends IAlarmManager.Stub {
                         triggerAlarmsLocked(mRtcWakeupAlarms, triggerList, nowRTC);
                         PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
                         pm.pokeSystem();
+                        if (bolTimeChanged) {
+                            pm.cancelGoToAutoShutdown();
+                            bolTimeChanged = false;
+                        }
                     }
                     
                     if ((result & RTC_MASK) != 0)

@@ -298,7 +298,18 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
         context.registerReceiver(mBroadcastReceiver, filter);
+
+        IntentFilter f = new IntentFilter("COM.CARATION.CHANGE.IDLE.TIMEOUT");
+        context.registerReceiver(changeIdleReceiver, f);
     }
+
+    private BroadcastReceiver changeIdleReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String timeout = intent.getStringExtra("timeout");
+            Log.i("StatusBarService", "set idle-delay " + timeout);
+            SystemProperties.set("persist.sys.idle-delay", timeout);
+        }
+    };
 
     protected void addStatusBarView() {
         Resources res = getResources();
