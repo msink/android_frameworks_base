@@ -174,6 +174,8 @@ public class UsbStorageActivity extends Activity
         usbPreConnect = (LinearLayout) findViewById(R.id.usb_pre_connect);
         usbConnectted = (LinearLayout) findViewById(R.id.usb_connected);
         fullScreenLayout = (LinearLayout) findViewById(R.id.usb_dis_full_screen);
+        if (Build.PRODUCT.equals("inves"))
+            mSkipSwitch = true;
 
         if (mSkipSwitch) {
             fullScreenLayout.setVisibility(View.GONE);
@@ -212,11 +214,13 @@ public class UsbStorageActivity extends Activity
             }
         });
 
-        switchDisplay(true, true);
-        if (!mStorageManager.isUsbMassStorageEnabled()) {
-            switchUsbMassStorage(true);
+        if (!Build.PRODUCT.equals("inves")) {
+            switchDisplay(true, true);
+            if (!mStorageManager.isUsbMassStorageEnabled()) {
+                switchUsbMassStorage(true);
+            }
+            mSkipSwitch = true;
         }
-        mSkipSwitch = true;
     }
 
     private void switchDisplay(final boolean usbStorageInUse) {
@@ -270,9 +274,9 @@ public class UsbStorageActivity extends Activity
         filter.addAction(Usb.ACTION_USB_STATE);
         mStorageManager.registerListener(mStorageListener);
         registerReceiver(mUsbStateReceiver, filter);
-        if (mSkipSwitch) {
+        if (mSkipSwitch && !Build.PRODUCT.equals("inves")) {
             mSkipSwitch = false;
-        } else if (!mStorageManager.isUsbMassStorageEnabled()) {
+        } else if (!Build.PRODUCT.equals("inves") && !mStorageManager.isUsbMassStorageEnabled()) {
             switchUsbMassStorage(true);
         }
     }
