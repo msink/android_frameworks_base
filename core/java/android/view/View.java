@@ -1872,7 +1872,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
     final public static int EPD_NULL = -1;
 
     private boolean mIsInA2 = false;
-    private int mDefaultMode = EPD_PART;
+    private int mDefaultMode = EPD_NULL;
     private boolean mCacheWithA2Dither = false;
     private boolean mCacheWithShowingCanvas = false;
     private boolean mNoNeedA2 = false;
@@ -6111,7 +6111,10 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         if (vis != GONE) {
             onWindowVisibilityChanged(vis);
         }
+        if (mDefaultMode != EPD_NULL) {
             requestEpdMode(mDefaultMode);
+            mDefaultMode = EPD_NULL;
+        }
         if (mIsInA2) {
             requestEpdMode(EPD_A2);
         }
@@ -6119,7 +6122,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
 
     void dispatchDetachedFromWindow() {
         mIsInA2 = false;
-        requestEpdMode(EPD_PART);
 
         //System.out.println("Detached! " + this);
         AttachInfo info = mAttachInfo;

@@ -237,7 +237,7 @@ public final class ViewRoot extends Handler implements ViewParent,
     public boolean mEpdRepaintFullWhenShow = false;
     public boolean mRequestEpdFull = false;
     public boolean mInA2 = false;
-    public int mDefaultMode = View.EPD_PART;
+    public int mDefaultMode = View.EPD_NULL;
     public List<View> mA2Views = new ArrayList();
 
     public static IWindowSession getWindowSession(Looper mainLooper) {
@@ -3508,7 +3508,7 @@ public final class ViewRoot extends Handler implements ViewParent,
             } catch (RemoteException ex) {
             }
         }
-
+      if (defaultMode != View.EPD_NULL) {
         try {
             IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
             if (surfaceFlinger != null) {
@@ -3521,7 +3521,7 @@ public final class ViewRoot extends Handler implements ViewParent,
             }
         } catch (RemoteException ex) {
         }
-
+      }
         Rect A2Rect = new Rect();
         try {
             IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
