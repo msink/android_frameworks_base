@@ -156,7 +156,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private ContextMenuBuilder mContextMenu;
     private MenuDialogHelper mContextMenuHelper;
 
-    private int mVolumeControlStreamType = AudioManager.USE_DEFAULT_STREAM_TYPE;
+    private int mVolumeControlStreamType = AudioManager.STREAM_MUSIC;
     private long mVolumeKeyUpTime;
 
     private KeyguardManager mKeyguardManager = null;

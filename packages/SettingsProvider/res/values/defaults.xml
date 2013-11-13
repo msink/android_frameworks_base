@@ -18,7 +18,9 @@
 -->
 <resources>
     <bool name="def_dim_screen">false</bool>
-    <integer name="def_screen_off_timeout">60000</integer>
+    <integer name="def_screen_off_timeout">300000</integer>
+    <integer name="def_auto_shutdown_timeout">7200000</integer>
+    <integer name="def_epd_refresh_mode">1</integer>
     <bool name="def_airplane_mode_on">false</bool>
     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi</string>
@@ -33,7 +35,7 @@
     <bool name="def_haptic_feedback">false</bool>
     
     <bool name="def_bluetooth_on">false</bool>
-    <bool name="def_install_non_market_apps">false</bool>
+    <bool name="def_install_non_market_apps">true</bool>
     <!-- Comma-separated list of location providers. 
          Network location is off by default because it requires
          user opt-in via Setup Wizard or Settings.  
