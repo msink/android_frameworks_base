@@ -58,6 +58,7 @@ import android.text.style.StyleSpan;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.util.Slog;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -344,14 +345,9 @@ public class StatusBarPolicy {
         } else {
             View v = View.inflate(mContext, R.layout.battery_low, null);
             mBatteryLevelTextView=(TextView)v.findViewById(R.id.level_percent);
-
             mBatteryLevelTextView.setText(levelText);
-
             AlertDialog.Builder b = new AlertDialog.Builder(mContext);
                 b.setCancelable(true);
-                b.setTitle(R.string.battery_low_title);
-                b.setView(v);
-                b.setIcon(android.R.drawable.ic_dialog_alert);
                 b.setPositiveButton(android.R.string.ok, null);
 
                 final Intent intent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
@@ -372,9 +368,22 @@ public class StatusBarPolicy {
                 }
 
             AlertDialog d = b.create();
+            d.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                public boolean onKey(DialogInterface dialog,
+                                     int keyCode, KeyEvent event) {
+                    if (event.getAction() == KeyEvent.ACTION_UP) {
+                        if (mLowBatteryDialog != null) {
+                           mLowBatteryDialog.dismiss();
+                        }
+                    }
+                    return false;
+                }
+            });
             d.setOnDismissListener(mLowBatteryListener);
             d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             d.show();
+            d.getWindow().setContentView(v);
+            d.getWindow().setLayout(400, 400);
             mLowBatteryDialog = d;
         }
 

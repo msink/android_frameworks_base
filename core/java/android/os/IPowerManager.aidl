@@ -49,4 +49,5 @@ interface IPowerManager
     void pokeSystem();
 
     void startSurfaceFlingerAnimation(int mode);
+    void cancelGoToAutoShutdown();
 }

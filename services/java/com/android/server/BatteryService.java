@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.FileUtils;
 import android.os.IBinder;
 import android.os.DropBoxManager;
@@ -124,10 +125,15 @@ class BatteryService extends Binder {
         mContext = context;
         mBatteryStats = BatteryStatsService.getService();
 
+      if (Build.PRODUCT.equals("TrekStor")) {
+        mLowBatteryWarningLevel = 5;
+        mLowBatteryCloseWarningLevel = 6;
+      } else {
         mLowBatteryWarningLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_lowBatteryWarningLevel);
         mLowBatteryCloseWarningLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_lowBatteryCloseWarningLevel);
+      }
 
         mUEventObserver.startObserving("SUBSYSTEM=power_supply");
 
@@ -184,6 +190,15 @@ class BatteryService extends Binder {
     private final void shutdownIfNoPower() {
         // shut down gracefully if our battery is critically low and we are not powered.
         // wait until the system has booted before attempting to display the shutdown dialog.
+      if (Build.PRODUCT.equals("TrekStor")) {
+        if (mBatteryLevel <= 2 && !isPowered() && ActivityManagerNative.isSystemReady()) {
+            Intent intent = new android.content.Intent(Intent.ACTION_REQUEST_SHUTDOWN);
+            intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
+            intent.putExtra("android.intent.extra.SHUTDOWN_REASON", "nopower");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mContext.startActivity(intent);
+        }
+      } else {
         if (mBatteryLevel == 0 && !isPowered() && ActivityManagerNative.isSystemReady()) {
             Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
             intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
@@ -191,6 +206,7 @@ class BatteryService extends Binder {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mContext.startActivity(intent);
         }
+      }
     }
 
     private final void shutdownIfOverTemp() {

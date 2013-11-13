@@ -19,6 +19,7 @@ package com.android.internal.app;
 
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
+import android.app.Instrumentation;
 import android.app.ProgressDialog;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -27,6 +28,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Power;
 import android.os.PowerManager;
@@ -38,9 +42,11 @@ import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
 
-import com.android.internal.telephony.ITelephony;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -116,6 +122,17 @@ public final class ShutdownThread extends Thread {
                 dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
             }
             dialog.show();
+            new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(PHONE_STATE_POLL_SLEEP_MSEC);
+                        Instrumentation inst = new Instrumentation();
+                        inst.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT);
+                    } catch (Exception e) {
+                        Log.e("Exception when sendPointerSync", e.toString());
+                    }
+                }
+            }.start();
         } else {
             beginShutdownSequence(context);
         }
@@ -150,20 +167,24 @@ public final class ShutdownThread extends Thread {
             sIsStarted = true;
         }
 
-        // throw up an indeterminate system dialog to indicate radio is
-        // shutting down.
-        ProgressDialog pd = new ProgressDialog(context);
-        pd.setTitle(context.getText(com.android.internal.R.string.power_off));
-        pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
-        pd.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-        if (!context.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
-            pd.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+        if (Build.PRODUCT.equals("Texet")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            AlertDialog dialog = builder.create();
+            try {
+                Bitmap bitmap = BitmapFactory.decodeFile("/system/logo/shutdown1.png");
+                ImageView view = new ImageView(context);
+                view.setLayoutParam(new ViewGroup.LayoutParams(768, 1024));
+                view.setImageBitmap(bitmap);
+                view.setSelected(false);
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+                dialog.show();
+                dialog.getWindow().setContentView(view);
+                dialog.getWindow().setLayout(768, 1024);
+            } catch (Exception e) {
+                Log.e(TAG, "show shutdown logo fail!");
+                e.printStackTrace();
+            }
         }
-
-        pd.show();
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;

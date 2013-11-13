@@ -1751,8 +1751,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public int interceptKeyBeforeQueueing(long whenNanos, int keyCode, boolean down,
             int policyFlags, boolean isScreenOn) {
 
+        if (keyCode != KeyEvent.KEYCODE_POWER
+                && keyCode != KeyEvent.KEYCODE_RTC_WAKEUP
+                && keyCode != KeyEvent.KEYCODE_SHUTDOWN
+                && keyCode != KeyEvent.KEYCODE_WAKEUP
+                && !isScreenOn) {
+            return ACTION_GO_TO_SLEEP;
+        }
+
         if (keyCode == KeyEvent.KEYCODE_SHUTDOWN) {
             Log.d(TAG, "SHUTDOWN key pressed!");
+            PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+            pm.pokeSystem();
             sendCloseSystemWindows("globalactions");
             mHandler.post(new Runnable() {
                 public void run() {
