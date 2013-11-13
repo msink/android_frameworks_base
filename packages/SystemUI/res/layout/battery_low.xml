@@ -22,6 +22,7 @@
     android:id="@+id/padding"
     android:orientation="vertical"
     android:gravity="center"
+    android:background="@drawable/nullbg"
     >
 
     <TextView android:id="@+id/subtitle"
@@ -32,6 +33,7 @@
         android:textColor="#ff000000"
         android:gravity="left"
         android:text="@string/battery_low_subtitle"
+        android:visibility="gone"
         />
     
     <TextView android:id="@+id/level_percent"
@@ -42,13 +44,14 @@
         android:gravity="left"
         android:paddingBottom="10px"
         android:paddingLeft="19dp"
+        android:visibility="gone"
         />
 
     <ImageView android:id="@+id/image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="15px"
-        android:src="@drawable/battery_low_battery"
+        android:src="@drawable/lowpower"
         android:paddingTop="10px"
         />
 

@@ -51,4 +51,11 @@
          power usage activity to find out what drained the battery. -->
     <string name="battery_low_why">Battery use</string>
 
+    <string name="connected_computer">USB connected</string>
+    <string name="connected_retry">USB warring</string>
+    <string name="connecting">Please wait...</string>
+    <string name="usb_storage_notification_title">USB connected</string>
+    <string name="usb_choose_title">Choose between:</string>
+    <string name="usb_choose_usb">USB data transfer</string>
+    <string name="usb_choose_charging">Charging battery</string>
 </resources>

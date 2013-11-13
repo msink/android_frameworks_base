@@ -4,6 +4,7 @@
         android:process="system"
         >
 
+    <uses-permission android:name="android.permission.INJECT_EVENTS" />
     <uses-permission android:name="android.permission.STATUS_BAR_SERVICE" />
 
     <application
@@ -18,6 +19,7 @@
             />
 
         <activity android:name=".usb.UsbStorageActivity"
+                android:launchMode="singleTask"
                 android:excludeFromRecents="true">
         </activity>
         <activity android:name="com.android.internal.app.ExternalMediaFormatActivity"
