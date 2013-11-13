@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/choose_dialog_bg"
+    >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="30dip"
+        android:paddingBottom="20dip"
+        android:gravity="center"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#ff000000"
+        android:text="@string/usb_choose_title"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="2dip"
+        android:background="#ff000000"
+        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dip"
+        >
+        <TextView android:id="@+id/usb_choose_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="50dip"
+            android:paddingTop="20dip"
+            android:background="@drawable/choose_icon_def"
+            />
+        <TextView android:id="@+id/usb_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/usb_choose_icon"
+            />
+        <TextView android:id="@+id/usb_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/usb_icon"
+            android:layout_centerHorizontal="true"
+            android:padding="10dip"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#ff000000"
+            android:text="@string/usb_choose_usb"
+            />
+        <ImageView android:id="@+id/usb_click"
+            android:layout_width="match_parent"
+            android:layout_height="5dip"
+            android:layout_marginBottom="2dip"
+            android:focusableInTouchMode="true"
+            android:layout_below="@id/usb_text"
+            android:src="@drawable/ums_choose_bottom"
+            android:focusable="true"
+            />
+    </RelativeLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="2dip"
+        android:paddingTop="20dip"
+        android:background="#ff000000"
+        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dip"
+        >
+        <TextView android:id="@+id/btr_choose_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="50dip"
+            android:paddingTop="20dip"
+            android:background="@drawable/choose_icon_def"
+            />
+        <TextView android:id="@+id/btr_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/charging_battery"
+            />
+        <TextView android:id="@+id/btr_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btr_icon"
+            android:layout_centerHorizontal="true"
+            android:padding="10dip"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#ff000000"
+            android:text="@string/usb_choose_charging"
+            />
+        <ImageView android:id="@+id/btr_click"
+            android:layout_width="match_parent"
+            android:layout_height="5dip"
+            android:layout_marginBottom="2dip"
+            android:layout_below="@id/btr_text"
+            android:src="@drawable/ums_choose_bottom"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            />
+    </RelativeLayout>
+</LinearLayout>

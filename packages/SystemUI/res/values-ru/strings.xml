@@ -29,4 +29,8 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Батарея разряжена:"</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"Осталось <xliff:g id="NUMBER">%d%%</xliff:g> или меньше."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Расход заряда батареи"</string>
+
+    <string name="connected_computer">Соединение с ПК установлено</string>
+    <string name="connecting">Соединение....</string>
+    <string name="usb_storage_notification_title">USB-подключение</string>
 </resources>

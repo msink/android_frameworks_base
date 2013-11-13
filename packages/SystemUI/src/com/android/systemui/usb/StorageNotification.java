@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -178,6 +179,7 @@ public class StorageNotification extends StorageEventListener {
              * Storage is now mounted. Dismiss any media notifications,
              * and enable UMS notification if connected.
              */
+            setMediaStorageNotification(0, 0, 0, false, false, null);
           if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
             Intent intent = new Intent();
             intent.setClass(mContext, UsbStorageActivity.class);
@@ -418,10 +420,6 @@ public class StorageNotification extends StorageEventListener {
             }
 
             mUsbStorageNotification.setLatestEventInfo(mContext, title, message, pi);
-            final boolean adbOn = 1 == Settings.Secure.getInt(
-                mContext.getContentResolver(),
-                Settings.Secure.ADB_ENABLED,
-                0);
 
             if (POP_UMS_ACTIVITY_ON_CONNECT) {
                 // Pop up a full-screen alert to coach the user through enabling UMS. The average
@@ -515,4 +513,24 @@ public class StorageNotification extends StorageEventListener {
             notificationManager.cancel(notificationId);
         }
     }
+
+    private AlertDialog dialog;
+
+    private BroadcastReceiver mUsbStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("android.hardware.action.USB_STATE")) {
+                boolean connected = intent.getExtras().getBoolean("connected");
+
+                if (!connected) {
+                   if (dialog != null && dialog.isShowing())
+                        dialog.dismiss();
+                }
+            } else if (intent.getAction().equals("android.intent.action.CLOSE_STATUSBAR_USB")) {
+
+                if (dialog != null && dialog.isShowing())
+                        dialog.dismiss();
+            }
+        }
+    };
 }
