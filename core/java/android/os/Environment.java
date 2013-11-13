@@ -286,6 +286,10 @@ public class Environment {
         return new File(getExternalStorageDirectory(), type);
     }
 
+    public static File getFlashStoragePublicDirectory(String type) {
+        return new File(getFlashStorageDirectory(), type);
+    }
+
     /**
      * Returns the path for android-specific data on the SD card.
      * @hide
