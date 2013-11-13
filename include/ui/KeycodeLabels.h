@@ -176,6 +176,8 @@ static const KeycodeLabel KEYCODES[] = {
     { "KEYBOARD", 151 },
     { "CRZOOM", 152 },
     { "CRSEARCH", 153 },
+    { "CARATION_UP", 154 },
+    { "CARATION_DOWN", 155 },
 
     // NOTE: If you add a new keycode here you must also add it to several other files.
     //       Refer to frameworks/base/core/java/android/view/KeyEvent.java for the full list.

@@ -996,6 +996,8 @@
         <enum name="KEYCODE_KEYBOARD" value="151" />
         <enum name="KEYCODE_CRZOOM" value="152" />
         <enum name="KEYCODE_CRSEARCH" value="153" />
+        <enum name="KEYCODE_CARATION_UP" value="154" />
+        <enum name="KEYCODE_CARATION_DOWN" value="155" />
     </attr>
 
     <!-- ***************************************************************** -->

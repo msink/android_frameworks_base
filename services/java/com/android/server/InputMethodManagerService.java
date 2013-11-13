@@ -1032,6 +1032,8 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                 }
 
                 if (DEBUG) Slog.v(TAG, "Client requesting input be shown");
+                Intent intent = new Intent("CARATION.INPUTMETHOD.SHOW");
+                mContext.sendBroadcast(intent);
                 return showCurrentInputLocked(flags, resultReceiver);
             }
         } finally {
