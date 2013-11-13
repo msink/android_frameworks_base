@@ -1016,8 +1016,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.bool.def_dim_screen);
             loadSetting(stmt, Settings.System.STAY_ON_WHILE_PLUGGED_IN,
                     "1".equals(SystemProperties.get("ro.kernel.qemu")) ? 1 : 0);
-            loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
-                    R.integer.def_screen_off_timeout);
+            loadSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
+                    Integer.valueOf(SystemProperties.getInt("ro.screenoff.time",
+                    mContext.getResources().getInteger(R.integer.def_screen_off_timeout))));
+            loadSetting(stmt, Settings.System.AUTO_SHUTDOWN_TIMEOUT,
+                    Integer.valueOf(SystemProperties.getInt("ro.autoshutdown.time",
+                    mContext.getResources().getInteger(R.integer.def_auto_shutdown_timeout))));
+            loadSetting(stmt, Settings.System.EPD_REFRESH_MODE,
+                    Integer.valueOf(SystemProperties.getInt("ro.epd.refresh.mode",
+                    mContext.getResources().getInteger(R.integer.def_epd_refresh_mode))));
             loadSetting(stmt, Settings.System.EPD_FULL_TIMEOUT,
                     Integer.valueOf(-1));
     
@@ -1048,8 +1055,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadBooleanSetting(stmt, Settings.System.AUTO_TIME,
                     R.bool.def_auto_time); // Sync time to NITZ
     
-            loadIntegerSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
-                    R.integer.def_screen_brightness);
+            loadSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
+                    Integer.valueOf(SystemProperties.getInt("ro.screen.brightness",
+                    mContext.getResources().getInteger(R.integer.def_screen_brightness))));
     
             loadBooleanSetting(stmt, Settings.System.SCREEN_BRIGHTNESS_MODE,
                     R.bool.def_screen_brightness_automatic_mode);

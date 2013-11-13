@@ -93,7 +93,7 @@ public class Environment {
             = getDirectory("EXTERNAL_STORAGE", "/sdcard");
 
     private static final File FLASH_STORAGE_DIRECTORY
-            = getDirectory("FLASH_STORAGE", "/flash");
+            = getDirectory("FLASH_STORAGE", "/storage");
 
     private static final File EXTERNAL_STORAGE_ANDROID_DATA_DIRECTORY
             = new File (new File(getDirectory("FLASH_STORAGE", "/sdcard"),
@@ -401,7 +401,7 @@ public class Environment {
                                                          .getService("mount"));
             }
             String externalVolumeState = mMntSvc.getVolumeState(getExternalStorageDirectory().toString());
-            return !externalVolumeState.equals(MEDIA_MOUNTED) ? getFlashStorageState() : externalVolumeState;
+            return externalVolumeState;
         } catch (Exception rex) {
             return Environment.MEDIA_REMOVED;
         }
