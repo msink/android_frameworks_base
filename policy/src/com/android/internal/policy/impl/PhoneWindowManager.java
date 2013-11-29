@@ -1872,7 +1872,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             sendCloseSystemWindows("globalactions");
             mHandler.post(new Runnable() {
                 public void run() {
-                    ShutdownThread.shutdown(mContext, false, "nopower");
+                    ShutdownThread.shutdown(mContext, false);
                 }
             });
             return 0;

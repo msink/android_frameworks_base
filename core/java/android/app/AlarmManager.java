@@ -136,6 +136,8 @@ public class AlarmManager
      */
     public void set(int type, long triggerAtTime, PendingIntent operation) {
         try {
+            if (operation.getTargetPackage().equals("com.google.android.gsf"))
+                return;
             mService.set(type, triggerAtTime, operation);
         } catch (RemoteException ex) {
         }
@@ -190,6 +192,8 @@ public class AlarmManager
     public void setRepeating(int type, long triggerAtTime, long interval,
             PendingIntent operation) {
         try {
+            if (operation.getTargetPackage().equals("com.google.android.gsf"))
+                return;
             mService.setRepeating(type, triggerAtTime, interval, operation);
         } catch (RemoteException ex) {
         }
@@ -256,6 +260,8 @@ public class AlarmManager
     public void setInexactRepeating(int type, long triggerAtTime, long interval,
             PendingIntent operation) {
         try {
+            if (operation.getTargetPackage().equals("com.google.android.gsf"))
+                return;
             mService.setInexactRepeating(type, triggerAtTime, interval, operation);
         } catch (RemoteException ex) {
         }

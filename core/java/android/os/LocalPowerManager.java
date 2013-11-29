@@ -27,6 +27,7 @@ public interface LocalPowerManager {
     public static final int LONG_TOUCH_EVENT = 3;
     public static final int TOUCH_UP_EVENT = 4;
     public static final int BUTTON_EVENT = 5;  // Button and trackball events.
+    public static final int POWERKEY_EVENT = 6;
 
     public static final int POKE_LOCK_IGNORE_CHEEK_EVENTS = 0x1;
     public static final int POKE_LOCK_SHORT_TIMEOUT = 0x2;

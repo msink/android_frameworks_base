@@ -18,6 +18,7 @@ package com.android.server;
 
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.app.ShutdownThread;
+import com.android.internal.policy.impl.PhoneWindowManager;
 import com.android.server.am.BatteryStatsService;
 
 import android.app.ActivityManagerNative;
@@ -74,13 +75,17 @@ import static android.provider.Settings.System.STAY_ON_WHILE_PLUGGED_IN;
 import static android.provider.Settings.System.WINDOW_ANIMATION_SCALE;
 import static android.provider.Settings.System.TRANSITION_ANIMATION_SCALE;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Scanner;
 
 class PowerManagerService extends IPowerManager.Stub
         implements LocalPowerManager, Watchdog.Monitor {
@@ -99,6 +104,8 @@ class PowerManagerService extends IPowerManager.Stub
 
     // Default timeout for screen off, if not found in settings database = 15 seconds.
     private static final int DEFAULT_SCREEN_OFF_TIMEOUT = 15000;
+    final private static int DEFAULT_AUTO_POWEROFF_TIMEOUT = 1800000;
+    final private static int DEFAULT_IDLE_TIMEOUT = 2000;
 
     // flags for setPowerState
     private static final int SCREEN_ON_BIT          = 0x00000001;
@@ -193,6 +200,7 @@ class PowerManagerService extends IPowerManager.Stub
     private static boolean mSpew;
     
     private native void nativeInit();
+    private native void nativeIsShowingStandbyImage(boolean on);
     private native void nativeSetPowerState(boolean screenOn, boolean screenBright);
     private native void nativeStartSurfaceFlingerAnimation(int mode);
     private native void nativeStopSurfaceFlingerAnimation();
@@ -203,6 +211,7 @@ class PowerManagerService extends IPowerManager.Stub
     private PowerManager.WakeLock mAlarmHelperWakeLock;
     private RtcAlarmHelper mIdleWakeAlarmHelper;
     private RtcAlarmHelper mTimeoutTaskAlarmHelper;
+    private RtcAlarmHelper mAutoPoweroffAlarmHelper;
     class RtcAlarmHelper {
         private String mAction;
         private Runnable mCancelRunnable;
@@ -259,24 +268,53 @@ class PowerManagerService extends IPowerManager.Stub
         }
     }
 
+    private static final String power_led_control_Path =
+        "/sys/class/backlight/rk28_bl/device/led_ctl";
+
+    private static final String standby_alarm_control_Path =
+        "/sys/module/alarm/parameters/standby_alarm_enabled";
+
+    private static final String Backlight_Brightness_File_Path =
+        "/sys/devices/platform/rk29_backlight/backlight/rk28_bl/brightness";
+
+    final private static int ENABLED_WAKE_UP_BRIGHTNESS = 1;
+    final private static int MAXIMUM_BACKLIGHT = 255;
+    final private static int MINIMUM_BACKLIGHT = 30;
+
+    final private static int BRIGHTNESS_CLOSED = 0;
+    final private static int BRIGHTNESS_OPENED = 1;
+    final private static int WIFI_CLOSED = 0;
+    final private static int WIFI_OPENED = 1;
+
     final private String IDLE_WAKE_ACTION = "idle_wake_action";
     final private String TIME_TASK_ACTION = "time_task_action";
+    final private String AUTO_POWEROFF_ACTION = "auto_poweroff_action";
     private int mStandbyDelay;
-    private int mStandbyTimeoutSetting = 120000;
+    private int mStandbyTimeoutSetting = 600000;
     private long mStandbyTime = 0;
+    private long mAutoPoweroffTime = 0;
     private long mIdleTime = 0;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
             if (!isScreenOn()) {
+                if (mAutoPoweroffDelay > 0) {
+                    cancelAlarms();
+                    SystemClock.sleep(200);
+                    write_path_with_value(standby_alarm_control_Path, 1);
+                    long wakeTime = System.currentTimeMillis() + mAutoPoweroffDelay;
+                    if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
+                        wakeTime += 60000;
+                    }
+                    mAutoPoweroffAlarmHelper.setAlarm(wakeTime);
+                } else {
+                    write_path_with_value(standby_alarm_control_Path, 0);
+                }
+                nativeStartSurfaceFlingerAnimation(1);
                 standby();
-                return;
+            } else {
+                idle();
             }
-            if (mIdleWakeUp) {
-                long wakeTime = System.currentTimeMillis() + 60000;
-                mIdleWakeAlarmHelper.setAlarm(wakeTime);
-            }
-            idle();
         }
     };
 
@@ -322,7 +360,8 @@ class PowerManagerService extends IPowerManager.Stub
         mHandler.removeCallbacks(mIdleTimer);
         mIdleWakeAlarmHelper.cancel();
         mIdleTime = 0;
-        if (reset) {
+        if (reset && !mIsWifiEnabled) {
+            mAutoPoweroffAlarmHelper.cancel();
             mIdleTime = System.currentTimeMillis() + mIdleDelay;
             mHandler.postDelayed(mIdleTimer, mIdleDelay);
         }
@@ -460,11 +499,16 @@ class PowerManagerService extends IPowerManager.Stub
                 mIsWifiEnabled = (wifiState == WifiManager.WIFI_STATE_ENABLED);
                 if (mIsWifiEnabled != wasWifiEnabled) {
                     if (mIsWifiEnabled) {
-                        resetIdle(false);
-                        if (mSpew) Log.d(TAG, "Disabled idle due to wifi enabled");
+                        if (!mWifiOpenWakeLock.isHeld()) {
+                            mWifiOpenWakeLock.acquire();
+                            if (mSpew) Log.d(TAG, "mWifiOpenWakeLock.acquire()");
+                        }
                     } else {
-                        if (mSpew) Log.d(TAG, "Enabled idle due to wifi disabled");
-                        resetIdle(true);
+                        if (mSpew) Log.d(TAG, "wifi disabled, release the wake lock");
+                        if (mWifiOpenWakeLock.isHeld()) {
+                            mWifiOpenWakeLock.release();
+                            resetIdle(true);
+                        }
                     }
                 }
             }
@@ -513,6 +557,7 @@ class PowerManagerService extends IPowerManager.Stub
                 updateWakeLockLocked();
 
                 mStandbyTimeoutSetting = getInt(Settings.System.SCREEN_OFF_TIMEOUT, DEFAULT_SCREEN_OFF_TIMEOUT);
+                mAutoPoweroffDelay = getInt(Settings.System.AUTO_POWEROFF_TIMEOUT, 1800000);
                 final int epdFullTimeoutSetting = getInt(Settings.System.EPD_FULL_TIMEOUT, -1);
                 if (epdFullTimeoutSetting != mEpdFullTimeout) {
                     mEpdFullTimeout = epdFullTimeoutSetting;
@@ -603,9 +648,10 @@ class PowerManagerService extends IPowerManager.Stub
         Cursor settingsCursor = resolver.query(Settings.System.CONTENT_URI, null,
                 "(" + Settings.System.NAME + "=?) or ("
                         + Settings.System.NAME + "=?) or ("
+                        + Settings.System.NAME + "=?) or ("
                         + Settings.System.NAME + "=?)",
                 new String[]{STAY_ON_WHILE_PLUGGED_IN, SCREEN_OFF_TIMEOUT,
-                        Settings.System.EPD_FULL_TIMEOUT},
+                        Settings.System.EPD_FULL_TIMEOUT, Settings.System.AUTO_POWEROFF_TIMEOUT},
                 null);
         mSettings = new ContentQueryMap(settingsCursor, Settings.System.NAME, true, mHandler);
         SettingsObserver settingsObserver = new SettingsObserver();
@@ -622,6 +668,7 @@ class PowerManagerService extends IPowerManager.Stub
         mContext.registerReceiver(new BatteryReceiver(), filter);
         filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         mContext.registerReceiver(new WifiReceiver(), filter);
         filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BOOT_COMPLETED);
@@ -1064,6 +1111,7 @@ class PowerManagerService extends IPowerManager.Stub
             pw.println(" mUserActivityAllowed=" + mUserActivityAllowed);
             pw.println(" mIdleDelay=" + mIdleDelay);
             pw.println(" mStandbyDelay=" + mStandbyDelay);
+            pw.println(" mAutoPoweroffDelay=" + mAutoPoweroffDelay);
             pw.println("from now:  mStandbyTime=" + (mStandbyTime - System.currentTimeMillis())
                     + " mIdleTime=" + (mIdleTime - System.currentTimeMillis()));
             pw.println("  mLastScreenOnTime=" + mLastScreenOnTime);
@@ -1446,12 +1494,58 @@ class PowerManagerService extends IPowerManager.Stub
     private int setScreenStateLocked(boolean on) {
         if (mSpew) Slog.d(TAG, "setScreenStateLocked:" + on);
         int err = 0;
+        WifiManager wifi_manager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
         if (on) {
             err = wake();
+            mScreenOn = true;
+            PhoneWindowManager.standbyImageShow(!mScreenOn);
+            nativeIsShowingStandbyImage(!mScreenOn);
             nativeStopSurfaceFlingerAnimation();
+            if (isWakeUpBrightness() && getBrightnessState() == BRIGHTNESS_OPENED) {
+                writeBrightnessFile(getFrontLightValue());
+            }
+            if (getWifiState() == WIFI_OPENED) {
+                if (!mWifiOpenWakeLock.isHeld()) {
+                    this.mWifiOpenWakeLock.acquire();
+                    if (mSpew) Slog.d(TAG, "mWifiOpenWakeLock.acquire()");
+                }
+                mHandler.removeCallbacks(mCloseWifiRunnable);
+                mHandler.postDelayed(mOpenWifiRunnable, 5000);
+            } else {
+                mTimeoutFinish = true;
+            }
         } else {
+            if (mAutoPoweroffDelay > 0) {
+                write_path_with_value(standby_alarm_control_Path, 1);
+                long wakeTime = System.currentTimeMillis() + mAutoPoweroffDelay;
+                if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
+                    wakeTime += 60000;
+                }
+                mAutoPoweroffAlarmHelper.setAlarm(wakeTime);
+            } else {
+                write_path_with_value(standby_alarm_control_Path, 0);
+            }
+            mScreenOn = false;
+            PhoneWindowManager.standbyImageShow(!mScreenOn);
+            nativeIsShowingStandbyImage(!mScreenOn);
             nativeStartSurfaceFlingerAnimation(1);
             err = standby();
+            if (readBrightnessFile() > 0) {
+                writeBrightnessFile(0);
+                setBrightnessState(1);
+            } else {
+                setBrightnessState(0);
+            }
+            if (mTimeoutFinish) {
+                if (mIsWifiEnabled) {
+                    setWifiState(1);
+                } else {
+                    setWifiState(0);
+                }
+            }
+            mHandler.removeCallbacks(mOpenWifiRunnable);
+            closeWifi();
+            mTimeoutFinish = false;
         }
         if (err == 0) {
             mLastScreenOnTime = (on ? SystemClock.elapsedRealtime() : 0);
@@ -1464,6 +1558,7 @@ class PowerManagerService extends IPowerManager.Stub
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
+    private boolean mScreenOn = true;
     private boolean mIdleWakeUp = true;
 
     public void enableIdleWakeUp(boolean enable) {
@@ -1514,7 +1609,7 @@ class PowerManagerService extends IPowerManager.Stub
                         err = setScreenStateLocked(true);
                         long identity = Binder.clearCallingIdentity();
                         try {
-                            mBatteryStats.noteScreenBrightness(getPreferredBrightness());
+                            mBatteryStats.noteScreenBrightness(Power.BRIGHTNESS_ON);
                             mBatteryStats.noteScreenOn();
                         } catch (RemoteException e) {
                             Slog.w(TAG, "RemoteException calling noteScreenOn on BatteryStatsService", e);
@@ -1568,17 +1663,6 @@ class PowerManagerService extends IPowerManager.Stub
     private boolean batteryIsLow() {
         return (!mIsPowered &&
                 mBatteryService.getBatteryLevel() <= Power.LOW_BATTERY_THRESHOLD);
-    }
-
-    private int getPreferredBrightness() {
-        try {
-            final int brightness = Settings.System.getInt(mContext.getContentResolver(),
-                                                          SCREEN_BRIGHTNESS);
-             // Don't let applications turn the screen all the way off
-            return Math.max(brightness, Power.BRIGHTNESS_DIM);
-        } catch (SettingNotFoundException snfe) {
-            return Power.BRIGHTNESS_ON;
-        }
     }
 
     public boolean isScreenOn() {
@@ -1658,6 +1742,10 @@ class PowerManagerService extends IPowerManager.Stub
 
     private void userActivity(long time, long timeoutOverride,
             int eventType, boolean force) {
+
+        if (!mScreenOn && (eventType != POWERKEY_EVENT)) {
+            return;
+        }
 
         if (((mPokey & POKE_LOCK_IGNORE_CHEEK_EVENTS) != 0)
                 && (eventType == CHEEK_EVENT)) {
@@ -1744,6 +1832,7 @@ class PowerManagerService extends IPowerManager.Stub
      */
     public void goToSleepWithReason(long time, int reason)
     {
+        Slog.e(TAG, "--------------- goToSleepWithReason reason: " + reason + "------------- \n");
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         synchronized (mLocks) {
             goToStandbyLocked(time, reason);
@@ -1804,7 +1893,7 @@ class PowerManagerService extends IPowerManager.Stub
     }
 
     private void goToStandbyLocked(long time, int reason) {
-        if (mSpew) Slog.d(TAG, "goToStandbyLocked");
+        if (mSpew) Slog.d(TAG, "goToStandbyLocked reason:" + reason);
 
         if (mLastEventTime <= time) {
             mLastEventTime = time;
@@ -1872,11 +1961,16 @@ class PowerManagerService extends IPowerManager.Stub
         } else {
             mStandbyDelay = totalDelay;
         }
-        if (mSpew) Slog.d(TAG, "setTimeouts mStandbyDelay=" + mStandbyDelay);
+        if (mSpew) {
+            Slog.d(TAG, "#############   setTimeouts mStandbyDelay=" + mStandbyDelay
+                                                 + " mLastStandbyDelay=" + mLastTotalDelay);
+            Slog.d(TAG, "#############   setTimeouts mAutoPoweroffDelay=" + mAutoPoweroffDelay);
+        }
 
-        if (mDoneBooting) {
+        if (mDoneBooting && mLastTotalDelay != mStandbyDelay) {
             userActivity(SystemClock.uptimeMillis(), false);
         }
+        mLastTotalDelay = mStandbyDelay;
     }
 
     private class LockList extends ArrayList<WakeLock>
@@ -1972,6 +2066,10 @@ class PowerManagerService extends IPowerManager.Stub
                     if (mTimeoutTaskAlarmHelper.isValide(System.currentTimeMillis())) {
                         mHandler.post(mTimeoutTask);
                     }
+                } else if (action.equals(AUTO_POWEROFF_ACTION)) {
+                    if (mSpew) Slog.d(TAG, "mAutoPoweroffTask timeout,now:" + System.currentTimeMillis());
+                    userActivity(SystemClock.uptimeMillis(), -1, POWERKEY_EVENT, true);
+                    ShutdownThread.shutdown(mContext, false);
                 } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
                     cancelAlarms();
                     userActivity(SystemClock.uptimeMillis(), false);
@@ -1981,12 +2079,17 @@ class PowerManagerService extends IPowerManager.Stub
         IntentFilter filter = new android.content.IntentFilter();
         filter.addAction(IDLE_WAKE_ACTION);
         filter.addAction(TIME_TASK_ACTION);
+        filter.addAction(AUTO_POWEROFF_ACTION);
         filter.addAction(Intent.ACTION_TIME_CHANGED);
         mContext.registerReceiver(mRtcReceiver, filter);
         PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mAlarmHelperWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "alarm_helper");
+        mWifiOpenWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "open_wifi");
+        mBootWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "boot_wakelock");
+        if (!mBootWakeLock.isHeld()) mBootWakeLock.acquire();
         mIdleWakeAlarmHelper = new RtcAlarmHelper(IDLE_WAKE_ACTION);
         mTimeoutTaskAlarmHelper = new RtcAlarmHelper(TIME_TASK_ACTION);
+        mAutoPoweroffAlarmHelper = new RtcAlarmHelper(AUTO_POWEROFF_ACTION);
         setPowerState(SCREEN_ON_BIT);
         mUserState |= SCREEN_ON;
 
@@ -1996,7 +2099,7 @@ class PowerManagerService extends IPowerManager.Stub
 
             long identity = Binder.clearCallingIdentity();
             try {
-                mBatteryStats.noteScreenBrightness(getPreferredBrightness());
+                mBatteryStats.noteScreenBrightness(Power.BRIGHTNESS_ON);
                 mBatteryStats.noteScreenOn();
             } catch (RemoteException e) {
                 // Nothing interesting to do.
@@ -2010,6 +2113,8 @@ class PowerManagerService extends IPowerManager.Stub
         Slog.d(TAG, "bootCompleted");
         synchronized (mLocks) {
             mBootCompleted = true;
+            write_path_with_value(power_led_control_Path, 0);
+            mHandler.postDelayed(mReleaseBootWakeLock, 120000);
             userActivity(SystemClock.uptimeMillis(), false, BUTTON_EVENT, true);
             updateWakeLockLocked();
             mLocks.notifyAll();
@@ -2030,21 +2135,172 @@ class PowerManagerService extends IPowerManager.Stub
 
     public void setBacklightBrightness(int brightness) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
-        // Don't let applications turn the screen all the way off
-        synchronized (mLocks) {
-            brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
-            long identity = Binder.clearCallingIdentity();
-            try {
-                mBatteryStats.noteScreenBrightness(brightness);
-            } catch (RemoteException e) {
-                Slog.w(TAG, "RemoteException calling noteScreenBrightness on BatteryStatsService", e);
-            } finally {
-                Binder.restoreCallingIdentity(identity);
-            }
-        }
     }
 
     public void setAttentionLight(boolean on, int color) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+    }
+
+    private int mLastTotalDelay = 0;
+    private int mAutoPoweroffDelay;
+    private static boolean mTimeoutFinish = false;
+    private PowerManager.WakeLock mWifiOpenWakeLock;
+    private PowerManager.WakeLock mBootWakeLock;
+
+    private int getBrightnessState() {
+        int state = 0;
+        try {
+           state = Settings.System.getInt(mContext.getContentResolver(), Settings.System.BRIGHTNESS_STATE);
+        } catch (Settings.SettingNotFoundException snfe) {
+           Log.d(TAG, "brightness state get fail");
+        }
+        return state;
+    }
+
+    private void setBrightnessState(int state) {
+        try {
+            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.WRITE_SETTINGS, null);
+            Settings.System.putInt(mContext.getContentResolver(), Settings.System.BRIGHTNESS_STATE, state);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "could not set brightness state", e);
+        }
+    }
+
+    private int getFrontLightValue() {
+        int res = 0;
+        int mOldBrightness;
+        try {
+           mOldBrightness = Settings.System.getInt(mContext.getContentResolver(), "screen_brightness");
+        } catch (Settings.SettingNotFoundException snfe) {
+           mOldBrightness = MAXIMUM_BACKLIGHT;
+        }
+        res = mOldBrightness;
+        return res;
+    }
+
+    private boolean isWakeUpBrightness() {
+        int value = 0;
+        try {
+            value = Settings.System.getInt(mContext.getContentResolver(), Settings.System.WAKE_UP_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException snfe) {
+            return false;
+        }
+        if (value == 1)
+            return true;
+        return false;
+    }
+
+    private int getWifiState() {
+        int state = 0;
+        try {
+           state = Settings.System.getInt(mContext.getContentResolver(), Settings.System.WIFI_STATE);
+        } catch (Settings.SettingNotFoundException snfe) {
+           Log.d(TAG, "wifi state get fail");
+        }
+        return state;
+    }
+
+    private void setWifiState(int state) {
+        try {
+            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.WRITE_SETTINGS, null);
+            Settings.System.putInt(mContext.getContentResolver(), Settings.System.WIFI_STATE, state);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "could not set wifi state", e);
+        }
+    }
+
+    private void closeWifi() {
+        WifiManager wifi_manager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+        if (wifi_manager.getWifiState() == WifiManager.WIFI_STATE_ENABLED ||
+            wifi_manager.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
+            setWifiState(WifiManager.WIFI_STATE_DISABLED);
+            mHandler.postDelayed(mCloseWifiRunnable, 10000);
+        } else {
+            wifi_manager.setWifiEnabled(false);
+            if (mWifiOpenWakeLock != null && mWifiOpenWakeLock.isHeld()) {
+                mWifiOpenWakeLock.release();
+            }
+        }
+    }
+
+    private Runnable mOpenWifiRunnable = new Runnable() {
+        public void run() {
+            mTimeoutFinish = true;
+            if (getWifiState() == WifiManager.WIFI_STATE_DISABLED) {
+                WifiManager wifi_manager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+                wifi_manager.setWifiEnabled(true);
+                resetIdle(false);
+            }
+        }
+    };
+
+    private Runnable mCloseWifiRunnable = new Runnable() {
+        public void run() {
+            WifiManager wifi_manager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+            wifi_manager.setWifiEnabled(false);
+            if (mWifiOpenWakeLock != null && mWifiOpenWakeLock.isHeld()) {
+                mWifiOpenWakeLock.release();
+            }
+        }
+    };
+
+    private Runnable mReleaseBootWakeLock = new Runnable() {
+        public void run() {
+            if (mBootWakeLock != null && mBootWakeLock.isHeld()) {
+                mBootWakeLock.release();
+            }
+        }
+    };
+
+    private int readBrightnessFile() {
+        int value = 0;
+        String res = "0";
+        FileInputStream fin = null;
+        try {
+            File f = new File(Backlight_Brightness_File_Path);
+            Scanner s = new Scanner(f);
+            if (s.hasNextInt()) {
+                value = s.nextInt();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
+
+    private void writeBrightnessFile(int value) {
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(Backlight_Brightness_File_Path);
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fout != null) fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void write_path_with_value(String path, int value) {
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(path);
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fout != null) fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

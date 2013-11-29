@@ -19,6 +19,7 @@ package com.android.internal.app;
 
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
+import android.app.Instrumentation;
 import android.app.ProgressDialog;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -27,6 +28,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.EpdManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Power;
 import android.os.PowerManager;
@@ -37,10 +42,13 @@ import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
+import android.provider.Settings;
 
-import com.android.internal.telephony.ITelephony;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -74,6 +82,7 @@ public final class ShutdownThread extends Thread {
     
     AlertDialog mShutdownDialog;
     private static String mShutdownReason;
+    private static EpdManager mEpdManager;
 
     private ShutdownThread() {
     }
@@ -99,23 +108,26 @@ public final class ShutdownThread extends Thread {
         Log.d(TAG, "Notifying thread to start radio shutdown");
 
         if (confirm) {
-            final AlertDialog dialog = new AlertDialog.Builder(context)
+          if (sInstance.mShutdownDialog == null) {
+            sInstance.mShutdownDialog = new AlertDialog.Builder(context)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(com.android.internal.R.string.power_off)
                     .setMessage(com.android.internal.R.string.shutdown_confirm)
                     .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            SystemProperties.set(ShutdownThread.SHUTDOWN_INDICATOR_PROPERTY, "1");
                             beginShutdownSequence(context);
                         }
                     })
                     .setNegativeButton(com.android.internal.R.string.no, null)
                     .create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+            sInstance.mShutdownDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
             if (!context.getResources().getBoolean(
                     com.android.internal.R.bool.config_sf_slowBlur)) {
-                dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+                sInstance.mShutdownDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
             }
-            dialog.show();
+          }
+          sInstance.mShutdownDialog.show();
         } else {
             beginShutdownSequence(context);
         }
@@ -149,21 +161,6 @@ public final class ShutdownThread extends Thread {
             }
             sIsStarted = true;
         }
-
-        // throw up an indeterminate system dialog to indicate radio is
-        // shutting down.
-        ProgressDialog pd = new ProgressDialog(context);
-        pd.setTitle(context.getText(com.android.internal.R.string.power_off));
-        pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
-        pd.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-        if (!context.getResources().getBoolean(
-                com.android.internal.R.bool.config_sf_slowBlur)) {
-            pd.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
-        }
-
-        pd.show();
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;
@@ -324,6 +321,18 @@ public final class ShutdownThread extends Thread {
             }
         }
 
+        int state = 0;
+        try {
+            state = Settings.Secure.getInt(mContext.getContentResolver(), Settings.Secure.WIFI_ON);
+        } catch (Settings.SettingNotFoundException snfe) {
+            Log.d(TAG, "wifi state get fail");
+        }
+        try {
+            Settings.System.putInt(mContext.getContentResolver(), Settings.System.WIFI_STATE, state);
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "could not set wifi state", e);
+        }
+        mEpdManager = new EpdManager(mContext);
         rebootOrShutdown(mReboot, mRebootReason);
     }
 
@@ -343,6 +352,7 @@ public final class ShutdownThread extends Thread {
                 Log.e(TAG, "Reboot failed, will attempt shutdown instead", e);
             }
         } else if (mShutdownReason != null && mShutdownReason.equals("nopower")) {
+            mEpdManager.setMode(EpdManager.FULL);
             sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_NOPOWER);
         } else {
             sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_SHUTDOWN);
