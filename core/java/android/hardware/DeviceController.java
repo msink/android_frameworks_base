@@ -3,6 +3,7 @@ package android.hardware;
 import android.content.Context;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.IOnyxWifiLockManagerService;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -26,8 +27,54 @@ public class DeviceController {
 
     private Context mContext;
 
+    private IOnyxWifiLockManagerService mOnyxWifiLockManagerService;
+
     public DeviceController(Context context) {
         mContext = context;
+        mOnyxWifiLockManagerService = IOnyxWifiLockManagerService.Stub
+            .asInterface(ServiceManager.getService(Context.ONYX_WIFI_LOCK_MANAGER_SERVICE));
+    }
+
+    public Map<String,Integer> getWifiLockMap() {
+        Map<String,Integer> map = null;
+        try {
+            map = mOnyxWifiLockManagerService.getLockMap();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    public void setWifiLockTimeout(long ms) {
+        try {
+            mOnyxWifiLockManagerService.setTimeout(ms);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void wifiLockClear() {
+        try {
+            mOnyxWifiLockManagerService.clear();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void wifiLock(String className) {
+        try {
+            mOnyxWifiLockManagerService.lock(className);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void wifiUnlock(String className) {
+        try {
+            mOnyxWifiLockManagerService.unLock(className);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean readHWInfoFile(String path, String value) {

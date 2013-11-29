@@ -168,6 +168,9 @@ class ServerThread extends Thread {
             Slog.i(TAG, "EPD Service");
             ServiceManager.addService(Context.EPD_SERVICE, new EpdService(context));
 
+            Slog.i("SystemServer", "Onyx WifiLock Manager Service");
+            ServiceManager.addService(Context.ONYX_WIFI_LOCK_MANAGER_SERVICE, new OnyxWifiLockManagerService(context));
+
             Slog.i(TAG, "Battery Service");
             battery = new BatteryService(context);
             ServiceManager.addService("battery", battery);

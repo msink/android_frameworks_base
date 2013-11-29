@@ -1562,6 +1562,8 @@ public abstract class Context {
 
     public static final String EPD_SERVICE = "epd";
 
+    public static final String ONYX_WIFI_LOCK_MANAGER_SERVICE = "onyx_wifi_lock_manager_service";
+
     /**
      * Determine whether the given permission is allowed for a particular
      * process and user ID running in the system.
