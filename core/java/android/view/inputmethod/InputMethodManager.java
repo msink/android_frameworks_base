@@ -1422,4 +1422,17 @@ public final class InputMethodManager {
                 + " mCursorCandStart=" + mCursorCandStart
                 + " mCursorCandEnd=" + mCursorCandEnd);
     }
+
+    public static final int RIGHT_HAND_MODE1 = 1;
+    public static final int RIGHT_HAND_MODE2 = 2;
+    public static final int LEFT_HAND_MODE1  = 3;
+    public static final int LEFT_HAND_MODE2  = 4;
+
+    public void setKeyMapMode(int mode) {
+        try {
+            mService.setKeyMapMode(mode);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

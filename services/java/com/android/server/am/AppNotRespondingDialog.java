@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
 import android.util.Slog;
+import android.view.KeyEvent;
 
 class AppNotRespondingDialog extends BaseErrorDialog {
     private static final String TAG = "AppNotRespondingDialog";
@@ -135,4 +136,13 @@ class AppNotRespondingDialog extends BaseErrorDialog {
             }
         }
     };
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            mHandler.sendMessage(mHandler.obtainMessage(WAIT));
+            dismiss();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

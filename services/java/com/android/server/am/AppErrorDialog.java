@@ -24,6 +24,7 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Slog;
+import android.view.KeyEvent;
 
 class AppErrorDialog extends BaseErrorDialog {
     private final static String TAG = "AppErrorDialog";
@@ -94,4 +95,12 @@ class AppErrorDialog extends BaseErrorDialog {
             dismiss();
         }
     };
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            mHandler.sendMessage(mHandler.obtainMessage(FORCE_QUIT));
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

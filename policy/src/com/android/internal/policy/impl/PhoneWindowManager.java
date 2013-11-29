@@ -34,6 +34,7 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.hardware.DeviceController;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.LocalPowerManager;
@@ -250,6 +251,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // During layout, the layer at which the doc window is placed.
     int mDockLayer;
     
+    static boolean mStandbyImageShow = false;
     static final Rect mTmpParentFrame = new Rect();
     static final Rect mTmpDisplayFrame = new Rect();
     static final Rect mTmpContentFrame = new Rect();
@@ -282,6 +284,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     int mSeascapeRotation = -1; // "other" landscape rotation, 180 degrees from mLandscapeRotation
     int mPortraitRotation = -1; // default portrait rotation
     int mUpsideDownRotation = -1; // "other" portrait rotation
+
+    boolean mLockOnKeyDown = true;
+    boolean mLockOnKeyUp = true;
+    boolean mMenuPressed = false;
+    boolean mBackPressed;
+    boolean mDpadCenterPressed;
 
     // Nothing to see here, move along...
     int mFancyRotationAnimation;
@@ -497,6 +505,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      */
     Runnable mHomeLongPress = new Runnable() {
         public void run() {
+        }
+    };
+
+    Runnable mBackLongPress = new Runnable() {
+        public void run() {
+            mBackPressed = false;
+            Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
+            mContext.sendOrderedBroadcast(intent, null);
+        }
+    };
+
+    Runnable mDpadCenterLongPress = new Runnable() {
+        public void run() {
+            mDpadCenterPressed = false;
+            Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
+            mContext.sendOrderedBroadcast(intent, null);
         }
     };
 
@@ -1087,6 +1111,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     + repeatCount + " keyguardOn=" + keyguardOn + " mHomePressed=" + mHomePressed);
         }
 
+        if (mStandbyImageShow) {
+            return true;
+        }
+
         WindowManager.LayoutParams attrs = win != null ? win.getAttrs() : null;
         if (attrs != null && (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU)) {
             int type = attrs.type;
@@ -1105,6 +1133,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         // turned out to be a bit fragile so I'm doing it here explicitly, for now.
         if ((keyCode == KeyEvent.KEYCODE_HOME) && !down) {
             mHandler.removeCallbacks(mHomeLongPress);
+        }
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && !down) {
+            mHandler.removeCallbacks(mBackLongPress);
+        }
+        if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) && !down) {
+            mHandler.removeCallbacks(mDpadCenterLongPress);
         }
 
         // If the HOME button is currently being held, then we do special
@@ -1128,6 +1162,46 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return true;
         }
         
+        if (mDpadCenterPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) && !down) {
+                mDpadCenterPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return false;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER, 28, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER, 28, false);
+                        return true;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring DPAD_CENTER; event canceled");
+                }
+            }
+        }
+
+        if (mBackPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_BACK) && !down) {
+                mBackPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return false;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                        return true;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring back; event canceled.");
+                }
+            }
+        }
+
         // First we always handle the home key here, so applications
         // can never break it, although if keyguard is on, we do let
         // it handle it, because that gives us the correct 5 second
@@ -1184,6 +1258,38 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     return true;
                 }
             }
+
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn && !mStandbyImageShow) {
+                    mHandler.postDelayed(mBackLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mBackPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mDpadCenterLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mDpadCenterPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
         }
         
         // Shortcuts are invoked through Search+key, so intercept those here
@@ -1202,6 +1308,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     return true;
                 }
             }
+        }
+
+        DeviceController mDev = new DeviceController(mContext);
+        if ((mDev.hasIR() || mDev.hasTP()) && (keyCode == KeyEvent.KEYCODE_CAMERA)) {
+            if (!mMenuPressed) {
+                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+            }
+            mMenuPressed = !mMenuPressed;
+            return true;
         }
 
         return false;
@@ -1792,7 +1908,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                         mKeyguardMediator.isShowingAndNotHidden() :
                                         mKeyguardMediator.isShowing());
 
-        if (false) {
+        if (true) {
             Log.d(TAG, "interceptKeyTq keycode=" + keyCode
                   + " screenIsOn=" + isScreenOn + " keyguardActive=" + keyguardActive);
         }
@@ -1875,8 +1991,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         sleeps = true;
                     }
                     if (keyguardActive
-                            || (sleeps && !gohome)
-                            || (gohome && !goHome() && sleeps)) {
+                            || (sleeps && !gohome && isScreenOn)
+                            || (gohome && !goHome() && sleeps && isScreenOn)) {
                         // They must already be on the keyguard or home screen,
                         // go to sleep instead unless the event was injected.
                         if (!isInjected) {
@@ -2369,5 +2485,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
     public void setForceOutStatusbar(boolean mIsForcesOutStatusbar) {
         isForceOutStatusbar = mIsForcesOutStatusbar;
+    }
+
+    public static void standbyImageShow(boolean show) {
+        mStandbyImageShow = show;
+    }
+
+    public void sendKeyEvent(int code, int event, boolean down) {
+        try {
+            KeyEvent ev = new KeyEvent(0, 0,
+                down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
+                code, 0, 0, 0, event, 8);
+            IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
+                .injectKeyEvent_status_bar(ev, true);
+        } catch (RemoteException e) { }
     }
 }

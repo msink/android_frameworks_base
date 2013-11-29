@@ -30,6 +30,7 @@ import com.android.internal.view.menu.MenuDialogHelper;
 import com.android.internal.view.menu.MenuView;
 import com.android.internal.view.menu.SubMenuBuilder;
 
+import android.app.Activity;
 import android.app.KeyguardManager;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -1188,21 +1189,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
 
             case KeyEvent.KEYCODE_CAMERA: {
-                if (getKeyguardManager().inKeyguardRestrictedInputMode()
-                        || dispatcher == null) {
-                    break;
-                }
-                if (event.getRepeatCount() == 0) {
-                    dispatcher.startTracking(event, this);
-                } else if (event.isLongPress() && dispatcher.isTracking(event)) {
-                    dispatcher.performedLongPress(event);
-                    mDecor.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                    sendCloseSystemWindows();
-                    // Broadcast an intent that the Camera button was longpressed
-                    Intent intent = new Intent(Intent.ACTION_CAMERA_BUTTON, null);
-                    intent.putExtra(Intent.EXTRA_KEY_EVENT, event);
-                    getContext().sendOrderedBroadcast(intent, null);
-                }
+                Intent intent = new Intent(Intent.ACTION_HOME_MENU, null);
+                intent.putExtra(Intent.EXTRA_KEY_EVENT, event);
+                getContext().sendOrderedBroadcast(intent, null);
                 return true;
             }
 
@@ -1273,6 +1262,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     }
                 }
                 break;
+            }
+
+            case KeyEvent.KEYCODE_F12: {
+                Intent intent = new Intent(Intent.ACTION_HOME_MENU, null);
+                intent.putExtra(Intent.EXTRA_KEY_EVENT, event);
+                getContext().sendOrderedBroadcast(intent, null);
+                return true;
             }
         }
 
@@ -1373,12 +1369,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
 
             case KeyEvent.KEYCODE_CAMERA: {
-                if (getKeyguardManager().inKeyguardRestrictedInputMode()) {
-                    break;
-                }
-                if (event.isTracking() && !event.isCanceled()) {
-                    // Add short press behavior here if desired
-                }
+                Intent intent = new Intent(Intent.ACTION_HOME_MENU, null);
+                intent.putExtra(Intent.EXTRA_KEY_EVENT, event);
+                getContext().sendOrderedBroadcast(intent, null);
                 return true;
             }
 
@@ -1403,6 +1396,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 if (event.isTracking() && !event.isCanceled()) {
                     launchDefaultSearch();
                 }
+                return true;
+            }
+
+            case KeyEvent.KEYCODE_F12: {
+                Intent intent = new Intent(Intent.ACTION_HOME_MENU, null);
+                intent.putExtra(Intent.EXTRA_KEY_EVENT, event);
+                getContext().sendOrderedBroadcast(intent, null);
                 return true;
             }
         }

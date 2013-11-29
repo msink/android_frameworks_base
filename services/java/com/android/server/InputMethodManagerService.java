@@ -67,6 +67,7 @@ import android.util.Slog;
 import android.util.PrintWriterPrinter;
 import android.util.Printer;
 import android.view.IWindowManager;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputMethod;
@@ -75,6 +76,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.EditorInfo;
 
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.Collator;
@@ -514,6 +516,9 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
 
         mSettingsObserver = new SettingsObserver(mHandler);
         updateFromSettingsLocked();
+
+        int key_map_mode = Settings.System.getInt(mContext.getContentResolver(), Settings.System.KEY_MAP_MODE, 1);
+        setKeyMapMode(key_map_mode);
     }
 
     @Override
@@ -1782,5 +1787,31 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
         } else {
             p.println("No input method service.");
         }
+    }
+
+    private static final String KEY_MAP_MODE_FILE =
+        "/sys/devices/platform/rk29-keypad/key_switching";
+
+    public void setKeyMapMode(int mode) {
+        writeFile(mode);
+    }
+
+    private void writeFile(int value) {
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new java.io.FileOutputStream(KEY_MAP_MODE_FILE);
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fout != null) fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return;
     }
 }
