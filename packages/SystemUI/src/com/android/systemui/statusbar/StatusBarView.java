@@ -20,23 +20,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.hardware.DeviceController;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.ServiceManager;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.systemui.R;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class StatusBarView extends RelativeLayout {
     private static final String TAG = "StatusBarView";
@@ -48,17 +59,16 @@ public class StatusBarView extends RelativeLayout {
     int mStartX, mStartY;
     ViewGroup mNotificationIcons;
     ViewGroup mStatusIcons;
-    View mDate;
-    FixedSizeDrawable mBackground;
-    
     private boolean is_touch_button = false;
     TextView mbut_bac;
-    TextView mbut_home;
-    TextView mbut_menu;
+    Button mbut_home;
+    Button mbut_menu;
     TextView mbut_add;
     TextView mbut_sub;
     TextView mbut_left;
     TextView mbut_right;
+    TextView mbut_light;
+    Button mbut_a2mode;
 
     boolean is_down = false;
     final private int ADJUST_VOLUME_DELAY = 250;
@@ -66,8 +76,13 @@ public class StatusBarView extends RelativeLayout {
     final IWindowManager windowManager = IWindowManager.Stub
                .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
 
+    public static boolean isA2Mode = false;
+    private Context mContext;
+    DateView mDateView;
+
     public StatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     Intent mHomeIntent = new Intent(Intent.ACTION_MAIN, null);
@@ -77,14 +92,64 @@ public class StatusBarView extends RelativeLayout {
         super.onFinishInflate();
         mNotificationIcons = (ViewGroup)findViewById(R.id.notificationIcons);
         mStatusIcons = (ViewGroup)findViewById(R.id.statusIcons);
-
-        mbut_home = (TextView) findViewById(R.id.status_bar_home);
-        mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
+        LinearLayout layout_home = (LinearLayout) findViewById(R.id.button_layout_Home);
+        mbut_home = (Button) findViewById(R.id.status_bar_home);
+        mbut_menu = (Button) findViewById(R.id.status_bar_menu);
         mbut_bac = (TextView) findViewById(R.id.status_bar_back);
         mbut_add = (TextView) findViewById(R.id.status_bar_add);
         mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
         mbut_left = (TextView) findViewById(R.id.status_bar_left);
         mbut_right = (TextView) findViewById(R.id.status_bar_right);
+        mbut_light = (TextView) findViewById(R.id.status_bar_light);
+        mDateView = (DateView) findViewById(R.id.status_bar_date);
+        mbut_a2mode = (Button) findViewById(R.id.status_bar_a2);
+        ImageView line_image = (ImageView) findViewById(R.id.line_status_bar);
+        mDateView.setDateFormat("dd.MM.yyyy");
+        mDateView.setUpdates(true);
+        DeviceController ctrl = new DeviceController(getContext());
+        if (ctrl.isTouchable()) {
+            layout_home.setVisibility(View.VISIBLE);
+            mbut_a2mode.setVisibility(View.VISIBLE);
+            mbut_menu.setVisibility(View.VISIBLE);
+            mDateView.setVisibility(View.GONE);
+            line_image.setVisibility(View.VISIBLE);
+        } else {
+            layout_home.setVisibility(View.GONE);
+            mbut_a2mode.setVisibility(View.GONE);
+            mbut_menu.setVisibility(View.GONE);
+            mDateView.setVisibility(View.VISIBLE);
+            line_image.setVisibility(View.GONE);
+        }
+
+        TextView bnt_drop_down = (TextView) findViewById(R.id.status_bar_drop_down);
+        bnt_drop_down.setOnClickListener(
+            new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!mService.mExpanded) {
+                    mService.performExpand();
+                } else {
+                    mService.animateCollapse();
+                }
+            }
+        });
+        TextView bnt_refresh = (TextView) findViewById(R.id.status_bar_refresh);
+        bnt_refresh.setOnClickListener(
+            new View.OnClickListener() {
+            public void onClick(View v) {
+                invalidate();
+            }
+        });
+        Clock drop_down_time = (Clock) findViewById(R.id.drop_down_time);
+        drop_down_time.setOnClickListener(
+            new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!mService.mExpanded) {
+                    mService.performExpand();
+                } else {
+                    mService.animateCollapse();
+                }
+            }
+        });
 
         mbut_left.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -103,26 +168,16 @@ public class StatusBarView extends RelativeLayout {
                 }
             }
         });
-
-        mbut_home.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        mbut_home.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
-                }
-                return true;
             }
         });
-
-        mbut_menu.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        mbut_menu.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                     sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                     sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
-                }
-                return true;
             }
         });
 
@@ -177,6 +232,35 @@ public class StatusBarView extends RelativeLayout {
                     }
                 }
                 return true;
+            }
+        });
+
+        mbut_light.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    Log.d(TAG, "readBrightnessFile : " + readBrightnessFile());
+                    if (readBrightnessFile() == 0) {
+                        writeBrightnessFile(getFrontLightValue());
+                    } else {
+                        writeBrightnessFile(0);
+                    }
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        mbut_a2mode.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!isA2Mode) {
+                    v.requestEpdMode(View.EPD_A2, true);
+                    isA2Mode = true;
+                    mbut_a2mode.setBackgroundResource(R.drawable.refresh_a2);
+                } else {
+                    v.requestEpdMode(View.EPD_NULL, true);
+                    isA2Mode = false;
+                    mbut_a2mode.setBackgroundResource(R.drawable.refresh);
+                }
+                invalidate();
             }
         });
     }
@@ -237,14 +321,12 @@ public class StatusBarView extends RelativeLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mService.onBarViewAttached();
-
-        requestUnion(this);
     }
     
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mService.performCollapse();
+        mService.updateExpandedViewPos(StatusBarService.EXPANDED_LEAVE_ALONE);
     }
 
     @Override
@@ -299,9 +381,6 @@ public class StatusBarView extends RelativeLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!is_touch_button) {
-            mService.interceptTouchEvent(event);
-        }
         return true;
     }
 
@@ -315,7 +394,7 @@ public class StatusBarView extends RelativeLayout {
         return super.onInterceptTouchEvent(event);
     }
 
-    private void sendKeyEvent(int code, int event, boolean down) {
+    public void sendKeyEvent(int code, int event, boolean down) {
         try {
             KeyEvent ev = new KeyEvent(0, 0,
                 down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
@@ -324,6 +403,53 @@ public class StatusBarView extends RelativeLayout {
                 .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
                 .injectKeyEvent_status_bar(ev, true);
         } catch (RemoteException e) {
+        }
+    }
+
+    private int getFrontLightValue() {
+        int res = 0;
+        int mOldBrightness;
+        try {
+            mOldBrightness = Settings.System.getInt(
+                mContext.getContentResolver(), "screen_brightness");
+        } catch (Settings.SettingNotFoundException snfe) {
+            mOldBrightness = 255;
+        }
+        res = mOldBrightness - 30;
+        return res;
+    }
+
+    private int readBrightnessFile() {
+        int value = 0;
+        String res = "0";
+        FileInputStream fin = null;
+        Log.d(TAG, "value : " + value + "  res : " + res);
+        try {
+            File f = new File("/sys/devices/platform/rk29_backlight/backlight/rk28_bl/brightness");
+            Scanner s = new Scanner(f);
+            if (s.hasNextInt()) value = s.nextInt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "value : " + value + "  res : " + res);
+        return value;
+    }
+
+    private void writeBrightnessFile(int value) {
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream("/sys/devices/platform/rk29_backlight/backlight/rk28_bl/brightness");
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fout != null) try {
+                fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

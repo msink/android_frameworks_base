@@ -58,10 +58,12 @@ import android.text.style.StyleSpan;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.util.Slog;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.WindowManagerImpl;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -373,8 +375,14 @@ public class StatusBarPolicy {
 
             AlertDialog d = b.create();
             d.setOnDismissListener(mLowBatteryListener);
-            d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
             d.show();
+            Button positiveButton = d.getButton(DialogInterface.BUTTON_POSITIVE);
+            Button negativeButton = d.getButton(DialogInterface.BUTTON_NEGATIVE);
+            if (positiveButton != null && negativeButton != null) {
+                positiveButton.setLines(2);
+                negativeButton.setLines(2);
+            }
             mLowBatteryDialog = d;
         }
 
@@ -445,9 +453,8 @@ public class StatusBarPolicy {
                 mIsWifiConnected = false;
                 int iconId = sWifiSignalImages[0][0];
 
-                mService.setIcon("wifi", iconId, 0);
-                // Hide the icon since we're not connected
-                mService.setIconVisibility("wifi", false);
+                mService.setIcon("wifi", R.drawable.stat_sys_wifi_signal_0, 0);
+                mService.setIconVisibility("wifi", true);
             }
             break;
         }
@@ -513,6 +520,9 @@ public class StatusBarPolicy {
             if (!enabled) {
                 // If disabled, hide the icon. (We show icon when connected.)
                 mService.setIconVisibility("wifi", false);
+            } else {
+                mService.setIcon("wifi", R.drawable.stat_sys_wifi_signal_0, 0);
+                mService.setIconVisibility("wifi", true);
             }
 
         } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {

@@ -73,8 +73,8 @@ class CommandQueue extends IStatusBar.Stub {
         public void updateNotification(IBinder key, StatusBarNotification notification);
         public void removeNotification(IBinder key);
         public void disable(int state);
-        public void performExpand();
-        public void performCollapse();
+        public void animateExpand();
+        public void animateCollapse();
     }
 
     public CommandQueue(Callbacks callbacks, StatusBarIconList list) {
@@ -192,9 +192,9 @@ class CommandQueue extends IStatusBar.Stub {
                     break;
                 case MSG_SET_VISIBILITY:
                     if (msg.arg1 == OP_EXPAND) {
-                        mCallbacks.performExpand();
+                        mCallbacks.animateExpand();
                     } else {
-                        mCallbacks.performCollapse();
+                        mCallbacks.animateCollapse();
                     }
             }
         }

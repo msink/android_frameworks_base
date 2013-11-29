@@ -52,16 +52,8 @@ public class ExpandedView extends LinearLayout {
          if (height != mPrevHeight) {
              //Slog.d(StatusBarService.TAG, "height changed old=" + mPrevHeight
              //     + " new=" + height);
-             if (mPrevHeight >= 0)
-                mService.performCollapse();
              mPrevHeight = height;
+             mService.updateExpandedViewPos(-10000);
          }
      }
-
-    /**/
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mService.interceptTouchEvent(event);
-        return true;
-    }
 }

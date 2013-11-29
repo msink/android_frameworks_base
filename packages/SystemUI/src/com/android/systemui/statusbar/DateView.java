@@ -26,19 +26,23 @@ import android.widget.TextView;
 import android.view.MotionEvent;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public final class DateView extends TextView {
     private static final String TAG = "DateView";
 
     private boolean mUpdating = false;
+    private String mDateFormat = null;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(Intent.ACTION_TIME_TICK)
-                    || action.equals(Intent.ACTION_TIMEZONE_CHANGED)) {
+                    || action.equals(Intent.ACTION_TIMEZONE_CHANGED)
+                    || action.equals(Intent.ACTION_DATE_CHANGED)) {
                 updateClock();
             }
         }
@@ -67,7 +71,12 @@ public final class DateView extends TextView {
 
     private final void updateClock() {
         Date now = new Date();
+      if (mDateFormat != null) {
+        SimpleDateFormat df = new SimpleDateFormat(mDateFormat, Locale.getDefault());
+        setText(df.format(now));
+      } else {
         setText(DateFormat.getDateInstance(DateFormat.LONG).format(now));
+      }
     }
 
     void setUpdates(boolean update) {
@@ -78,12 +87,17 @@ public final class DateView extends TextView {
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(Intent.ACTION_TIME_TICK);
                 filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+                filter.addAction(Intent.ACTION_DATE_CHANGED);
                 mContext.registerReceiver(mIntentReceiver, filter, null, null);
                 updateClock();
             } else {
                 mContext.unregisterReceiver(mIntentReceiver);
             }
         }
+    }
+
+    public void setDateFormat(String f) {
+        mDateFormat = f;
     }
 }
 

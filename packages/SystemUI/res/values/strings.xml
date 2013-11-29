@@ -51,4 +51,13 @@
          power usage activity to find out what drained the battery. -->
     <string name="battery_low_why">Battery use</string>
 
+    <string name="datatransfer_button_ok">OK</string>
+    <string name="datatransfer_button_cancel">Cancel</string>
+    <string name="datatransfer_info">Connect device to a computer for USB storage?</string>
+    <string name="datatransfer_button_disable">Turn off USB storage</string>
+    <string name="menu_dialog_menu">Menu</string>
+    <string name="menu_dialog_home">Home</string>
+    <string name="menu_dialog_settings">Settings</string>
+    <string name="menu_dialog_status_bar">Status Bar</string>
+    <string name="menu_dialog_moonlight">MoonLight</string>
 </resources>

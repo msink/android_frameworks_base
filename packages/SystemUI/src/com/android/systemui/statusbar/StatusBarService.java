@@ -24,6 +24,7 @@ import com.android.internal.statusbar.StatusBarIconList;
 import com.android.internal.statusbar.StatusBarNotification;
 
 import android.app.ActivityManagerNative;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -31,6 +32,7 @@ import android.app.Service;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -38,7 +40,10 @@ import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.hardware.DeviceController;
+import android.hardware.EpdManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.SystemProperties;
@@ -47,6 +52,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Slog;
 import android.util.Log;
@@ -64,10 +70,13 @@ import android.view.WindowManagerImpl;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.RemoteViews;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 import android.widget.FrameLayout;
 
 import java.io.FileDescriptor;
@@ -86,6 +95,9 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     static final boolean SPEW_ICONS = false;
     static final boolean SPEW = false;
 
+    private static final int MSG_ANIMATE = 1000;
+    private static final int MSG_ANIMATE_REVEAL = 1001;
+
     public static final String ACTION_STATUSBAR_START
             = "com.android.internal.policy.statusbar.START";
 
@@ -101,7 +113,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     Display mDisplay;
     StatusBarView mStatusBarView;
     int mPixelFormat;
-    Handler mHandler = new Handler();
+    H mHandler = new H();
     Object mQueueLock = new Object();
 
     // icons
@@ -129,7 +141,6 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     LinearLayout mLatestItems;
     // position
     int[] mPositionTmp = new int[2];
-    boolean mExpanded;
     boolean mExpandedVisible;
 
     // the date view
@@ -146,14 +157,44 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // Tracking finger for opening/closing.
     int mEdgeBorder; // corresponds to R.dimen.status_bar_edge_ignore
     boolean mTracking;
-    boolean mTrackingExpanded;
+    VelocityTracker mVelocityTracker;
 
     static final int ANIM_FRAME_DURATION = (1000/60);
     float mDisplayHeight;
+    boolean mAnimatingReveal = false;
     int[] mAbsPos = new int[2];
 
     // for disabling the status bar
     int mDisabled = StatusBarManager.DISABLE_NOTIFICATION_ICONS;
+
+    final private static int LOW_BRIGHTNESS_MAX =
+        Math.min(DeviceController.BRIGHTNESS_DEFAULT,
+                 DeviceController.BRIGHTNESS_MAXIMUM);
+
+    int currentKeyCode;
+    float mAnimAccel;
+    long mAnimLastTime;
+    float mAnimVel;
+    float mAnimY;
+    boolean mAnimating;
+    private ImageButton mBtnRefreshMode = null;
+    CloseDragHandle mCloseView;
+    long mCurAnimationTime;
+    private DeviceController mDev;
+    EpdManager mEpd;
+    public boolean mExpanded;
+    private ToggleButton mLightSwitch = null;
+    WindowManager.LayoutParams mTrackingParams;
+    int mTrackingPosition;
+    TrackingView mTrackingView;
+    int mViewDelta;
+    private ToggleButton mWifiSwitch = null;
+    private ImageButton mWifiSettings  = null;
+    private WifiManager mWifiManager = null;
+    private RatingBar mRatingBarLightSettings = null;
+    AlertDialog mHomeMenuDialog = null;
+    View homeMenuDialogView = null;
+    private boolean isHomeMenuDialogShow = false;
 
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
@@ -166,7 +207,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_BACK:
                 if (!down) {
-                    performCollapse();
+                    animateCollapse();
                 }
                 return true;
             }
@@ -221,6 +262,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         // Lastly, call to the icon policy to install/update all the icons.
         mIconPolicy = new StatusBarPolicy(this);
+
+        mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override
@@ -258,6 +301,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mPixelFormat = bg.getOpacity();
         }
 
+        mDev = new DeviceController(context);
+
         mStatusBarView = sb;
         mStatusIcons = (LinearLayout)sb.findViewById(R.id.statusIcons);
         mNotificationIcons = (IconMerger)sb.findViewById(R.id.notificationIcons);
@@ -278,26 +323,210 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mScrollView = (ScrollView)expanded.findViewById(R.id.scroll);
         mNotificationLinearLayout = expanded.findViewById(R.id.notificationLinearLayout);
 
+        mRatingBarLightSettings = (RatingBar)
+            expanded.findViewById(R.id.ratingbar_light_settings);
+        mRatingBarLightSettings.setFocusable(false);
+        setLightRatingBarDefaultProgress();
+        mRatingBarLightSettings.setOnRatingBarChangeListener(
+            new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating,
+                    boolean fromUser) {
+                setLightRatingBarProgress();
+            }
+        });
+        mRatingBarLightSettings.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == 0)
+                    mEpd.setMode(EpdManager.A2);
+                else if (event.getAction() == 1)
+                    mEpd.setMode(EpdManager.PART);
+                else if (event.getAction() == 2)
+                    setLightRatingBarProgress();
+                return false;
+            }
+        });
+
+        mBtnRefreshMode = (ImageButton)
+            expanded.findViewById(R.id.imagebutton_refresh_mode);
+        mBtnRefreshMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!StatusBarView.isA2Mode) {
+                    v.requestEpdMode(View.EPD_A2, true);
+                    StatusBarView.isA2Mode = true;
+                    mBtnRefreshMode.setImageResource(R.drawable.refresh_a2_light);
+                } else {
+                    v.requestEpdMode(View.EPD_NULL, true);
+                    StatusBarView.isA2Mode = false;
+                    mBtnRefreshMode.setImageResource(R.drawable.refresh_light);
+                }
+            }
+        });
+
+        LinearLayout linearlayout_light_switch = (LinearLayout)
+            expanded.findViewById(R.id.linearlayout_light_switch);
+        mLightSwitch = (ToggleButton)
+            expanded.findViewById(R.id.togglebutton_light_switch);
+        linearlayout_light_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mLightSwitch.isChecked()) {
+                    mLightSwitch.setChecked(true);
+                    mDev.openFrontLight();
+                } else {
+                    mLightSwitch.setChecked(false);
+                    mDev.closeFrontLight();
+                }
+            }
+        });
+        mLightSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mLightSwitch.isChecked()) {
+                    mDev.openFrontLight();
+                } else {
+                    mDev.closeFrontLight();
+                }
+            }
+        });
+
+        ImageButton volume_add = (ImageButton)
+            expanded.findViewById(R.id.imagebutton_volume_add);
+        volume_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mStatusBarView.Adjust_Volume(true);
+            }
+        });
+        ImageButton volume_down = (ImageButton)
+            expanded.findViewById(R.id.imagebutton_volume_down);
+        volume_down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mStatusBarView.Adjust_Volume(false);
+            }
+        });
+        ImageButton light_down = (ImageButton)
+            expanded.findViewById(R.id.imagebutton_light_down);
+        light_down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRatingBarLightSettings.setProgress(
+                    mRatingBarLightSettings.getProgress() - 1);
+                if (mRatingBarLightSettings.getProgress() == 0) {
+                    mLightSwitch.setChecked(false);
+                } else {
+                    mLightSwitch.setChecked(true);
+                }
+            }
+        });
+        ImageButton light_add = (ImageButton)
+            expanded.findViewById(R.id.imagebutton_light_add);
+        light_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mLightSwitch.setChecked(true);
+                if (mRatingBarLightSettings.getProgress()
+                        == mRatingBarLightSettings.getMax()) {
+                    setLightRatingBarProgress();
+                } else {
+                    mRatingBarLightSettings.setProgress(
+                        mRatingBarLightSettings.getProgress() + 1);
+                }
+
+            }
+        });
+        LinearLayout linearLayout_wifi_switch = (LinearLayout)
+            expanded.findViewById(R.id.linearlayout_wifi_switch);
+        mWifiSwitch = (ToggleButton)
+            expanded.findViewById(R.id.togglebutton_wifi_switch);
+        linearLayout_wifi_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWifiManager.isWifiEnabled()) {
+                    mWifiManager.setWifiEnabled(false);
+                } else {
+                    mWifiManager.setWifiEnabled(true);
+                }
+            }
+        });
+        mWifiSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWifiManager.isWifiEnabled()) {
+                    mWifiManager.setWifiEnabled(false);
+                } else {
+                    mWifiManager.setWifiEnabled(true);
+                }
+            }
+        });
+        mWifiSettings = (ImageButton)
+            expanded.findViewById(R.id.button_wifi_settings);
+        mWifiSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setAction(Settings.ACTION_WIFI_SETTINGS);
+                startActivity(intent);
+                mExpandedDialog.dispatchKeyEvent(new KeyEvent(1, 4));
+            }
+        });
+
+        mExpandedView.setVisibility(View.GONE);
         mOngoingTitle.setVisibility(View.GONE);
         mLatestTitle.setVisibility(View.GONE);
 
         mTicker = new MyTicker(context, sb);
-
         TickerView tickerView = (TickerView)sb.findViewById(R.id.tickerText);
         tickerView.mTicker = mTicker;
+
+        mTrackingView = (TrackingView) View.inflate(context,
+            R.layout.status_bar_tracking, null);
+        mTrackingView.mService = this;
+        mCloseView = (CloseDragHandle) mTrackingView.findViewById(R.id.close);
+        mCloseView.mService = this;
 
         mEdgeBorder = res.getDimensionPixelSize(R.dimen.status_bar_edge_ignore);
 
         // set the inital view visibility
         setAreThereNotifications();
 
+        mEpd = new EpdManager(context);
+
         // receive broadcasts
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         filter.addAction(Intent.ACTION_CLOSE_STATUSBAR_USB);
+        filter.addAction(Intent.ACTION_HOME_MENU);
+        filter.addAction(Intent.ACTION_CHANGE_LIGHT_STATE);
         context.registerReceiver(mBroadcastReceiver, filter);
+
+        LinearLayout linearlayout_light_panel = (LinearLayout)
+                expanded.findViewById(R.id.linearlayout_light_panel);
+        CarrierLabel carrierlabelView = (CarrierLabel)
+                expanded.findViewById(R.id.carrierlabel);
+
+        if (mDev.isTouchable()) {
+            mBtnRefreshMode.setVisibility(View.GONE);
+        }
+        if (!mDev.hasWifi()) {
+            linearLayout_wifi_switch.setVisibility(View.GONE);
+            mWifiSettings.setVisibility(View.GONE);
+            carrierlabelView.setVisibility(View.INVISIBLE);
+        }
+        if (!mDev.hasAudio()) {
+            volume_add.setVisibility(View.GONE);
+            volume_down.setVisibility(View.GONE);
+        }
+        if (!mDev.hasFrontLight()) {
+            linearlayout_light_panel.setVisibility(View.GONE);
+        }
     }
 
     protected void addStatusBarView() {
@@ -366,6 +595,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         
         // Recalculate the position of the sliding windows and the titles.
         setAreThereNotifications();
+        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
     }
 
     public void updateNotification(IBinder key, StatusBarNotification notification) {
@@ -448,6 +678,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         // Recalculate the position of the sliding windows and the titles.
         setAreThereNotifications();
+        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
     }
 
     public void removeNotification(IBinder key) {
@@ -460,6 +691,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
             // Recalculate the position of the sliding windows and the titles.
             setAreThereNotifications();
+            updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
         }
     }
 
@@ -585,8 +817,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         if (ongoing || latest) {
             mNoNotificationsTitle.setVisibility(View.GONE);
+            mScrollView.setFocusable(true);
         } else {
             mNoNotificationsTitle.setVisibility(View.VISIBLE);
+            mScrollView.setFocusable(false);
         }
     }
 
@@ -602,7 +836,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         if ((diff & StatusBarManager.DISABLE_EXPAND) != 0) {
             if ((state & StatusBarManager.DISABLE_EXPAND) != 0) {
                 if (SPEW) Slog.d(TAG, "DISABLE_EXPAND: yes");
-                performCollapse();
+                animateCollapse();
             }
         }
         if ((diff & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
@@ -611,18 +845,34 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                 if (mTicking) {
                     mTicker.halt();
                 } else {
-                    setNotificationIconVisibility(false);
+                    setNotificationIconVisibility(false, com.android.internal.R.anim.fade_out);
                 }
             } else {
                 if (SPEW) Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: no");
                 if (!mExpandedVisible) {
-                    setNotificationIconVisibility(true);
+                    setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
                 }
             }
         } else if ((diff & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
             if (mTicking && (state & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
                 if (SPEW) Slog.d(TAG, "DISABLE_NOTIFICATION_TICKER: yes");
                 mTicker.halt();
+            }
+        }
+    }
+
+    /**
+     * All changes to the status bar and notifications funnel through here and are batched.
+     */
+    private class H extends Handler {
+        public void handleMessage(Message m) {
+            switch (m.what) {
+                case MSG_ANIMATE:
+                    doAnimation();
+                    break;
+                case MSG_ANIMATE_REVEAL:
+                    doRevealAnimation();
+                    break;
             }
         }
     }
@@ -642,19 +892,20 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         }
         mExpandedVisible = true;
         visibilityChanged(true);
+        mExpandedView.requestEpdMode(View.EPD_FULL);
+        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
 
         mExpandedParams.flags &= ~WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         mExpandedParams.flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         mExpandedDialog.getWindow().setAttributes(mExpandedParams);
         mExpandedView.requestFocus(View.FOCUS_FORWARD);
 
-        mExpandedDialog.show();
-        mExpandedView.requestFullWhenShown();
+        mExpandedView.setVisibility(View.VISIBLE);
 
-        setDateViewVisibility(true);
+        setDateViewVisibility(true, com.android.internal.R.anim.fade_in);
     }
 
-    public void performExpand() {
+    void performExpand() {
         if (SPEW) Slog.d(TAG, "performExpand: mExpanded=" + mExpanded);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return ;
@@ -665,11 +916,18 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         mExpanded = true;
         makeExpandedVisible();
+        updateExpandedViewPos(EXPANDED_FULL_OPEN);
+        setLightRatingBarDefaultProgress();
 
         if (false) postStartTracing();
+        if (mDev.getFrontLightValue() > 0) {
+            mLightSwitch.setChecked(true);
+        } else {
+            mLightSwitch.setChecked(false);
+        }
     }
 
-    public void performCollapse() {
+    void performCollapse() {
         if (SPEW) Slog.d(TAG, "performCollapse: mExpanded=" + mExpanded
                 + " mExpandedVisible=" + mExpandedVisible
                 + " mTicking=" + mTicking);
@@ -682,10 +940,14 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         mExpandedParams.flags &= ~WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         mExpandedDialog.getWindow().setAttributes(mExpandedParams);
-        mExpandedDialog.hide();
 
+        if (mExpanded) {
+            mExpandedView.requestFullWhenHidden();
+        }
+        mTrackingView.setVisibility(View.GONE);
+        mExpandedView.setVisibility(View.GONE);
         if ((mDisabled & StatusBarManager.DISABLE_NOTIFICATION_ICONS) == 0) {
-            setNotificationIconVisibility(true);
+            setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
         }
 
         if (!mExpanded) {
@@ -706,36 +968,45 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         final int statusBarSize = mStatusBarView.getHeight();
         final int hitSize = statusBarSize*2;
-        final int bottom = mNotificationLinearLayout.getBottom();
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             final int y = (int)event.getRawY();
+
+            if (!mExpanded) {
+                mViewDelta = statusBarSize - y;
+            } else {
+                mTrackingView.getLocationOnScreen(mAbsPos);
+                mViewDelta = mAbsPos[1] + mTrackingView.getHeight() - y;
+            }
             if ((!mExpanded && y < hitSize) ||
-                    (mExpanded && y > bottom)) {
+                    (mExpanded && y > (mDisplay.getHeight()-hitSize))) {
 
                 // We drop events at the edge of the screen to make the windowshade come
                 // down by accident less, especially when pushing open a device with a keyboard
                 // that rotates (like g1 and droid)
                 int x = (int)event.getRawX();
-                int edgeBorder = mEdgeBorder;
+                final int edgeBorder = mEdgeBorder;
                 if (x >= edgeBorder && x < mDisplay.getWidth() - edgeBorder) {
-                    mTracking = true;
-                    mTrackingExpanded = mExpanded;
+                    prepareTracking(y, !mExpanded);// opening if we're not already fully visible
+                    mVelocityTracker.addMovement(event);
                 }
             }
 
         } else if (mTracking) {
+
+            mVelocityTracker.addMovement(event);
             final int minY = statusBarSize;
             if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 int y = (int)event.getRawY();
-                if (y >= minY) {
+                if (mAnimatingReveal && y < minY) {
+                    // nothing
+                } else  {
+                    mAnimatingReveal = false;
+                    updateExpandedViewPos(EXPANDED_FULL_OPEN);
                     performExpand();
-                    mTracking = false;
                 }
-            } else if (event.getAction() == MotionEvent.ACTION_UP ||
-                       event.getAction() == MotionEvent.ACTION_CANCEL) {
-                if (mTrackingExpanded)
-                    performCollapse();
-                mTracking = false;
+            } else if (event.getAction() == MotionEvent.ACTION_UP && !mExpanded) {
+                updateExpandedViewPos(0);
+                performCollapse();
             }
 
         }
@@ -757,7 +1028,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         public void onClick(View v) {
 
-            performCollapse();
+            animateCollapse();
 
             try {
                 // The intent we are sending is for the application, which
@@ -829,6 +1100,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = true;
             mIcons.setVisibility(View.GONE);
             mTickerView.setVisibility(View.VISIBLE);
+            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_in, null));
+            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
         }
 
         @Override
@@ -837,6 +1110,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = false;
             mIcons.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
+            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
+            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_out, null));
         }
 
         void tickerHalting() {
@@ -844,6 +1119,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mTicking = false;
             mIcons.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
+            mIcons.startAnimation(loadAnim(com.android.internal.R.anim.fade_in, null));
+            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.fade_out, null));
         }
     }
 
@@ -867,15 +1144,26 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                     + ", mExpandedVisible=" + mExpandedVisible);
             pw.println("  mTicking=" + mTicking);
             pw.println("  mTracking=" + mTracking);
+            pw.println("  mAnimating=" + mAnimating
+                    + ", mAnimY=" + mAnimY + ", mAnimVel=" + mAnimVel
+                    + ", mAnimAccel=" + mAnimAccel);
+            pw.println("  mCurAnimationTime=" + mCurAnimationTime
+                    + " mAnimLastTime=" + mAnimLastTime);
+            pw.println("  mDisplayHeight=" + mDisplayHeight
+                    + " mAnimatingReveal=" + mAnimatingReveal
+                    + " mViewDelta=" + mViewDelta);
             pw.println("  mDisplayHeight=" + mDisplayHeight);
             pw.println("  mExpandedParams: " + mExpandedParams);
             pw.println("  mExpandedView: " + viewInfo(mExpandedView));
             pw.println("  mExpandedDialog: " + mExpandedDialog);
+            pw.println("  mTrackingParams: " + mTrackingParams);
+            pw.println("  mTrackingView: " + viewInfo(mTrackingView));
             pw.println("  mOngoingTitle: " + viewInfo(mOngoingTitle));
             pw.println("  mOngoingItems: " + viewInfo(mOngoingItems));
             pw.println("  mLatestTitle: " + viewInfo(mLatestTitle));
             pw.println("  mLatestItems: " + viewInfo(mLatestItems));
             pw.println("  mNoNotificationsTitle: " + viewInfo(mNoNotificationsTitle));
+            pw.println("  mCloseView: " + viewInfo(mCloseView));
             pw.println("  mTickerView: " + viewInfo(mTickerView));
             pw.println("  mScrollView: " + viewInfo(mScrollView)
                     + " scroll " + mScrollView.getScrollX() + "," + mScrollView.getScrollY());
@@ -901,12 +1189,40 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         /// ---------- Tracking View --------------
         pixelFormat = PixelFormat.RGBX_8888;
+        bg = mTrackingView.getBackground();
+        if (bg != null) {
+            pixelFormat = bg.getOpacity();
+        }
+
+        lp = new WindowManager.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
+                pixelFormat);
+        lp.gravity = Gravity.TOP | Gravity.FILL_HORIZONTAL;
+        lp.setTitle("TrackingView");
+        lp.y = mTrackingPosition;
+        mTrackingParams = lp;
+        WindowManagerImpl.getDefault().addView(mTrackingView, lp);
+    }
+
+    void onTrackingViewAttached() {
+        WindowManager.LayoutParams lp;
+        int pixelFormat;
+        Drawable bg;
+
+        /// ---------- Expanded View --------------
+        pixelFormat = PixelFormat.TRANSLUCENT;
+
         final int disph = mDisplay.getHeight();
         lp = mExpandedDialog.getWindow().getAttributes();
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
         lp.height = getExpandedHeight();
         lp.x = 0;
-        lp.y = 0;
+        mTrackingPosition = lp.y = -disph; // sufficiently large negative
         lp.type = WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL;
         lp.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
@@ -924,21 +1240,22 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         mExpandedDialog.setContentView(mExpandedView,
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                            ViewGroup.LayoutParams.MATCH_PARENT));
+        mExpandedDialog.getWindow().setBackgroundDrawable(null);
+        mExpandedDialog.show();
+        FrameLayout hack = (FrameLayout)mExpandedView.getParent();
     }
 
-    void onTrackingViewAttached() {
-    }
-
-    void setDateViewVisibility(boolean visible) {
+    void setDateViewVisibility(boolean visible, int anim) {
         mDateView.setUpdates(visible);
         mDateView.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
-    void setNotificationIconVisibility(boolean visible) {
+    void setNotificationIconVisibility(boolean visible, int anim) {
         int old = mNotificationIcons.getVisibility();
         int v = visible ? View.VISIBLE : View.INVISIBLE;
         if (old != v) {
             mNotificationIcons.setVisibility(v);
+            mNotificationIcons.startAnimation(loadAnim(anim, null));
         }
     }
 
@@ -989,12 +1306,12 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                     mNotificationIcons.setVisibility(View.INVISIBLE);
                     mTicker.halt();
                 } else {
-                    setNotificationIconVisibility(false);
+                    setNotificationIconVisibility(false, com.android.internal.R.anim.fade_out);
                 }
             } else {
                 Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: no");
                 if (!mExpandedVisible) {
-                    setNotificationIconVisibility(true);
+                    setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
                 }
             }
         } else if ((diff & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
@@ -1014,19 +1331,64 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             } catch (RemoteException ex) {
                 // system process is dead if we're here.
             }
+            animateCollapse();
         }
     };
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
+
             String action = intent.getAction();
+            if (Intent.ACTION_HOME_MENU.equals(action) && !isHomeMenuDialogShow) {
+                createHomeMenuDialog();
+                mHomeMenuDialog.show();
+                mHomeMenuDialog.setContentView(homeMenuDialogView,
+                    new ViewGroup.LayoutParams(300, 300));
+            }
+
+            if (Intent.ACTION_CHANGE_LIGHT_STATE.equals(action)) {
+                if (mDev.getFrontLightValue() > 0) {
+                    mDev.closeFrontLight();
+                    mLightSwitch.setChecked(false);
+                } else {
+                    mDev.openFrontLight();
+                    mLightSwitch.setChecked(true);
+                }
+            }
+
             if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)
                     || Intent.ACTION_SCREEN_OFF.equals(action)
                     || Intent.ACTION_CLOSE_STATUSBAR_USB.equals(action)) {
-                performCollapse();
+                animateCollapse();
             }
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updateResources();
+            }
+            else if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+                if (WifiManager.WIFI_STATE_DISABLED ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setChecked(false);
+                    mWifiSwitch.setClickable(true);
+                }
+                else if (WifiManager.WIFI_STATE_ENABLED ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setClickable(true);
+                    mWifiSwitch.setChecked(true);
+                }
+                else if (WifiManager.WIFI_STATE_ENABLING ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)
+                     || WifiManager.WIFI_STATE_DISABLING ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)
+                     || WifiManager.WIFI_STATE_UNKNOWN ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setClickable(false);
+                    mWifiSwitch.setChecked(false);
+                }
             }
         }
     };
@@ -1079,4 +1441,394 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             vibrate();
         }
     };
+
+    public void animateCollapse() {
+        if (!mExpandedVisible) {
+            return;
+        }
+        int y;
+        if (mAnimating) {
+            y = (int) mAnimY;
+        } else {
+            y = mDisplay.getHeight() - 1;
+        }
+        mExpanded = true;
+        prepareTracking(y, false);
+        performCollapse();
+    }
+
+    public void animateExpand() {
+        if ((mDisabled & 1) != 0) {
+            return;
+        }
+        if (mExpanded) {
+            return;
+        }
+        prepareTracking(0, true);
+        performFling(0, 2000, true);
+    }
+
+    private void createHomeMenuDialog() {
+        LayoutInflater inflater = LayoutInflater.from(mStatusBarView.getContext());
+        mHomeMenuDialog = null;
+        homeMenuDialogView = null;
+        homeMenuDialogView = inflater.inflate(R.layout.home_menu_dialog, null);
+        mHomeMenuDialog = new AlertDialog.Builder(mStatusBarView.getContext()).create();
+        mHomeMenuDialog.setInverseBackgroundForced(true);
+        mHomeMenuDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
+
+        if (!mDev.hasFrontLight()) {
+            Log.i("jim_log", "does not have moon light");
+            ((LinearLayout) homeMenuDialogView.findViewById(R.id.linearlayout_moonlight))
+                .setVisibility(View.INVISIBLE);
+            ((LinearLayout) homeMenuDialogView.findViewById(R.id.linearlayout_setting))
+                .setVisibility(View.VISIBLE);
+        }
+
+        mHomeMenuDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                currentKeyCode = keyCode;
+                switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (mDev.hasFrontLight()) {
+                        Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
+                        mStatusBarView.getContext().sendOrderedBroadcast(intent, null);
+                    } else {
+                        Intent intent = new Intent();
+                        intent.setClassName(
+                            "com.onyx.android.launcher",
+                            "com.onyx.android.launcher.SettingsActivity");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    mStatusBarView.sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
+                    mStatusBarView.sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    performExpand();
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_BACK:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                }
+                return true;
+            }
+        });
+        mHomeMenuDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(final DialogInterface dialog) {
+                isHomeMenuDialogShow = false;
+                if (currentKeyCode == 21) {
+                    mStatusBarView.sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                    mStatusBarView.sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                }
+            }
+        });
+        mHomeMenuDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                isHomeMenuDialogShow = true;
+            }
+        });
+    }
+
+    private Animation loadAnim(int id, Animation.AnimationListener listener) {
+        Animation anim = AnimationUtils.loadAnimation(StatusBarService.this, id);
+        if (listener != null) {
+            anim.setAnimationListener(listener);
+        }
+        return anim;
+    }
+
+    void doAnimation() {
+        if (mAnimating) {
+            if (SPEW) Slog.d(TAG, "doAnimation");
+            if (SPEW) Slog.d(TAG, "doAnimation before mAnimY=" + mAnimY);
+            incrementAnim();
+            if (SPEW) Slog.d(TAG, "doAnimation after  mAnimY=" + mAnimY);
+            if (mAnimY >= mDisplay.getHeight()-1) {
+                if (SPEW) Slog.d(TAG, "Animation completed to expanded state.");
+                mAnimating = false;
+                updateExpandedViewPos(EXPANDED_FULL_OPEN);
+                performExpand();
+            }
+            else if (mAnimY < mStatusBarView.getHeight()) {
+                if (SPEW) Slog.d(TAG, "Animation completed to collapsed state.");
+                mAnimating = false;
+                updateExpandedViewPos(0);
+                performCollapse();
+            }
+            else {
+                updateExpandedViewPos(EXPANDED_FULL_OPEN);
+                mCurAnimationTime += ANIM_FRAME_DURATION;
+                mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE), mCurAnimationTime);
+            }
+        }
+    }
+
+    void incrementAnim() {
+        long now = SystemClock.uptimeMillis();
+        float t = ((float)(now - mAnimLastTime)) / 1000;            // ms -> s
+        final float y = mAnimY;
+        final float v = mAnimVel;                                   // px/s
+        final float a = mAnimAccel;                                 // px/s/s
+        mAnimY = y + (v*t) + (0.5f*a*t*t);                          // px
+        mAnimVel = v + (a*t);                                       // px/s
+        mAnimLastTime = now;                                        // ms
+        //Slog.d(TAG, "y=" + y + " v=" + v + " a=" + a + " t=" + t + " mAnimY=" + mAnimY
+        //        + " mAnimAccel=" + mAnimAccel);
+    }
+
+    void doRevealAnimation() {
+        final int h = mCloseView.getHeight() + mStatusBarView.getHeight();
+        if (mAnimatingReveal && mAnimating && mAnimY < h) {
+            incrementAnim();
+            if (mAnimY >= h) {
+                mAnimY = h;
+                updateExpandedViewPos((int)mAnimY);
+            } else {
+                updateExpandedViewPos((int)mAnimY);
+                mCurAnimationTime += ANIM_FRAME_DURATION;
+                mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE_REVEAL),
+                        mCurAnimationTime);
+            }
+        }
+    }
+
+    void performFling(int y, float vel, boolean always) {
+        mAnimatingReveal = false;
+        mDisplayHeight = mDisplay.getHeight();
+
+        mAnimY = y;
+        mAnimVel = vel;
+
+        //Slog.d(TAG, "starting with mAnimY=" + mAnimY + " mAnimVel=" + mAnimVel);
+
+        if (mExpanded) {
+            if (!always && (
+                    vel > 200.0f
+                    || (y > (mDisplayHeight-25) && vel > -200.0f))) {
+                // We are expanded, but they didn't move sufficiently to cause
+                // us to retract.  Animate back to the expanded position.
+                mAnimAccel = 2000.0f;
+                if (vel < 0) {
+                    mAnimVel = 0;
+                }
+            }
+            else {
+                // We are expanded and are now going to animate away.
+                mAnimAccel = -2000.0f;
+                if (vel > 0) {
+                    mAnimVel = 0;
+                }
+            }
+        } else {
+            if (always || (
+                    vel > 200.0f
+                    || (y > (mDisplayHeight/2) && vel > -200.0f))) {
+                // We are collapsed, and they moved enough to allow us to
+                // expand.  Animate in the notifications.
+                mAnimAccel = 2000.0f;
+                if (vel < 0) {
+                    mAnimVel = 0;
+                }
+            }
+            else {
+                // We are collapsed, but they didn't move sufficiently to cause
+                // us to retract.  Animate back to the collapsed position.
+                mAnimAccel = -2000.0f;
+                if (vel > 0) {
+                    mAnimVel = 0;
+                }
+            }
+        }
+        //Slog.d(TAG, "mAnimY=" + mAnimY + " mAnimVel=" + mAnimVel
+        //        + " mAnimAccel=" + mAnimAccel);
+
+        long now = SystemClock.uptimeMillis();
+        mAnimLastTime = now;
+        mCurAnimationTime = now + ANIM_FRAME_DURATION;
+        mAnimating = true;
+        mHandler.removeMessages(MSG_ANIMATE);
+        mHandler.removeMessages(MSG_ANIMATE_REVEAL);
+        mHandler.sendMessageAtTime(mHandler.obtainMessage(MSG_ANIMATE), mCurAnimationTime);
+        stopTracking();
+    }
+
+    void prepareTracking(int y, boolean opening) {
+        mTracking = true;
+        mVelocityTracker = VelocityTracker.obtain();
+        if (opening) {
+            mAnimAccel = 2000.0f;
+            mAnimVel = 200;
+            mAnimY = mStatusBarView.getHeight();
+            mAnimating = true;
+            mAnimatingReveal = true;
+            mHandler.removeMessages(MSG_ANIMATE);
+            mHandler.removeMessages(MSG_ANIMATE_REVEAL);
+            long now = SystemClock.uptimeMillis();
+            mAnimLastTime = now;
+            mCurAnimationTime = now + ANIM_FRAME_DURATION;
+            mAnimating = true;
+        } else {
+            // it's open, close it?
+            if (mAnimating) {
+                mAnimating = false;
+                mHandler.removeMessages(MSG_ANIMATE);
+            }
+            updateExpandedViewPos(0);
+        }
+    }
+
+    void stopTracking() {
+        mTracking = false;
+        mVelocityTracker.recycle();
+        mVelocityTracker = null;
+    }
+
+    void updateExpandedViewPos(int expandedPosition) {
+        if (SPEW) {
+            Slog.d(TAG, "updateExpandedViewPos before expandedPosition=" + expandedPosition
+                    + " mTrackingParams.y="
+                    + ((mTrackingParams == null) ? "???" : mTrackingParams.y)
+                    + " mTrackingPosition=" + mTrackingPosition);
+        }
+
+        int h = mStatusBarView.getHeight();
+        int disph = mDisplay.getHeight();
+
+        // If the expanded view is not visible, make sure they're still off screen.
+        // Maybe the view was resized.
+        if (!mExpandedVisible) {
+            if (mTrackingView != null) {
+                mTrackingPosition = -disph;
+                if (mTrackingParams != null) {
+                    mTrackingParams.y = mTrackingPosition;
+                    WindowManagerImpl.getDefault().updateViewLayout(mTrackingView, mTrackingParams);
+                }
+            }
+            if (mExpandedParams != null) {
+                mExpandedParams.y = -disph;
+                mExpandedDialog.getWindow().setAttributes(mExpandedParams);
+            }
+            return;
+        }
+
+        // tracking view...
+        int pos;
+        if (expandedPosition == EXPANDED_FULL_OPEN) {
+            pos = h;
+        }
+        else if (expandedPosition == EXPANDED_LEAVE_ALONE) {
+            pos = mTrackingPosition;
+        }
+        else {
+            if (expandedPosition <= disph) {
+                pos = expandedPosition;
+            } else {
+                pos = disph;
+            }
+            pos -= disph-h;
+        }
+        mTrackingPosition = mTrackingParams.y = pos;
+        mTrackingParams.height = disph-h;
+        WindowManagerImpl.getDefault().updateViewLayout(mTrackingView, mTrackingParams);
+
+        if (mExpandedParams != null) {
+            mCloseView.getLocationInWindow(mPositionTmp);
+            final int closePos = mPositionTmp[1];
+
+            mExpandedContents.getLocationInWindow(mPositionTmp);
+            final int contentsBottom = mPositionTmp[1] + mExpandedContents.getHeight();
+
+            if (expandedPosition != EXPANDED_LEAVE_ALONE) {
+                mExpandedParams.y = pos + mTrackingView.getHeight()
+                        - (mTrackingParams.height-closePos) - contentsBottom;
+                int max = h;
+                if (mExpandedParams.y > max) {
+                    mExpandedParams.y = max;
+                }
+                int min = mTrackingPosition;
+                if (mExpandedParams.y < min) {
+                    mExpandedParams.y = min;
+                }
+
+                boolean visible = (mTrackingPosition + mTrackingView.getHeight()) > h;
+                if (!visible) {
+                    // if the contents aren't visible, move the expanded view way off screen
+                    // because the window itself extends below the content view.
+                    mExpandedParams.y = -disph;
+                }
+                mExpandedDialog.getWindow().setAttributes(mExpandedParams);
+
+                if (SPEW) Slog.d(TAG, "updateExpandedViewPos visibilityChanged(" + visible + ")");
+                visibilityChanged(visible);
+            }
+        }
+
+        if (SPEW) {
+            Slog.d(TAG, "updateExpandedViewPos after  expandedPosition=" + expandedPosition
+                    + " mTrackingParams.y=" + mTrackingParams.y
+                    + " mTrackingPosition=" + mTrackingPosition
+                    + " mExpandedParams.y=" + mExpandedParams.y
+                    + " mExpandedParams.height=" + mExpandedParams.height);
+        }
+    }
+
+    private int getBrightnessOfRating(int value) {
+        if (value <= 10)
+            return (value * 2) + 0;
+        int big_interval = (255 - LOW_BRIGHTNESS_MAX)
+                         / (mRatingBarLightSettings.getNumStars() - 10);
+        return ((value - 10) * big_interval) + LOW_BRIGHTNESS_MAX;
+    }
+
+    private int getRatingOfBrightness(int value){
+        if (value <= LOW_BRIGHTNESS_MAX)
+            return (value - 0) / 2;
+
+        int big_interval = (255 - LOW_BRIGHTNESS_MAX)
+                         / (mRatingBarLightSettings.getNumStars() - 10);
+        return ((value - LOW_BRIGHTNESS_MAX) / big_interval) + 10;
+    }
+
+    private void setLightRatingBarDefaultProgress() {
+        int bright;
+        try {
+            bright = Settings.System.getInt(
+                        mStatusBarView.getContext().getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            bright = DeviceController.BRIGHTNESS_DEFAULT;
+        }
+        int rating = getRatingOfBrightness(bright);
+        mRatingBarLightSettings.setProgress(rating);
+    }
+
+    private void setLightRatingBarProgress() {
+        int brightness = getBrightnessOfRating(
+                mRatingBarLightSettings.getProgress());
+        Settings.System.putInt(
+                mStatusBarView.getContext().getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS,
+                brightness);
+        mDev.setFrontLightValue(brightness);
+        if (mRatingBarLightSettings.getProgress() == 0) {
+            mLightSwitch.setChecked(false);
+        } else {
+            mLightSwitch.setChecked(true);
+        }
+    }
 }

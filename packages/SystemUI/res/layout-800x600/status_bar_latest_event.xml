@@ -5,14 +5,13 @@
     >
 
     <com.android.systemui.statusbar.LatestItemView android:id="@+id/content"
-            android:layout_width="match_parent"
-            android:layout_height="64sp"
-            android:background="@drawable/notification_button_background"
-            android:focusable="true"
-            android:clickable="true"
-            android:paddingRight="6sp"
-            >
-    </com.android.systemui.statusbar.LatestItemView>
+        android:layout_width="match_parent"
+        android:layout_height="64sp"
+        android:paddingRight="6sp"
+        android:background="@drawable/notification_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        />
 
     <View
         android:layout_width="match_parent"
@@ -21,4 +20,3 @@
         />
 
 </LinearLayout>
-

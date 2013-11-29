@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dip"
+    android:background="@drawable/boox_bars"
+    >
+    <LinearLayout android:id="@+id/linearlayout_notification"
+        android:layout_width="120dip"
+        android:layout_height="120dip"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:focusable="true"
+        >
+        <ImageButton android:id="@+id/button_notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/notification"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:text="@string/menu_dialog_status_bar"
+            />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/linearlayout_menu"
+        android:layout_width="120dip"
+        android:layout_height="120dip"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:focusable="true"
+        >
+        <ImageButton android:id="@+id/button_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/menu"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:text="@string/menu_dialog_menu"
+            />
+    </LinearLayout>
+    <ImageView android:id="@+id/imageview_cancel"
+        android:layout_width="80dip"
+        android:layout_height="80dip"
+        android:layout_alignBaseline="@id/linearlayout_menu"
+        android:layout_centerInParent="true"
+        android:scaleType="center"
+        android:focusable="true"
+        android:src="@drawable/cancel"
+        />
+    <LinearLayout android:id="@+id/linearlayout_home"
+        android:layout_width="120dip"
+        android:layout_height="120dip"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:focusable="true"
+        >
+        <ImageButton android:id="@+id/button_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/home"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:text="@string/menu_dialog_home"
+            />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/linearlayout_moonlight"
+        android:layout_width="120dip"
+        android:layout_height="120dip"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:focusable="true"
+        >
+        <ImageButton android:id="@+id/button_moonlight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/moonlight"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:text="@string/menu_dialog_moonlight"
+            />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/linearlayout_setting"
+        android:layout_width="120dip"
+        android:layout_height="120dip"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:focusable="true"
+        android:visibility="invisible"
+        >
+        <ImageButton android:id="@+id/button_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/settings"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ffffffff"
+            android:text="@string/menu_dialog_settings"
+            />
+    </LinearLayout>
+</RelativeLayout>

@@ -29,4 +29,14 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Bateria się rozładowuje:"</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"Pozostało: <xliff:g id="NUMBER">%d%%</xliff:g> lub mniej."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Użycie baterii"</string>
+
+    <string name="datatransfer_button_ok">OK</string>
+    <string name="datatransfer_button_cancel">Anuluj</string>
+    <string name="datatransfer_info">Przejść w tryb pamięci przenośnej by podłączyć do komputera?</string>
+    <string name="datatransfer_button_disable">Wyłącz pamięć zewnętrzną USB</string>
+    <string name="menu_dialog_menu">Menu</string>
+    <string name="menu_dialog_home">Strona Startowa</string>
+    <string name="menu_dialog_settings">Ustawienia</string>
+    <string name="menu_dialog_status_bar">Pasek Statusu</string>
+    <string name="menu_dialog_moonlight">Podświetlenie</string>
 </resources>
