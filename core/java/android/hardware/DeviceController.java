@@ -16,14 +16,21 @@ import java.util.Scanner;
 public class DeviceController {
     private static final String TAG = "DeviceController";
 
+    public static final int BRIGHTNESS_DEFAULT = 20;
+    public static final int BRIGHTNESS_MAXIMUM = 255;
+    public static final int BRIGHTNESS_MINIMUM = 0;
+
     public static final int TOUCH_TYPE_UNKNOWN = 0;
     public static final int TOUCH_TYPE_IR = 1;
     public static final int TOUCH_TYPE_CAPACITIVE = 2;
 
+    private static final int FRONT_LIGHT_OFF = 0;
     private static final String[] mDev = {
         "WIFI:1", "IR:1", "TP:1", "AUDIO:1", "LIGHT:1",
         "5WAY_BUTTON:1", "PAGE_BUTTON:1" };
     private static final String mFile = "/system/hwinfo";
+    private static final String mFrontLightFile =
+        "/sys/devices/platform/rk29_backlight/backlight/rk28_bl/brightness";
 
     private Context mContext;
 
@@ -137,5 +144,80 @@ public class DeviceController {
         if (hasTP())
             return TOUCH_TYPE_CAPACITIVE;
         return TOUCH_TYPE_UNKNOWN;
+    }
+
+    private int getFrontLightValueFromProvider() {
+        int res = 0;
+        int light_value;
+        try {
+            light_value = Settings.System.getInt(mContext.getContentResolver(),
+                                                 "screen_brightness");
+        } catch (Settings.SettingNotFoundException snfe) {
+            light_value = BRIGHTNESS_DEFAULT;
+        }
+        res = light_value;
+        return res;
+    }
+
+    public boolean openFrontLight() {
+        int value = getFrontLightValueFromProvider();
+        if (value == 0) {
+            value = BRIGHTNESS_DEFAULT;
+            Settings.System.putInt(mContext.getContentResolver(),
+                                   "screen_brightness", value);
+        }
+
+        if (readFrontLightFile() == 0) {
+            writeFrontLightFile(value);
+            return true;
+        }
+
+        return false;
+    }
+
+    private int readFrontLightFile() {
+        int value = 0;
+        try {
+            File f = new File(mFrontLightFile);
+            Scanner s = new java.util.Scanner(f);
+            if (s.hasNextInt()) {
+                value = s.nextInt();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
+
+    private void writeFrontLightFile(int value) {
+        Log.d(TAG, "Set brightness: " + value);
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(mFrontLightFile);
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fout != null) fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean closeFrontLight()  {
+        writeFrontLightFile(0);
+        return true;
+    }
+
+    public int getFrontLightValue() {
+        return readFrontLightFile();
+    }
+
+    public void setFrontLightValue(int value) {
+        writeFrontLightFile(value);
     }
 }

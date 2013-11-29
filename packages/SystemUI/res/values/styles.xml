@@ -25,4 +25,12 @@
     <style name="TextAppearance.StatusBar.IntruderAlert"
         parent="@android:style/TextAppearance.StatusBar">
     </style>
+
+    <style name="LightSettingsRatingBarStyle" parent="@android:style/Widget.RatingBar">
+        <item name="android:maxHeight">64.0px</item>
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:indeterminateDrawable">@drawable/ratingbar_drawable</item>
+        <item name="android:progressDrawable">@drawable/ratingbar_drawable</item>
+        <item name="android:minHeight">64.0px</item>
+    </style>
 </resources>
