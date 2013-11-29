@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+android:id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="18dip"
+    android:gravity="center_vertical" >
+    <ImageView android:id="@+android:id/icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/usb_connect_storage"
+        android:layout_centerHorizontal="true" />
+    <TextView android:id="@+android:id/message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10.0dip"
+        android:layout_below="@id/icon"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:text="@string/datatransfer_info" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dip"
+        android:layout_below="@id/icon"
+        android:layout_centerHorizontal="true" >
+        <Button android:id="@+android:id/mount_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="23dip"
+            android:paddingTop="15dip"
+            android:paddingRight="23dip"
+            android:paddingBottom="15dip"
+            android:textSize="18dip"
+            android:text="@string/usb_storage_button_mount" />
+        <Button android:id="@+android:id/unmount_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="23.0dip"
+            android:paddingTop="15.0dip"
+            android:paddingRight="23.0dip"
+            android:paddingBottom="15.0dip"
+            android:visibility="gone"
+            android:textSize="18.0dip"
+            android:text="@string/usb_storage_stop_button_mount" />
+        <ProgressBar android:id="@+android:id/progress"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone" />
+    </RelativeLayout>
+</RelativeLayout>

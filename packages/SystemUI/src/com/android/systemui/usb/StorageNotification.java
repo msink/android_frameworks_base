@@ -22,6 +22,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Environment;
@@ -37,6 +38,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Slog;
 
 public class StorageNotification extends StorageEventListener {
@@ -73,6 +78,13 @@ public class StorageNotification extends StorageEventListener {
 
     private Handler        mAsyncEventHandler;
 
+    View dataTransferDialogView;
+    private boolean isMountDialogShow = false;
+    private boolean isDataTransferDialogShow = false;
+    AlertDialog mDataTransferDialog;
+    AlertDialog mMountDialog;
+    View mountDialogView;
+
     public StorageNotification(Context context) {
         mContext = context;
 
@@ -85,6 +97,7 @@ public class StorageNotification extends StorageEventListener {
         thr.start();
         mAsyncEventHandler = new Handler(thr.getLooper());
 
+        createMountDialog();
         onUsbMassStorageConnectionChanged(connected);
     }
 
@@ -122,6 +135,12 @@ public class StorageNotification extends StorageEventListener {
             connected = false;
         }
         updateUsbMassStorageNotification(connected);
+        if (connected) {
+            Log.d(TAG, "open USB connected");
+            updateMountDialogState(true);
+        } else {
+            updateMountDialogState(false);
+        }
     }
 
     /*
@@ -152,6 +171,8 @@ public class StorageNotification extends StorageEventListener {
                     com.android.internal.R.string.usb_storage_stop_notification_title,
                     com.android.internal.R.string.usb_storage_stop_notification_message,
                     com.android.internal.R.drawable.stat_sys_warning, false, true, pi);
+            Log.d(TAG, "  1 MEDIA_SHARED");
+            updateDataTransferDialogState(true);
         } else if (newState.equals(Environment.MEDIA_CHECKING)) {
             /*
              * Storage is now checking. Update media notification and disable
@@ -172,12 +193,13 @@ public class StorageNotification extends StorageEventListener {
                     com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, false, null);
           }
 
+            Log.d(TAG, "  2 MEDIA_CHECKING");
         } else if (newState.equals(Environment.MEDIA_MOUNTED)) {
-
             /*
              * Storage is now mounted. Dismiss any media notifications,
              * and enable UMS notification if connected.
              */
+            setMediaStorageNotification(0, 0, 0, false, false, null);
           if (Environment.getFlashStorageState().equals(Environment.MEDIA_SHARED)) {
             Intent intent = new Intent();
             intent.setClass(mContext, UsbStorageActivity.class);
@@ -190,6 +212,7 @@ public class StorageNotification extends StorageEventListener {
             updateUsbMassStorageNotification(mUmsAvailable);
           }
 
+            Log.d(TAG, "  3 MEDIA_MOUNTED");
         } else if (newState.equals(Environment.MEDIA_UNMOUNTED)) {
             /*
              * Storage is now unmounted. We may have been unmounted
@@ -251,6 +274,8 @@ public class StorageNotification extends StorageEventListener {
                 updateUsbMassStorageNotification(false);
               }
             }
+            updateDataTransferDialogState(false);
+            Log.d(TAG, "  4 MEDIA_UNMOUNTED");
         } else if (newState.equals(Environment.MEDIA_NOFS)) {
             /*
              * Storage has no filesystem. Show blank media notification,
@@ -278,6 +303,7 @@ public class StorageNotification extends StorageEventListener {
           }
             updateUsbMassStorageNotification(mUmsAvailable);
 
+            Log.d(TAG, "  5 MEDIA_NOFS");
         } else if (newState.equals(Environment.MEDIA_UNMOUNTABLE)) {
             /*
              * Storage is corrupt. Show corrupt media notification,
@@ -300,6 +326,7 @@ public class StorageNotification extends StorageEventListener {
             }
             updateUsbMassStorageNotification(mUmsAvailable);
 
+            Log.d(TAG, "  6 MEDIA_UNMOUNTABLE");
         } else if (newState.equals(Environment.MEDIA_REMOVED)) {
             /*
              * Storage has been removed. Show nomedia media notification,
@@ -324,6 +351,7 @@ public class StorageNotification extends StorageEventListener {
             updateUsbMassStorageNotification(false);
           }
 
+            Log.d(TAG, "  7 MEDIA_REMOVED");
         } else if (newState.equals(Environment.MEDIA_BAD_REMOVAL)) {
             /*
              * Storage has been removed unsafely. Show bad removal media notification,
@@ -349,6 +377,7 @@ public class StorageNotification extends StorageEventListener {
             updateUsbMassStorageNotification(false);
           }
 
+            Log.d(TAG, "  8 MEDIA_BAD_REMOVAL");
         } else {
             Slog.w(TAG, String.format("Ignoring unknown state {%s}", newState));
         }
@@ -433,7 +462,7 @@ public class StorageNotification extends StorageEventListener {
                 // If ADB is enabled, however, we suppress this dialog (under the assumption that a
                 // developer (a) knows how to enable UMS, and (b) is probably using USB to install
                 // builds or use adb commands.
-                mUsbStorageNotification.fullScreenIntent = pi;
+                mUsbStorageNotification.fullScreenIntent = null;
             }
         }
     
@@ -513,6 +542,117 @@ public class StorageNotification extends StorageEventListener {
             notificationManager.notify(notificationId, mMediaStorageNotification);
         } else {
             notificationManager.cancel(notificationId);
+        }
+    }
+
+    private void createMountDialog() {
+        LayoutInflater factory = LayoutInflater.from(mContext);
+        mountDialogView = null;
+        mountDialogView = factory.inflate(R.layout.usb_connect_dialog, null);
+        Button dataTransfer_ok = (Button) mountDialogView.findViewById(R.id.datatransfer_ok);
+        Button dataTransfer_cancel = (Button) mountDialogView.findViewById(R.id.datatransfer_cancel);
+        TextView info = (TextView) mountDialogView.findViewById(R.id.textview_info);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        mMountDialog = builder.create();
+        dataTransfer_ok.requestFocus();
+        dataTransfer_ok.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                new Thread() {
+                    public void run() {
+                        mStorageManager.enableUsbMassStorage();
+                    }
+                }.start();
+                mMountDialog.dismiss();
+            }
+        });
+        dataTransfer_cancel.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mMountDialog.dismiss();
+            }
+        });
+        mMountDialog.setInverseBackgroundForced(true);
+        mMountDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
+        mMountDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(final DialogInterface dialog) {
+                isMountDialogShow = false;
+            }
+        });
+        mMountDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                isMountDialogShow = true;
+            }
+        });
+    }
+
+    private void createDataTransferDialog() {
+        LayoutInflater factory = LayoutInflater.from(mContext);
+        dataTransferDialogView = factory.inflate(R.layout.datatransfer_dialog, null);
+        Button disableStorageButton = (Button) dataTransferDialogView.findViewById(R.id.button_turn_off_storage);
+        AlertDialog.Builder usbBuilder = new AlertDialog.Builder(mContext);
+        mDataTransferDialog = usbBuilder.create();
+        disableStorageButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                new Thread() {
+                    public void run() {
+                        mStorageManager.disableUsbMassStorage();
+                    }
+                }.start();
+                mDataTransferDialog.dismiss();
+                setMediaStorageNotification(0, 0, 0, false, false, null);
+                updateUsbMassStorageNotification(mUmsAvailable);
+            }
+        });
+        mDataTransferDialog.setInverseBackgroundForced(true);
+        mDataTransferDialog.setCancelable(false);
+        mDataTransferDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
+        mDataTransferDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(final DialogInterface dialog) {
+                isDataTransferDialogShow = false;
+            }
+        });
+        mDataTransferDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                isDataTransferDialogShow = true;
+            }
+        });
+    }
+
+    private void updateDataTransferDialogState(boolean available) {
+        DisplayMetrics dm = new DisplayMetrics();
+        if (available) {
+            if (!isDataTransferDialogShow) {
+                createDataTransferDialog();
+                mDataTransferDialog.getWindow().getWindowManager().getDefaultDisplay().getMetrics(dm);
+                mDataTransferDialog.show();
+                mDataTransferDialog.setContentView(dataTransferDialogView,
+                    new ViewGroup.LayoutParams(dm.widthPixels, dm.heightPixels));
+            }
+        } else {
+            if (mDataTransferDialog != null && mDataTransferDialog.isShowing()) {
+                mDataTransferDialog.dismiss();
+            }
+        }
+    }
+
+    private void updateMountDialogState(boolean show) {
+        if (show) {
+            if (!isMountDialogShow) {
+                mMountDialog = null;
+                createMountDialog();
+                mMountDialog.show();
+                mMountDialog.setContentView(mountDialogView,
+                    new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
+        } else {
+            if (mMountDialog != null && mMountDialog.isShowing()) {
+                mMountDialog.dismiss();
+            }
         }
     }
 }

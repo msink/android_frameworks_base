@@ -67,7 +67,6 @@ public class UsbStorageActivity extends Activity
     private Button mMountButton;
     private Button mUnmountButton;
     private ProgressBar mProgressBar;
-    private TextView mBanner;
     private TextView mMessage;
     private ImageView mIcon;
     private TextView chargingIcon;
@@ -96,6 +95,7 @@ public class UsbStorageActivity extends Activity
             if (intent.getAction().equals(Usb.ACTION_USB_STATE)) {
                 handleUsbStateChanged(intent);
             } else if (intent.getAction().equals(Intent.ACTION_CLOSE_STATUSBAR_USB)) {
+                Log.i(TAG, "receive ACTION_CLOSE_STATUSBAR_USB broadcast");
                 if (dialogIsThere) {
                     dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
                     dialogIsThere = false;
@@ -153,7 +153,6 @@ public class UsbStorageActivity extends Activity
         setContentView(com.android.internal.R.layout.usb_storage_activity);
 
         mIcon = (ImageView) findViewById(com.android.internal.R.id.icon);
-        mBanner = (TextView) findViewById(com.android.internal.R.id.banner);
         mMessage = (TextView) findViewById(com.android.internal.R.id.message);
 
         mMountButton = (Button) findViewById(com.android.internal.R.id.mount_button);
@@ -188,18 +187,16 @@ public class UsbStorageActivity extends Activity
             mUnmountButton.setVisibility(View.VISIBLE);
             mMountButton.setEnabled(false);
             mMountButton.setVisibility(View.GONE);
-            mIcon.setImageResource(com.android.internal.R.drawable.usb_android_connected);
-            mBanner.setText(com.android.internal.R.string.usb_storage_stop_title);
-            mMessage.setText(com.android.internal.R.string.usb_storage_stop_message);
+            mIcon.setImageResource(com.android.internal.R.drawable.usb_connect_storage);
+            mMessage.setText(com.android.internal.R.string.datatransfer_info);
         } else {
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setEnabled(false);
             mUnmountButton.setVisibility(View.GONE);
             mMountButton.setEnabled(true);
             mMountButton.setVisibility(View.VISIBLE);
-            mIcon.setImageResource(com.android.internal.R.drawable.usb_android);
-            mBanner.setText(com.android.internal.R.string.usb_storage_title);
-            mMessage.setText(com.android.internal.R.string.usb_storage_message);
+            mIcon.setImageResource(com.android.internal.R.drawable.usb_connect_storage);
+            mMessage.setText(com.android.internal.R.string.datatransfer_info);
         }
     }
 
