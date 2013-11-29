@@ -25,6 +25,7 @@ import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnChangedListener;
 
@@ -350,6 +351,9 @@ public class DatePicker extends FrameLayout {
         mDay = dayOfMonth;
         mOnDateChangedListener = onDateChangedListener;
         updateSpinners();
+
+        ViewGroup viewGroup = mDayPicker;
+        viewGroup.getChildAt(0).requestFocus();
     }
 
     private void updateSpinners() {

@@ -18,6 +18,7 @@ package android.preference;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -231,4 +232,13 @@ public class EditTextPreference extends DialogPreference {
         };
     }
     
+    public void onClick(DialogInterface dialog, int which) {
+        if (which == -1) {
+            String value = mEditText.getText().toString();
+            if (callChangeListener(value)) {
+                setText(value);
+            }
+        }
+        return;
+    }
 }

@@ -171,23 +171,20 @@ public class VolumePanel extends Handler
         switch (streamType) {
 
             case AudioManager.STREAM_RING: {
-                setRingerIcon();
-                message = RINGTONE_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 Uri ringuri = RingtoneManager.getActualDefaultRingtoneUri(
                         mContext, RingtoneManager.TYPE_RINGTONE);
                 if (ringuri == null) {
-                    additionalMessage =
-                        com.android.internal.R.string.volume_music_hint_silent_ringtone_selected;
+                    additionalMessage = 0;
                     mRingIsSilent = true;
                 }
                 break;
             }
 
             case AudioManager.STREAM_MUSIC: {
-                message = MUSIC_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 if (mAudioManager.isBluetoothA2dpOn()) {
-                    additionalMessage =
-                        com.android.internal.R.string.volume_music_hint_playing_through_bluetooth;
+                    additionalMessage = 0;
                     setLargeIcon(com.android.internal.R.drawable.ic_volume_bluetooth_ad2p);
                 } else {
                     setSmallIcon(index);
@@ -203,25 +200,24 @@ public class VolumePanel extends Handler
                  */
                 index++;
                 max++;
-                message = INCALL_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 setSmallIcon(index);
                 break;
             }
 
             case AudioManager.STREAM_ALARM: {
-                message = ALARM_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 setSmallIcon(index);
                 break;
             }
 
             case AudioManager.STREAM_NOTIFICATION: {
-                message = NOTIFICATION_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 setSmallIcon(index);
                 Uri ringuri = RingtoneManager.getActualDefaultRingtoneUri(
                         mContext, RingtoneManager.TYPE_NOTIFICATION);
                 if (ringuri == null) {
-                    additionalMessage =
-                        com.android.internal.R.string.volume_music_hint_silent_ringtone_selected;
+                    additionalMessage = 0;
                     mRingIsSilent = true;
                 }
                 break;
@@ -235,7 +231,7 @@ public class VolumePanel extends Handler
                  */
                 index++;
                 max++;
-                message = BLUETOOTH_INCALL_VOLUME_TEXT;
+                message = UNKNOWN_VOLUME_TEXT;
                 setLargeIcon(com.android.internal.R.drawable.ic_volume_bluetooth_in_call);
                 break;
             }
@@ -330,11 +326,6 @@ public class VolumePanel extends Handler
      */
     private void setSmallIcon(int index) {
         mLargeStreamIcon.setVisibility(View.GONE);
-        mSmallStreamIcon.setVisibility(View.VISIBLE);
-
-        mSmallStreamIcon.setImageResource(index == 0
-                ? com.android.internal.R.drawable.ic_volume_off_small
-                : com.android.internal.R.drawable.ic_volume_small);
     }
 
     /**

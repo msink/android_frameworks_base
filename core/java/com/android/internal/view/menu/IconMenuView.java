@@ -27,10 +27,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.LayoutInflater;
 
 import java.util.ArrayList;
@@ -471,6 +473,15 @@ public final class IconMenuView extends ViewGroup implements ItemInvoker, MenuVi
         int measuredWidth = resolveSize(Integer.MAX_VALUE, widthMeasureSpec);
         calculateItemFittingMetadata(measuredWidth);
         layoutItems(measuredWidth);
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(metrics);
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+        if ((width == 758 && height == 1024) || (width == 1024 && height == 758)) {
+            mRowHeight = 80;
+        }
         
         // Get the desired height of the icon menu view (last row of items does
         // not have a divider below)

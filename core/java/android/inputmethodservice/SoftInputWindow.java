@@ -39,6 +39,14 @@ class SoftInputWindow extends Dialog {
         getWindow().setAttributes(lp);
     }
     
+    public void show() {
+        super.show();
+    }
+
+    public void dismiss() {
+        super.dismiss();
+    }
+
     /**
      * Create a DockWindow that uses a custom style.
      * 

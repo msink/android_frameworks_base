@@ -23,6 +23,7 @@ import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.NumberPicker;
 
 import com.android.internal.R;
@@ -126,6 +127,9 @@ public class TimePicker extends FrameLayout {
                 onTimeChanged();
             }
         });
+
+        ViewGroup viewGroup = mHourPicker;
+        viewGroup.getChildAt(0).requestFocus();
 
         // digits of minute
         mMinutePicker = (NumberPicker) findViewById(R.id.minute);

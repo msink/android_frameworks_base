@@ -28,6 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
+import android.util.DisplayMetrics;
 import android.view.ContextThemeWrapper;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -36,8 +37,10 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.LayoutInflater;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 
@@ -1155,7 +1158,17 @@ public class MenuBuilder implements Menu {
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            return ((MenuItemImpl) getItem(position)).getItemView(mMenuType, parent);
+            View item = getItem(position).getItemView(mMenuType, parent);
+            DisplayMetrics metrics = new DisplayMetrics();
+            WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+            wm.getDefaultDisplay().getMetrics(metrics);
+            int width = metrics.widthPixels;
+            int height = metrics.heightPixels;
+            if ((width == 758 && height == 1024) || (width == 1024 && height == 758)) {
+                AbsListView.LayoutParams params = new AbsListView.LayoutParams(-1, 80);
+                item.setLayoutParams(params);
+            }
+            return item;
         }
 
     }

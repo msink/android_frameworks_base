@@ -521,14 +521,7 @@ public class SearchDialog extends Dialog implements OnItemClickListener, OnItemS
         } else {
             PackageManager pm = getContext().getPackageManager();
             Drawable icon;
-            try {
-                ActivityInfo info = pm.getActivityInfo(mLaunchComponent, 0);
-                icon = pm.getApplicationIcon(info.applicationInfo);
-                if (DBG) Log.d(LOG_TAG, "Using app-specific icon");
-            } catch (NameNotFoundException e) {
                 icon = pm.getDefaultActivityIcon();
-                Log.w(LOG_TAG, mLaunchComponent + " not found, using generic app icon");
-            }
             mAppIcon.setImageDrawable(icon);
             mAppIcon.setVisibility(View.VISIBLE);
             mSearchPlate.setPadding(SEARCH_PLATE_LEFT_PADDING_NON_GLOBAL,

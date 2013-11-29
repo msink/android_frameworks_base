@@ -112,6 +112,12 @@ public class Dialog implements DialogInterface, Window.Callback,
         }
     };
 
+    protected onDismissedCallback mCallback;
+
+    interface onDismissedCallback {
+        public abstract void onDismissed();
+    }
+
     /**
      * Create a Dialog window that uses the default dialog frame style.
      * 
@@ -285,6 +291,9 @@ public class Dialog implements DialogInterface, Window.Callback,
             mShowing = false;
             
             sendDismissMessage();
+            if (mCallback != null) {
+                mCallback.onDismissed();
+            }
         }
     }
 

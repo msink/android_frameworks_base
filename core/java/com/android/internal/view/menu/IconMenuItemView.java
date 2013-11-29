@@ -23,10 +23,12 @@ import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewDebug;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.text.Layout;
 
@@ -97,6 +99,19 @@ public final class IconMenuItemView extends TextView implements MenuView.ItemVie
 
         if (mTextAppearance != -1) {
             setTextAppearance(mTextAppearanceContext, mTextAppearance);
+        }
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(metrics);
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+        if ((width==758 && height==1024) || (width==1024 && height==758)) {
+            setTextSize(23);
+            setTypeface(getTypeface(), 1);
+        } else if ((width==600 && height==800) || (width==800 && height==600)) {
+            setTextSize(19);
+            setTypeface(getTypeface(), 1);
         }
 
         setTitle(title);

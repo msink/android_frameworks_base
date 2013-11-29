@@ -3343,11 +3343,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
         } else {
             mPrivateFlags &= ~PRESSED;
         }
-        if (!mIgnoreRefreshDrawableStateTemporarilyForOnce) {
             refreshDrawableState();
-        } else {
-            mIgnoreRefreshDrawableStateTemporarilyForOnce = false;
-        }
         dispatchSetPressed(pressed);
     }
 
@@ -4452,6 +4448,12 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
                             mUnsetPressedState = new UnsetPressedState();
                         }
 
+                        if (prepressed) {
+                            mPrivateFlags |= PRESSED;
+                            refreshDrawableState();
+                            postDelayed(mUnsetPressedState,
+                                        ViewConfiguration.getPressedStateDuration());
+                        } else
                         if (!post(mUnsetPressedState)) {
                             // If the post failed, unpress right now
                             mUnsetPressedState.run();
@@ -9590,6 +9592,14 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
             mDefaultMode = mode;
         }
         return requestEpdMode(this, mode);
+    }
+
+    public boolean requestEpdMode(int mode, boolean force) {
+        if (force) {
+            SystemProperties.set("rk.epd.mode", "" + mode);
+            return true;
+        }
+        return requestEpdMode(mode);
     }
 
     public boolean requestEpdMode(View view, int mode) {

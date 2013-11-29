@@ -107,6 +107,8 @@ public class AlertController {
     
     private TextView mTitleView;
 
+    private ImageView mTitleDivider;
+
     private TextView mMessageView;
 
     private View mCustomTitleView;
@@ -139,21 +141,18 @@ public class AlertController {
     View.OnClickListener mButtonHandler = new View.OnClickListener() {
         public void onClick(View v) {
             v.mIgnoreRefreshDrawableStateTemporarilyForOnce = true;
-            Message m = null;
-            if (v == mButtonPositive && mButtonPositiveMessage != null) {
-                m = Message.obtain(mButtonPositiveMessage);
-            } else if (v == mButtonNegative && mButtonNegativeMessage != null) {
-                m = Message.obtain(mButtonNegativeMessage);
-            } else if (v == mButtonNeutral && mButtonNeutralMessage != null) {
-                m = Message.obtain(mButtonNeutralMessage);
-            }
-            if (m != null) {
-                m.sendToTarget();
-            }
 
             // Post a message so we dismiss after the above handlers are executed
             mHandler.obtainMessage(ButtonHandler.MSG_DISMISS_DIALOG, mDialogInterface)
                     .sendToTarget();
+
+            if (v == mButtonPositive && mButtonPositiveMessage != null) {
+                mButtonMessage = Message.obtain(mButtonPositiveMessage);
+            } else if (v == mButtonNegative && mButtonNegativeMessage != null) {
+                mButtonMessage = Message.obtain(mButtonNegativeMessage);
+            } else if (v == mButtonNeutral && mButtonNeutralMessage != null) {
+                mButtonMessage = Message.obtain(mButtonNeutralMessage);
+            }
         }
     };
 
@@ -421,6 +420,7 @@ public class AlertController {
             final boolean hasTextTitle = !TextUtils.isEmpty(mTitle);
             
             mIconView = (ImageView) mWindow.findViewById(R.id.icon);
+            mTitleDivider = (ImageView) mWindow.findViewById(R.id.titleDivider);
             if (hasTextTitle) {
                 /* Display the title if a title is supplied, else hide it */
                 mTitleView = (TextView) mWindow.findViewById(R.id.alertTitle);
@@ -452,6 +452,7 @@ public class AlertController {
                 View titleTemplate = mWindow.findViewById(R.id.title_template);
                 titleTemplate.setVisibility(View.GONE);
                 mIconView.setVisibility(View.GONE);
+                mTitleDivider.setVisibility(View.GONE);
                 hasTitle = false;
             }
         }

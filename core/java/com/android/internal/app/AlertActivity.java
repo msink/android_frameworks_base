@@ -58,6 +58,7 @@ public abstract class AlertActivity extends Activity implements DialogInterface 
         // This is called after the click, since we finish when handling the
         // click, don't do that again here.
         if (!isFinishing()) {
+            mAlert.dialogDismissed();
             finish();
         }
     }

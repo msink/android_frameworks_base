@@ -30,6 +30,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.text.InputType;
 import android.text.Layout;
@@ -269,6 +270,9 @@ public class InputMethodService extends AbstractInputMethodService {
     boolean mIsInputViewShown;
     
     int mStatusIcon;
+
+    int mEpdModeStored;
+    boolean mIsForcedA2;
 
     final Insets mTmpInsets = new Insets();
     final int[] mTmpLocation = new int[2];
@@ -1338,7 +1342,13 @@ public class InputMethodService extends AbstractInputMethodService {
         
         if (!wasVisible) {
             if (DEBUG) Log.v(TAG, "showWindow: showing!");
-            mInputView.requestEpdMode(View.EPD_AUTO);
+            mEpdModeStored = SystemProperties.getInt("rk.epd.mode", -1);
+            if (mEpdModeStored != View.EPD_A2) {
+                mInputView.requestEpdMode(View.EPD_A2, true);
+                mIsForcedA2 = true;
+            } else {
+                mIsForcedA2 = false;
+            }
             onWindowShown();
             mWindow.show();
         }
@@ -1357,7 +1367,9 @@ public class InputMethodService extends AbstractInputMethodService {
         if (mWindowVisible) {
             mWindow.hide();
             mWindowVisible = false;
-            mInputView.requestEpdMode(View.EPD_PART);
+            if (mIsForcedA2) {
+                mInputView.requestEpdMode(mEpdModeStored, true);
+            }
             onWindowHidden();
             mWindowWasVisible = false;
         }
