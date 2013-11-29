@@ -1071,6 +1071,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     
             loadBooleanSetting(stmt, Settings.System.VIBRATE_IN_SILENT,
                     R.bool.def_vibrate_in_silent);
+
+            loadStringSetting(stmt, Settings.System.TIME_12_24,
+                    R.string.time_12_24);
+            loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
+                    R.integer.def_screen_off_timeout);
+            loadIntegerSetting(stmt, Settings.System.AUTO_POWEROFF_TIMEOUT,
+                    R.integer.def_auto_poweroff_timeout);
+            loadStringSetting(stmt, Settings.System.DEFAULT_SYSTEM_FONT,
+                    R.string.def_default_system_font);
+            loadIntegerSetting(stmt, Settings.System.KEY_MAP_MODE,
+                    R.integer.def_key_map_mode);
+            loadIntegerSetting(stmt, Settings.System.BRIGHTNESS_STATE,
+                    R.integer.def_brightness_state);
+            loadIntegerSetting(stmt, Settings.System.WAKE_UP_BRIGHTNESS,
+                    R.integer.def_wake_up_brightness);
+            loadIntegerSetting(stmt, Settings.System.WIFI_LOCK_DELAY,
+                    R.integer.def_wifi_lock_delay);
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -1189,6 +1206,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     
             loadBooleanSetting(stmt, Settings.Secure.MOUNT_UMS_NOTIFY_ENABLED,
                     R.bool.def_mount_ums_notify_enabled);
+
+            loadIntegerSetting(stmt, Settings.Secure.TTS_USE_DEFAULTS,
+                    R.integer.tts_use_defaults);
+            loadStringSetting(stmt, Settings.Secure.TTS_ENABLED_PLUGINS,
+                    R.string.tts_enabled_plugins);
+            loadStringSetting(stmt, Settings.Secure.TTS_DEFAULT_SYNTH,
+                    R.string.tts_default_synth);
+            loadStringSetting(stmt, Settings.Secure.TTS_DEFAULT_LANG,
+                    R.string.tts_default_lang);
+            loadStringSetting(stmt, Settings.Secure.TTS_DEFAULT_COUNTRY,
+                    R.string.tts_default_country);
+            loadStringSetting(stmt, Settings.Secure.TTS_DEFAULT_VARIANT,
+                    R.string.tts_default_variant);
+            loadStringSetting(stmt, Settings.Secure.TTS_DEFAULT_RATE,
+                    R.string.tts_default_rate);
+            loadStringSetting(stmt, Settings.Secure.DEFAULT_INPUT_METHOD,
+                    R.string.def_input_method);
         } finally {
             if (stmt != null) stmt.close();
         }

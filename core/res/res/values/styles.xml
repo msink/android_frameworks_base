@@ -26,8 +26,6 @@
     <style name="WindowTitle">
         <item name="android:singleLine">true</item>
         <item name="android:textAppearance">@style/TextAppearance.WindowTitle</item>
-        <item name="android:shadowColor">#BB000000</item>
-        <item name="android:shadowRadius">2.75</item>
     </style>
 
     <style name="DialogWindowTitle">

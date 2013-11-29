@@ -1278,7 +1278,14 @@ public final class Settings {
          * The timeout before the screen turns off.
          */
         public static final String SCREEN_OFF_TIMEOUT = "screen_off_timeout";
+        public static final String AUTO_POWEROFF_TIMEOUT = "auto_poweroff_timeout";
+        public static final String BRIGHTNESS_STATE = "brightness_state";
+        public static final String DEFAULT_SYSTEM_FONT = "default_system_font";
         public static final String EPD_FULL_TIMEOUT = "epd_full_timeout";
+        public static final String KEY_MAP_MODE = "key_map_mode";
+        public static final String WAKE_UP_BRIGHTNESS = "wake_up_brightness";
+        public static final String WIFI_LOCK_DELAY = "wifi_lock_delay";
+        public static final String WIFI_STATE = "wifi_state";
 
         /**
          * If 0, the compatibility mode is off for all applications.
@@ -1769,8 +1776,15 @@ public final class Settings {
             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
             DIM_SCREEN,
             SCREEN_OFF_TIMEOUT,
+            AUTO_POWEROFF_TIMEOUT,
             SCREEN_BRIGHTNESS,
             SCREEN_BRIGHTNESS_MODE,
+            WAKE_UP_BRIGHTNESS,
+            BRIGHTNESS_STATE,
+            WIFI_STATE,
+            WIFI_LOCK_DELAY,
+            KEY_MAP_MODE,
+            DEFAULT_SYSTEM_FONT,
             VIBRATE_ON,
             NOTIFICATIONS_USE_RING_VOLUME,
             MODE_RINGER,
@@ -3494,6 +3508,7 @@ public final class Settings {
             TTS_DEFAULT_SYNTH,
             TTS_DEFAULT_LANG,
             TTS_DEFAULT_COUNTRY,
+            TTS_DEFAULT_VARIANT,
             TTS_ENABLED_PLUGINS,
             WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,
             WIFI_NETWORKS_AVAILABLE_REPEAT_DELAY,

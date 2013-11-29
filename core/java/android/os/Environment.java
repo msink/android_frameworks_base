@@ -90,17 +90,17 @@ public class Environment {
             = getDirectory("ANDROID_SECURE_DATA", "/data/secure");
 
     private static final File EXTERNAL_STORAGE_DIRECTORY
-            = getDirectory("EXTERNAL_STORAGE", "/sdcard");
+            = getDirectory("EXTERNAL_STORAGE", "/flash");
 
     private static final File FLASH_STORAGE_DIRECTORY
             = getDirectory("FLASH_STORAGE", "/flash");
 
     private static final File EXTERNAL_STORAGE_ANDROID_DATA_DIRECTORY
-            = new File (new File(getDirectory("FLASH_STORAGE", "/sdcard"),
+            = new File (new File(getDirectory("FLASH_STORAGE", "/flash"),
                     "Android"), "data");
 
     private static final File EXTERNAL_STORAGE_ANDROID_MEDIA_DIRECTORY
-            = new File (new File(getDirectory("FLASH_STORAGE", "/sdcard"),
+            = new File (new File(getDirectory("FLASH_STORAGE", "/flash"),
                     "Android"), "media");
 
     private static final File DOWNLOAD_CACHE_DIRECTORY
@@ -108,6 +108,9 @@ public class Environment {
 
     private static final File HOST_STORAGE_DIRECTORY
             = getDirectory("HOST_STORAGE_DIRECTORY", "/mnt/udisk");
+
+    private static final File SDCARD_STORAGE_DIRECTORY
+            = getDirectory("SDCARD_STORAGE", "/sdcard");
 
     /**
      * Gets the Android data directory.
@@ -164,6 +167,10 @@ public class Environment {
 
     public static File getHostStorageDirectory() {
         return HOST_STORAGE_DIRECTORY;
+    }
+
+    public static File getSdcardStorageDirectory() {
+        return SDCARD_STORAGE_DIRECTORY;
     }
 
     /**
@@ -395,6 +402,18 @@ public class Environment {
      * <p>See {@link #getExternalStorageDirectory()} for more information.
      */
     public static String getExternalStorageState() {
+        try {
+            if (mMntSvc == null) {
+                mMntSvc = IMountService.Stub.asInterface(ServiceManager
+                                                         .getService("mount"));
+            }
+            return mMntSvc.getVolumeState(getFlashStorageDirectory().toString());
+        } catch (Exception rex) {
+            return Environment.MEDIA_REMOVED;
+        }
+    }
+
+    public static String getSdcardStorageState() {
         try {
             if (mMntSvc == null) {
                 mMntSvc = IMountService.Stub.asInterface(ServiceManager

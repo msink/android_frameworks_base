@@ -80,10 +80,10 @@ public class ExternalStorageFormatter extends Service
         Bundle extras = intent.getExtras();
         if (extras != null) {
             if ((mPath = extras.getString("path")) == null) {
-                mPath = Environment.getExternalStorageDirectory().toString();
+                mPath = Environment.getSdcardStorageDirectory().toString();
             }
         } else {
-            mPath = Environment.getExternalStorageDirectory().toString();
+            mPath = Environment.getSdcardStorageDirectory().toString();
         }
         Log.v("ExternalMediaFormatActivity,onStartCommand", "volume: " + mPath);
         if (FORMAT_AND_FACTORY_RESET.equals(intent.getAction())) {
@@ -154,7 +154,7 @@ public class ExternalStorageFormatter extends Service
             try {
                 IMountService mMntSvc = IMountService.Stub.
                           asInterface(ServiceManager.getService("mount"));
-                status = mMntSvc.getVolumeState(Environment.getExternalStorageDirectory().toString());
+                status = mMntSvc.getVolumeState(Environment.getSdcardStorageDirectory().toString());
             } catch (Exception rex) {
                 Log.i(TAG, "get ExternalStroageState error");
                 status = Environment.MEDIA_REMOVED;
@@ -172,7 +172,7 @@ public class ExternalStorageFormatter extends Service
                 if (mPath.equals(Environment.getFlashStorageDirectory().toString())) {
                     updateProgressDialog(R.string.progress_unmounting_nand);
                     mountService.unmountVolume(Environment.
-                                 getExternalStorageDirectory().toString(), true);
+                                 getSdcardStorageDirectory().toString(), true);
                 }
                 mountService.unmountVolume(mPath, true);
             } catch (RemoteException e) {
@@ -210,8 +210,14 @@ public class ExternalStorageFormatter extends Service
                             sendBroadcast(new Intent("android.intent.action.MASTER_CLEAR"));
                         } else {
                             try {
-                                mountService.mountVolume(Environment.
-                                    getExternalStorageDirectory().toString());
+                                if (mPath.equals(Environment.getFlashStorageDirectory().toString())) {
+                                    mountService.mountVolume(Environment.getFlashStorageDirectory().toString());
+                                }
+                            } catch (RemoteException e) {
+                                Log.w(TAG, "Failed talking with mount service", e);
+                            }
+                            try {
+                                mountService.mountVolume(Environment.getSdcardStorageDirectory().toString());
                             } catch (RemoteException e) {
                                 Log.w(TAG, "Failed talking with mount service", e);
                             }

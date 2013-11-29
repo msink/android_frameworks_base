@@ -157,7 +157,7 @@ class MountService extends IMountService.Stub
     private boolean                               mSendUmsConnectedOnBoot = false;
     private String[] mDevicePath = {
             Environment.getFlashStorageDirectory().toString(),
-            Environment.getExternalStorageDirectory().toString(),
+            Environment.getSdcardStorageDirectory().toString(),
             Environment.getHostStorageDirectory().toString() };
 
     /**
@@ -322,7 +322,7 @@ class MountService extends IMountService.Stub
         @Override
         void handleFinished() {
             int ret = doUnmountVolume(path, true);
-            if (observer != null && !path.equals(Environment.getExternalStorageDirectory().toString())) {
+            if (observer != null && !path.equals(Environment.getSdcardStorageDirectory().toString())) {
                 try {
                     observer.onShutDownComplete(ret);
                 } catch (RemoteException e) {
@@ -350,7 +350,7 @@ class MountService extends IMountService.Stub
                     } else if (msg.obj instanceof ShutdownCallBack) {
                         ucb = (ShutdownCallBack) msg.obj;
                     }
-                    if (ucb.path.equals(Environment.getExternalStorageDirectory().getPath())) {
+                    if (ucb.path.equals(Environment.getSdcardStorageDirectory().getPath())) {
                         ucb.handleFinished();
                         break;
                     }
@@ -459,7 +459,7 @@ class MountService extends IMountService.Stub
                 new Thread() {
                     public void run() {
                         try {
-                            String path = Environment.getExternalStorageDirectory().getPath();
+                            String path = Environment.getSdcardStorageDirectory().getPath();
                             String state = getVolumeState(path);
                             String vols[] = mConnector.doListCommand("volume list", 110);
 
@@ -525,7 +525,7 @@ class MountService extends IMountService.Stub
 
     private void doShareUnshareVolume(String path, String method, boolean enable) {
 
-        if (path.equals(Environment.getExternalStorageDirectory().getPath()) &&
+        if (path.equals(Environment.getSdcardStorageDirectory().getPath()) &&
                 getVolumeState(path).equals(Environment.MEDIA_REMOVED)) {
             return;
         }
@@ -630,7 +630,7 @@ class MountService extends IMountService.Stub
                 /**
                  * Determine media state and UMS detection status
                  */
-                String path = Environment.getExternalStorageDirectory().getPath();
+                String path = Environment.getSdcardStorageDirectory().getPath();
                 String state = Environment.MEDIA_REMOVED;
 
                 try {
@@ -1238,7 +1238,7 @@ class MountService extends IMountService.Stub
 
         Slog.i(TAG, "Shutting down");
 
-        String path = Environment.getExternalStorageDirectory().getPath();
+        String path = Environment.getSdcardStorageDirectory().getPath();
         String state = getVolumeState(path);
 
       for (int i = 1; i >= 0; i--) {

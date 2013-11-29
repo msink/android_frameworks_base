@@ -18,12 +18,12 @@
 -->
 <resources>
     <bool name="def_dim_screen">false</bool>
-    <integer name="def_screen_off_timeout">60000</integer>
+    <integer name="def_screen_off_timeout">600000</integer>
     <bool name="def_airplane_mode_on">false</bool>
     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi</string>
     <string name="airplane_mode_toggleable_radios" translatable="false">bluetooth,wifi</string>
-    <bool name="def_auto_time">true</bool>
+    <bool name="def_auto_time">false</bool>
     <bool name="def_accelerometer_rotation">false</bool>
     <!-- Default screen brightness, from 0 to 255.  102 is 40%. -->
     <integer name="def_screen_brightness">102</integer>
@@ -70,8 +70,24 @@
     <integer name="def_lockscreen_sounds_enabled">0</integer>
     <string name="def_lock_sound" translatable="false">/system/media/audio/ui/Lock.ogg</string>
     <string name="def_unlock_sound" translatable="false">/system/media/audio/ui/Unlock.ogg</string>
+    <integer name="def_key_map_mode">1</integer>
     <integer name="default_install_location">1</integer>
 
     <!-- Default for Settings.System.VIBRATE_IN_SILENT -->
     <bool name="def_vibrate_in_silent">false</bool>
+
+    <integer name="def_auto_poweroff_timeout">1800000</integer>
+    <integer name="tts_use_defaults">1</integer>
+    <integer name="def_wake_up_brightness">1</integer>
+    <integer name="def_brightness_state">1</integer>
+    <integer name="def_wifi_lock_delay">180000</integer>
+    <string name="time_12_24">24</string>
+    <string name="def_default_system_font">Roboto</string>
+    <string name="tts_default_synth">com.onyx.android.onyxtts</string>
+    <string name="tts_enabled_plugins" />
+    <string name="def_input_method">com.android.inputmethod.latin/.LatinIME</string>
+    <string name="tts_default_variant" />
+    <string name="tts_default_lang">rus</string>
+    <string name="tts_default_country">RUS</string>
+    <string name="tts_default_rate">100</string>
 </resources>
