@@ -208,7 +208,12 @@ public class SearchDialog extends Dialog implements OnItemClickListener, OnItemS
                 getDrawable(com.android.internal.R.drawable.search_spinner);
         mSearchAutoComplete.setCompoundDrawablesWithIntrinsicBounds(
                 null, null, mWorkingSpinner, null);
+        mSearchAutoComplete.setText("");
         setWorking(false);
+
+        mAppIcon.requestEpdMode(View.EPD_FULL);
+        mAppIcon.invalidate();
+        System.out.println("shy SearchDialog is Full invalidate...");
 
         // attach listeners
         mSearchAutoComplete.addTextChangedListener(mTextWatcher);

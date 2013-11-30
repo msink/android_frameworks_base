@@ -156,13 +156,11 @@ class AlarmManagerService extends IAlarmManager.Stub {
     }
     
     public void set(int type, long triggerAtTime, PendingIntent operation) {
-        System.out.println("shy AlarmManagerService set .");
         setRepeating(type, triggerAtTime, 0, operation);
     }
     
     public void setRepeating(int type, long triggerAtTime, long interval, 
             PendingIntent operation) {
-       System.out.println("shy AlarmManagerService setRepeating .");
         if (operation == null) {
             Slog.w(TAG, "set/setRepeating ignored because there is no intent");
             return;
@@ -435,7 +433,6 @@ class AlarmManagerService extends IAlarmManager.Stub {
                 alarmNanoseconds = (alarm.when % 1000) * 1000 * 1000;
             }
             
-            System.out.println("shy AlarmManagerService setLocked .");
             set(mDescriptor, alarm.type, alarmSeconds, alarmNanoseconds);
         }
         else
@@ -667,8 +664,6 @@ class AlarmManagerService extends IAlarmManager.Stub {
                         TAG, "Checking for alarms... rtc=" + nowRTC
                         + ", elapsed=" + nowELAPSED);
 
-                    System.out.println("shy AlarmManagerService result" + result +
-                        ",, (result & RTC_WAKEUP_MASK)== " + (result & RTC_WAKEUP_MASK));
                     if ((result & RTC_WAKEUP_MASK) != 0) {
                         triggerAlarmsLocked(mRtcWakeupAlarms, triggerList, nowRTC);
                         PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
@@ -798,7 +793,6 @@ class AlarmManagerService extends IAlarmManager.Stub {
             calendar.set(Calendar.SECOND, 0);
             calendar.set(Calendar.MILLISECOND, 0);
       
-            System.out.println("shy AlarmManagerService scheduleTimeTickEvent .");
             set(AlarmManager.RTC, calendar.getTimeInMillis(), mTimeTickSender);
         }
 	
@@ -811,7 +805,6 @@ class AlarmManagerService extends IAlarmManager.Stub {
             calendar.set(Calendar.MILLISECOND, 0);
             calendar.add(Calendar.DAY_OF_MONTH, 1);
       
-            System.out.println("shy AlarmManagerService scheduleDateChangedEvent .");
             set(AlarmManager.RTC, calendar.getTimeInMillis(), mDateChangeSender);
         }
     }

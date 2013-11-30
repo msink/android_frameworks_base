@@ -435,6 +435,7 @@ public final class ShutdownThread extends Thread {
                 Log.e(TAG, "Reboot failed, will attempt shutdown instead", e);
             }
         } else if (mShutdownReason != null && mShutdownReason.equals("nopower")) {
+            System.out.println("shy shutdownthread rebootorshutdown...");
             sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_NOPOWER);
         } else {
             sInstance.mPowerManager.startSurfaceFlingerAnimation(PowerManager.ANIM_SHUTDOWN);

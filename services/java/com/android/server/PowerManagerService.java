@@ -618,7 +618,7 @@ class PowerManagerService extends IPowerManager.Stub
         SettingsObserver settingsObserver = new SettingsObserver();
         mSettings.addObserver(settingsObserver);
 
-        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
+        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 8000);
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
         System.out.println("PowerManagerService  shy mIdleDelay=" + mIdleDelay);
 
