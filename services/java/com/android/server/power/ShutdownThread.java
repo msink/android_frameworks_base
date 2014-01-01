@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -46,7 +47,10 @@ import android.os.storage.IMountShutdownObserver;
 import com.android.internal.telephony.ITelephony;
 
 import android.util.Log;
+import android.view.IWindowManager;
 import android.view.WindowManager;
+import java.io.File;
+import java.io.IOException;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -76,6 +80,8 @@ public final class ShutdownThread extends Thread {
 
     // static instance of this thread
     private static final ShutdownThread sInstance = new ShutdownThread();
+
+    private static boolean mHasAnimation;
     
     private final Object mActionDoneSync = new Object();
     private boolean mActionDone;
@@ -90,6 +96,22 @@ public final class ShutdownThread extends Thread {
     private ShutdownThread() {
     }
  
+    private static void playMusic() {
+        MediaPlayer mp = new MediaPlayer();
+        try {
+            File file = new File("system/media/audio/shutdown.ogg");
+            if (file.exists()) {
+                mp.setDataSource("system/media/audio/shutdown.ogg");
+                mp.prepare();
+                mp.start();
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Request a clean shutdown, waiting for subsystems to clean up their
      * state etc.  Must be called from a Looper thread in which its UI
@@ -101,6 +123,8 @@ public final class ShutdownThread extends Thread {
     public static void shutdown(final Context context, boolean confirm) {
         mReboot = false;
         mRebootSafeMode = false;
+        mHasAnimation = (new File("/system/media/shutdownanimation.zip").exists()
+                            || new File("/data/local/shutdownanimation.zip").exists());
         shutdownInner(context, confirm);
     }
 
@@ -125,6 +149,14 @@ public final class ShutdownThread extends Thread {
         Log.d(TAG, "Notifying thread to start shutdown longPressBehavior=" + longPressBehavior);
 
         if (confirm) {
+            if (mHasAnimation) {
+                try {
+                    IWindowManager wm = IWindowManager.Stub.asInterface(
+                        ServiceManager.getService(Context.WINDOW_SERVICE));
+                    wm.freezeRotation(wm.getRotation());
+                } catch(Exception e) {
+                }
+            }
             final CloseDialogReceiver closer = new CloseDialogReceiver(context);
             if (sConfirmDialog != null) {
                 sConfirmDialog.dismiss();
@@ -139,7 +171,18 @@ public final class ShutdownThread extends Thread {
                             beginShutdownSequence(context);
                         }
                     })
-                    .setNegativeButton(com.android.internal.R.string.no, null)
+                    .setNegativeButton(com.android.internal.R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (mHasAnimation) {
+                                try {
+                                    IWindowManager wm = IWindowManager.Stub.asInterface(
+                                        ServiceManager.getService(Context.WINDOW_SERVICE));
+                                    wm.thawRotation();
+                                } catch (Exception e) {
+                                }
+                            }
+                        }
+                    })
                     .create();
             closer.dialog = sConfirmDialog;
             sConfirmDialog.setOnDismissListener(closer);
@@ -210,16 +253,15 @@ public final class ShutdownThread extends Thread {
             sIsStarted = true;
         }
 
-        // throw up an indeterminate system dialog to indicate radio is
-        // shutting down.
-        ProgressDialog pd = new ProgressDialog(context);
-        pd.setTitle(context.getText(com.android.internal.R.string.power_off));
-        pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
-        pd.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-
-        pd.show();
+        final IActivityManager am =
+            ActivityManagerNative.asInterface(ServiceManager.checkService("activity"));
+        if (am != null) {
+            int[] pids = new int[1];
+            try {
+                am.killPids(pids, "Shutdown system", true);
+            } catch (RemoteException e) {
+            }
+        }
 
         sInstance.mContext = context;
         sInstance.mPowerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
