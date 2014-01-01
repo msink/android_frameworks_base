@@ -33,6 +33,7 @@ import android.os.DropBoxManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UEventObserver;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -247,6 +248,7 @@ public final class BatteryService extends Binder {
                         Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);
                         intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        SystemProperties.set("sys.shutdown.nopower", "1");
                         mContext.startActivityAsUser(intent, UserHandle.CURRENT);
                     }
                 }
