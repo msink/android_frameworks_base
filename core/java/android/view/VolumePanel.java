@@ -35,6 +35,7 @@ import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.WindowManager.LayoutParams;
@@ -310,7 +311,7 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         mToneGenerators = new ToneGenerator[AudioSystem.getNumStreamTypes()];
         mVibrator = (Vibrator)context.getSystemService(Context.VIBRATOR_SERVICE);
 
-        mVoiceCapable = context.getResources().getBoolean(R.bool.config_voice_capable);
+        mVoiceCapable = SystemProperties.getBoolean("ro.voice.capable", false);
         mShowCombinedVolumes = !mVoiceCapable && !useMasterVolume;
         // If we don't want to show multiple volumes, hide the settings button and divider
         if (!mShowCombinedVolumes) {

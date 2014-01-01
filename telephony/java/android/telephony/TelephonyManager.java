@@ -1244,8 +1244,7 @@ public class TelephonyManager {
      */
     public boolean isVoiceCapable() {
         if (sContext == null) return true;
-        return sContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_voice_capable);
+        return SystemProperties.getBoolean("ro.voice.capable", false);
     }
 
     /**
@@ -1261,8 +1260,7 @@ public class TelephonyManager {
      */
     public boolean isSmsCapable() {
         if (sContext == null) return true;
-        return sContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_sms_capable);
+        return SystemProperties.getBoolean("ro.sms.capable", false);
     }
 
     /**

@@ -1119,7 +1119,8 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     NetworkInfo ni = network.getNetworkInfo();
 
                     if (ni.isAvailable() == false) {
-                        if (!TextUtils.equals(feature,Phone.FEATURE_ENABLE_DUN_ALWAYS)) {
+                        if (ni.isAvailable() == false
+                                && usedNetworkType != ConnectivityManager.TYPE_MOBILE_MMS) {
                             if (DBG) log("special network not available ni=" + ni.getTypeName());
                             return PhoneConstants.APN_TYPE_NOT_AVAILABLE;
                         } else {
@@ -2936,6 +2937,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
             mNetTransitionWakeLockSerialNumber++;
             mNetTransitionWakeLock.acquire();
             mNetTransitionWakeLockCausedBy = forWhom;
+            mNetTransitionWakeLock.release();
         }
         mHandler.sendMessageDelayed(mHandler.obtainMessage(
                 EVENT_CLEAR_NET_TRANSITION_WAKELOCK,

@@ -428,7 +428,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
     public final static int STREAM_REMOTE_MUSIC = -200;
 
     // Devices for which the volume is fixed and VolumePanel slider should be disabled
-    final int mFixedVolumeDevices = AudioSystem.DEVICE_OUT_AUX_DIGITAL |
+    final int mFixedVolumeDevices =
             AudioSystem.DEVICE_OUT_DGTL_DOCK_HEADSET |
             AudioSystem.DEVICE_OUT_ANLG_DOCK_HEADSET |
             AudioSystem.DEVICE_OUT_ALL_USB;
@@ -447,8 +447,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
     public AudioService(Context context) {
         mContext = context;
         mContentResolver = context.getContentResolver();
-        mVoiceCapable = mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_voice_capable);
+        mVoiceCapable = SystemProperties.getBoolean("ro.voice.capable", false);
 
         PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
         mMediaEventWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "handleMediaEvent");
