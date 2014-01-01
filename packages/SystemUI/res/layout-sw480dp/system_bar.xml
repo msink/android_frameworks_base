@@ -85,6 +85,20 @@
                     android:contentDescription="@string/accessibility_menu"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
                     />
+                <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/screenshot"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/capture"
+                    systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                    android:contentDescription="@string/accessibility_recent"
+                    />
+                <View
+                    android:layout_width="15dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:visibility="invisible"
+                    />
                 <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
                     android:layout_width="50dp"
                     android:layout_height="50dp"

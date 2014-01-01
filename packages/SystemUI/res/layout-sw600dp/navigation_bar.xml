@@ -53,6 +53,18 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 />
+            <LinearLayout
+                android:layout_width="80dp"
+                android:layout_height="match_parent">
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/screenshot"
+                android:layout_width="128dp" android:paddingLeft="25dp" android:paddingRight="25dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/capture"
+                android:layout_weight="0"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                android:contentDescription="@string/accessibility_recent"
+                />
+            </LinearLayout>
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
                 android:layout_width="128dp" android:paddingLeft="25dp" android:paddingRight="25dp"
                 android:layout_height="match_parent"
@@ -212,6 +224,18 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 />
+            <LinearLayout
+                android:layout_width="80dp"
+                android:layout_height="match_parent">
+             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/screenshot"
+                android:layout_width="match_parent" android:paddingLeft="2dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/capture"
+                android:layout_weight="0"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                android:contentDescription="@string/accessibility_recent"
+                />
+            </LinearLayout>
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
                 android:layout_width="148dp" android:paddingLeft="32dp" android:paddingRight="32dp"
                 android:layout_height="match_parent"

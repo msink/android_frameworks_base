@@ -151,6 +151,10 @@ public class NavigationBarView extends LinearLayout {
         return mCurrentView.findViewById(R.id.home);
     }
 
+    public View getScreenshotButton(){
+        return mCurrentView.findViewById(R.id.screenshot);
+    }
+
     // for when home is disabled, but search isn't
     public View getSearchLight() {
         return mCurrentView.findViewById(R.id.search_light);

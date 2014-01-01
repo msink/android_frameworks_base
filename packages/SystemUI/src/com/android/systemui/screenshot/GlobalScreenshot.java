@@ -43,7 +43,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -105,8 +107,7 @@ class SaveImageInBackgroundTask extends AsyncTask<SaveImageInBackgroundData, Voi
         // Prepare all the output metadata
         mImageTime = System.currentTimeMillis();
         String imageDate = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date(mImageTime));
-        String imageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES).getAbsolutePath();
+        String imageDir = Settings.System.getString(context.getContentResolver(), Settings.System.SCREENSHOT_LOCATION);
         mImageFileName = String.format(SCREENSHOT_FILE_NAME_TEMPLATE, imageDate);
         mImageFilePath = String.format(SCREENSHOT_FILE_PATH_TEMPLATE, imageDir,
                 SCREENSHOTS_DIR_NAME, mImageFileName);
@@ -290,6 +291,7 @@ class GlobalScreenshot {
 
     private MediaActionSound mCameraSound;
 
+    private int mHardwareRotation = 0;
 
     /**
      * @param context everything needs a context :(
@@ -343,6 +345,7 @@ class GlobalScreenshot {
         // Setup the Camera shutter sound
         mCameraSound = new MediaActionSound();
         mCameraSound.load(MediaActionSound.SHUTTER_CLICK);
+        mHardwareRotation = SystemProperties.getInt("ro.sf.hwrotation",0) / 90;
     }
 
     /**
@@ -362,6 +365,10 @@ class GlobalScreenshot {
      * @return the current display rotation in degrees
      */
     private float getDegreesForRotation(int value) {
+        if (mHardwareRotation % 2 != 0) {
+            value = (value + mHardwareRotation) % 4;
+        }
+
         switch (value) {
         case Surface.ROTATION_90:
             return 360f - 90f;
