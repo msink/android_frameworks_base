@@ -35,6 +35,10 @@ interface IBluetooth
     boolean enableNoAutoConnect();
     boolean disable();
 
+    boolean isRadioEnabled();
+    boolean enableRadio();
+    boolean disableRadio();
+
     String getAddress();
     ParcelUuid[] getUuids();
     boolean setName(in String name);
@@ -70,6 +74,7 @@ interface IBluetooth
     boolean setPasskey(in BluetoothDevice device, boolean accept, int len, in byte[]
     passkey);
     boolean setPairingConfirmation(in BluetoothDevice device, boolean accept);
+    boolean authorizeService(in BluetoothDevice device, in ParcelUuid uuid, boolean authorize, boolean autoReply);
 
     void sendConnectionStateChange(in BluetoothDevice device, int profile, int state, int prevState);
 

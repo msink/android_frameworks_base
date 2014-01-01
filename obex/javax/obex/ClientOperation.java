@@ -529,6 +529,19 @@ public final class ClientOperation implements Operation, BaseStream {
         return returnValue;
     }
 
+    private boolean mFitOnOnePacket = false;
+
+    public void setFitOnOneGetPacket(boolean fitOnOnePacket) {
+        mFitOnOnePacket = fitOnOnePacket;
+    }
+
+    private boolean canFitOnOneGetPacket() {
+        int totalLength = this.getHeaderLength();
+        if (mPrivateOutput != null)
+            totalLength += mPrivateOutput.size();
+        return (totalLength <= (mMaxPacketSize - 6));
+    }
+
     /**
      * This method starts the processing thread results. It will send the
      * initial request. If the response takes more then one packet, a thread
@@ -545,13 +558,18 @@ public final class ClientOperation implements Operation, BaseStream {
         if (mGetOperation) {
             if (!mOperationDone) {
                 mReplyHeader.responseCode = ResponseCodes.OBEX_HTTP_CONTINUE;
-                while ((more) && (mReplyHeader.responseCode == ResponseCodes.OBEX_HTTP_CONTINUE)) {
-                    more = sendRequest(0x03);
+
+                if (mFitOnOnePacket && canFitOnOneGetPacket()) {
+                    sendRequest(0x83);
+                } else {
+                    while ((more) && (mReplyHeader.responseCode == ResponseCodes.OBEX_HTTP_CONTINUE)) {
+                        more = sendRequest(0x03);
+                    }
+                    if (mReplyHeader.responseCode == ResponseCodes.OBEX_HTTP_CONTINUE) {
+                        mParent.sendRequest(0x83, null, mReplyHeader, mPrivateInput);
+                    }
                 }
 
-                if (mReplyHeader.responseCode == ResponseCodes.OBEX_HTTP_CONTINUE) {
-                    mParent.sendRequest(0x83, null, mReplyHeader, mPrivateInput);
-                }
                 if (mReplyHeader.responseCode != ResponseCodes.OBEX_HTTP_CONTINUE) {
                     mOperationDone = true;
                 }

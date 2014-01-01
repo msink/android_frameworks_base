@@ -36,6 +36,10 @@ interface IBluetoothManager
     boolean enableNoAutoConnect();
     boolean disable(boolean persist);
 
+    boolean isRadioEnabled();
+    boolean enableRadio();
+    boolean disableRadio();
+
     String getAddress();
     String getName();
 }

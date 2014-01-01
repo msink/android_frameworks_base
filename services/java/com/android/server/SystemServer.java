@@ -332,6 +332,8 @@ class ServerThread extends Thread {
                 Slog.i(TAG, "No Bluetooh Service (emulator)");
             } else if (factoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL) {
                 Slog.i(TAG, "No Bluetooth Service (factory test)");
+            } else if (SystemProperties.get("ro.rk.bt_enable", "true").equals("false")) {
+                Slog.i(TAG, "No Bluetooth Service (not support)");
             } else {
                 Slog.i(TAG, "Bluetooth Manager Service");
                 bluetooth = new BluetoothManagerService(context);

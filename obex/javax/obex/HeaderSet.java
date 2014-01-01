@@ -345,6 +345,19 @@ public final class HeaderSet {
                     }
                 }
                 break;
+            case CONNECTION_ID:
+                if (headerValue == null) {
+                    mConnectionID = null;
+                } else {
+                    if (!(headerValue instanceof byte[])) {
+                        throw new IllegalArgumentException(
+                                "CONNECTION_ID must be a byte array");
+                    } else {
+                        mConnectionID = new byte[((byte[])headerValue).length];
+                        System.arraycopy(headerValue, 0, mConnectionID, 0, mConnectionID.length);
+                    }
+                }
+                break;
             case OBJECT_CLASS:
                 if (headerValue == null) {
                     mObjectClass = null;
@@ -462,6 +475,8 @@ public final class HeaderSet {
                 return mTarget;
             case HTTP:
                 return mHttpHeader;
+            case CONNECTION_ID:
+                return mConnectionID;
             case WHO:
                 return mWho;
             case OBJECT_CLASS:
@@ -532,6 +547,9 @@ public final class HeaderSet {
         }
         if (mWho != null) {
             out.write(WHO);
+        }
+        if (mConnectionID != null) {
+            out.write(CONNECTION_ID);
         }
         if (mAppParam != null) {
             out.write(APPLICATION_PARAMETER);
