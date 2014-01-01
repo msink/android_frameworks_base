@@ -2049,6 +2049,8 @@ public abstract class Context {
      */
     public static final String WIFI_P2P_SERVICE = "wifip2p";
 
+    public static final String ETHERNET_SERVICE = "ethernet";
+
     /**
      * Use with {@link #getSystemService} to retrieve a {@link
      * android.net.nsd.NsdManager} for handling management of network service

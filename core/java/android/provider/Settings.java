@@ -1603,6 +1603,48 @@ public final class Settings {
         @Deprecated
         public static final String WIFI_STATIC_DNS2 = "wifi_static_dns2";
 
+        /*-------------------------------------------------------*/
+        /**
+         * Whether to use static IP and other static network attributes.
+         * <p>
+         * Set to 1 for true and 0 for false.
+         */
+        public static final String ETHERNET_USE_STATIC_IP = "ethernet_use_static_ip";
+
+        /**
+         * The static IP address.
+         * <p>
+         * Example: "192.168.1.51"
+         */
+        public static final String ETHERNET_STATIC_IP = "ethernet_static_ip";
+
+        /**
+         * If using static IP, the gateway's IP address.
+         * <p>
+         * Example: "192.168.1.1"
+         */
+        public static final String ETHERNET_STATIC_GATEWAY = "ethernet_static_gateway";
+
+        /**
+         * If using static IP, the net mask.
+         * <p>
+         * Example: "255.255.255.0"
+         */
+        public static final String ETHERNET_STATIC_NETMASK = "ethernet_static_netmask";
+
+        /**
+         * If using static IP, the primary DNS's IP address.
+         * <p>
+         * Example: "192.168.1.1"
+         */
+        public static final String ETHERNET_STATIC_DNS1 = "ethernet_static_dns1";
+
+        /**
+         * If using static IP, the secondary DNS's IP address.
+         * <p>
+         * Example: "192.168.1.2"
+         */
+        public static final String ETHERNET_STATIC_DNS2 = "ethernet_static_dns2";
 
         /**
          * Determines whether remote devices may discover and/or connect to
@@ -3129,6 +3171,8 @@ public final class Settings {
          */
         @Deprecated
         public static final String BLUETOOTH_ON = Global.BLUETOOTH_ON;
+
+        public static final String ETHERNET_ON = "ethernet_on";
 
         /**
          * @deprecated Use {@link android.provider.Settings.Global#DATA_ROAMING} instead

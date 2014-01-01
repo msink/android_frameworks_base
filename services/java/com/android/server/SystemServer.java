@@ -136,6 +136,7 @@ class ServerThread extends Thread {
         ConnectivityService connectivity = null;
         WifiP2pService wifiP2p = null;
         WifiService wifi = null;
+        EthernetService eth = null;
         NsdService serviceDiscovery= null;
         IPackageManager pm = null;
         Context context = null;
@@ -501,6 +502,16 @@ class ServerThread extends Thread {
                 wifiP2p.connectivityServiceReady();
             } catch (Throwable e) {
                 reportWtf("starting Connectivity Service", e);
+            }
+
+            if (SystemProperties.get("ro.rk.ethernet_enable", "true").equals("true")) {
+                try {
+                    Slog.i(TAG, "Ethernet Service");
+                    eth = new EthernetService(context);
+                    ServiceManager.addService(Context.ETHERNET_SERVICE, eth);
+                } catch (Throwable e) {
+                    reportWtf("starting Ethernet Service", e);
+                }
             }
 
             try {
