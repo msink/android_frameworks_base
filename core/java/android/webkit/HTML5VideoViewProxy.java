@@ -30,6 +30,7 @@ import android.net.http.SslError;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -124,7 +125,6 @@ class HTML5VideoViewProxy extends Handler
                             playerState);
                     if (playerState >= HTML5VideoView.STATE_PREPARED
                             && !foundInTree) {
-                        mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     }
                 }
             }
@@ -143,6 +143,7 @@ class HTML5VideoViewProxy extends Handler
                 int savePosition = 0;
                 boolean canSkipPrepare = false;
                 boolean forceStart = false;
+                SystemProperties.set("sys.video.fullscreen", "1");
                 if (mHTML5VideoView != null) {
                     // We don't allow enter full screen mode while the previous
                     // full screen video hasn't finished yet.
@@ -183,6 +184,7 @@ class HTML5VideoViewProxy extends Handler
                     client.onHideCustomView();
                 }
             }
+            SystemProperties.set("sys.video.fullscreen", "0");
         }
 
         // This is on the UI thread.
@@ -289,7 +291,7 @@ class HTML5VideoViewProxy extends Handler
         }
 
         public static void end() {
-            mHTML5VideoView.showControllerInFullScreen();
+            exitFullScreenVideo(mCurrentProxy, mCurrentProxy.getWebView());
             if (mCurrentProxy != null) {
                 if (isVideoSelfEnded)
                     mCurrentProxy.dispatchOnEnded();
@@ -297,6 +299,14 @@ class HTML5VideoViewProxy extends Handler
                     mCurrentProxy.dispatchOnPaused();
             }
             isVideoSelfEnded = false;
+        }
+
+        public static void error() {
+            if (mHTML5VideoView != null) {
+                mHTML5VideoView.reset();
+                mHTML5VideoView.deleteSurfaceTexture();
+                Log.d(LOGTAG, "media player error");
+            }
         }
     }
 
@@ -407,6 +417,7 @@ class HTML5VideoViewProxy extends Handler
                 if (client != null) {
                     client.onHideCustomView();
                 }
+                VideoPlayer.error();
                 break;
             }
             case LOAD_DEFAULT_POSTER: {
@@ -428,6 +439,7 @@ class HTML5VideoViewProxy extends Handler
             }
             case BUFFERING_END: {
                 VideoPlayer.setPlayerBuffering(false);
+                setBaseLayer(mWebView.getBaseLayer());
                 break;
             }
         }

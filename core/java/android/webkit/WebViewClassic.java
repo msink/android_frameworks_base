@@ -8512,6 +8512,10 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
         mHTML5VideoViewProxy = proxy;
     }
 
+    public HTML5VideoViewProxy getHTML5VideoViewProxy() {
+        return mHTML5VideoViewProxy;
+    }
+
     /**
      * Set the time to wait between passing touches to WebCore. See also the
      * TOUCH_SENT_INTERVAL member for further discussion.

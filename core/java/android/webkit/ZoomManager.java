@@ -360,6 +360,9 @@ class ZoomManager {
     }
 
     public final float computeScaleWithLimits(float scale) {
+        if (mInitialScale > 0 && mInitialScale < mMinZoomScale) {
+            mMinZoomScale = mInitialScale;
+        }
         if (scale < mMinZoomScale) {
             scale = mMinZoomScale;
         } else if (scale > mMaxZoomScale) {

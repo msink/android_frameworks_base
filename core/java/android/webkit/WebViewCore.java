@@ -760,7 +760,7 @@ public final class WebViewCore {
                             case REDUCE_PRIORITY:
                                 // 3 is an adjustable number.
                                 Process.setThreadPriority(
-                                        Process.THREAD_PRIORITY_DEFAULT + 3 *
+                                        Process.THREAD_PRIORITY_DEFAULT + 10 *
                                         Process.THREAD_PRIORITY_LESS_FAVORABLE);
                                 break;
 
@@ -1278,6 +1278,7 @@ public final class WebViewCore {
                                 mBrowserFrame = null;
                                 mSettings.onDestroyed();
                                 mNativeClass = 0;
+                                WebCoreThreadWatchdog.unregisterWebView(mWebViewClassic);
                                 mWebViewClassic = null;
                             }
                             break;
@@ -1982,7 +1983,6 @@ public final class WebViewCore {
             mEventHub.sendMessageAtFrontOfQueue(
                     Message.obtain(null, EventHub.DESTROY));
             mEventHub.blockMessages();
-            WebCoreThreadWatchdog.unregisterWebView(mWebViewClassic);
         }
     }
 
