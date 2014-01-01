@@ -100,6 +100,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     public static final boolean DEBUG_COMPAT_HELP = false;
     public static final String TAG = "TabletStatusBar";
 
+    public static boolean HIDE_TABLET_STATUSBAR = false;
 
     public static final int MSG_OPEN_NOTIFICATION_PANEL = 1000;
     public static final int MSG_CLOSE_NOTIFICATION_PANEL = 1001;
@@ -392,7 +393,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         final Display d = mWindowManager.getDefaultDisplay();
         final Point size = new Point();
         d.getRealSize(size);
-        return Math.max(res.getDimensionPixelSize(R.dimen.notification_panel_min_height), size.y);
+        return Math.min(res.getDimensionPixelSize(R.dimen.notification_panel_min_height), size.y);
     }
 
     @Override
@@ -428,6 +429,13 @@ public class TabletStatusBar extends BaseStatusBar implements
         mShowSearchHoldoff = mContext.getResources().getInteger(
                 R.integer.config_show_search_delay);
         updateSearchPanel();
+        WindowManager.LayoutParams lp =
+            (android.view.WindowManager.LayoutParams)
+            mStatusBarView.getLayoutParams();
+        if (lp != null) {
+            mStatusBarView.invalidate();
+            mWindowManager.updateViewLayout(mStatusBarView, lp);
+        }
     }
 
     protected void loadDimens() {
@@ -893,6 +901,7 @@ public class TabletStatusBar extends BaseStatusBar implements
                     mBarContents.setVisibility(View.VISIBLE);
                     mShadow.setVisibility(View.GONE);
                     mSystemUiVisibility &= ~View.SYSTEM_UI_FLAG_LOW_PROFILE;
+                    mStatusBarView.setVisibility(View.VISIBLE);
                     notifyUiVisibilityChanged();
                     break;
                 case MSG_HIDE_CHROME:
@@ -902,6 +911,11 @@ public class TabletStatusBar extends BaseStatusBar implements
                     mBarContents.setVisibility(View.GONE);
                     mShadow.setVisibility(View.VISIBLE);
                     mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+                    if (HIDE_TABLET_STATUSBAR) {
+                        mStatusBarView.setVisibility(View.GONE);
+                    } else {
+                        mStatusBarView.setVisibility(View.VISIBLE);
+                    }
                     notifyUiVisibilityChanged();
                     break;
                 case MSG_STOP_TICKER:
@@ -1149,19 +1163,21 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     @Override // CommandQueue
     public void setSystemUiVisibility(int vis, int mask) {
-        final int oldVal = mSystemUiVisibility;
-        final int newVal = (oldVal&~mask) | (vis&mask);
-        final int diff = newVal ^ oldVal;
+        if (vis != mSystemUiVisibility) {
+            mSystemUiVisibility = vis;
+            mHandler.removeMessages(MSG_HIDE_CHROME);
+            mHandler.removeMessages(MSG_SHOW_CHROME);
 
-        if (diff != 0) {
-            mSystemUiVisibility = newVal;
-
-            if (0 != (diff & View.SYSTEM_UI_FLAG_LOW_PROFILE)) {
-                mHandler.removeMessages(MSG_HIDE_CHROME);
-                mHandler.removeMessages(MSG_SHOW_CHROME);
-                mHandler.sendEmptyMessage(0 == (vis & View.SYSTEM_UI_FLAG_LOW_PROFILE)
-                        ? MSG_SHOW_CHROME : MSG_HIDE_CHROME);
+            int fs = vis & View.GONE;
+            int lp = vis & View.SYSTEM_UI_FLAG_LOW_PROFILE;
+            if (fs != 0) {
+                HIDE_TABLET_STATUSBAR = true;
+            } else {
+                HIDE_TABLET_STATUSBAR = false;
             }
+
+            mHandler.sendEmptyMessage((lp != 0) || (fs != 0)
+                        ? MSG_HIDE_CHROME : MSG_SHOW_CHROME);
 
             notifyUiVisibilityChanged();
         }
@@ -1622,6 +1638,9 @@ public class TabletStatusBar extends BaseStatusBar implements
             if (v.getParent() == null) {
                 mIconLayout.addView(v, i, params);
             }
+        }
+        if (toShow.size() > 0) {
+            mFeedbackIconArea.setVisibility(View.VISIBLE);
         }
     }
 

@@ -73,7 +73,10 @@ public class TabletStatusBarView extends FrameLayout {
             view = findViewById(R.id.nav_buttons);
         }
         mDelegateHelper.setSourceView(view);
-        mDelegateHelper.setInitialTouchRegion(view);
+        View mBackButton = view.findViewById(R.id.back);
+        View mHomeButton = view.findViewById(R.id.home);
+        View mRecentsButton = view.findViewById(R.id.recent_apps);
+        mDelegateHelper.setInitialTouchRegion(mBackButton, mHomeButton, mRecentsButton);
     }
 
     @Override

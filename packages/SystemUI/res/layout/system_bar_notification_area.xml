@@ -37,8 +37,8 @@
 
         <com.android.systemui.statusbar.tablet.InputMethodButton
             android:id="@+id/imeSwitchButton"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:layout_marginLeft="8dip"
             android:src="@drawable/ic_sysbar_ime_default"
             android:visibility="gone"
@@ -47,8 +47,8 @@
 
         <com.android.systemui.statusbar.policy.CompatModeButton
             android:id="@+id/compatModeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:layout_marginLeft="8dip"
             android:src="@drawable/ic_sysbar_zoom"
             android:visibility="gone"
