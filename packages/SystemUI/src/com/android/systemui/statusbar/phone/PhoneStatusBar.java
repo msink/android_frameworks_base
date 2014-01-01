@@ -47,6 +47,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.service.dreams.DreamService;
@@ -197,8 +198,12 @@ public class PhoneStatusBar extends BaseStatusBar {
     View mFlipSettingsView;
     QuickSettingsContainerView mSettingsContainer;
     int mSettingsPanelGravity;
+    private String isEnableShowVoiceIcon =
+        SystemProperties.get("ro.rk.systembar.voiceicon");
 
     // top bar
+    View mVolumeDownButton;
+    View mVolumeUpButton;
     View mNotificationPanelHeader;
     View mDateTimeView; 
     View mClearButton;

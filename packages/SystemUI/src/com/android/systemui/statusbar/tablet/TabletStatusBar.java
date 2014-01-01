@@ -39,6 +39,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.storage.StorageManager;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.Slog;
 import android.view.Display;
@@ -132,6 +133,10 @@ public class TabletStatusBar extends BaseStatusBar implements
     View mHomeButton;
     View mMenuButton;
     View mRecentButton;
+    View mVolumeDownButton;
+    View mVolumeUpButton;
+    private String isEnableShowVoiceIcon =
+            SystemProperties.get("ro.rk.systembar.voiceicon");
     private boolean mAltBackButtonEnabledForIme;
     private StorageManager mStorageManager;
 
@@ -386,6 +391,18 @@ public class TabletStatusBar extends BaseStatusBar implements
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
         loadDimens();
+        if ("true".equals(isEnableShowVoiceIcon) && (mDisabled &
+                (View.STATUS_BAR_DISABLE_RECENT |
+                 View.STATUS_BAR_DISABLE_BACK |
+                 View.STATUS_BAR_DISABLE_HOME)) == 0) {
+            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                mVolumeUpButton.setVisibility(View.VISIBLE);
+                mVolumeDownButton.setVisibility(View.VISIBLE);
+            } else {
+                mVolumeUpButton.setVisibility(View.GONE);
+                mVolumeDownButton.setVisibility(View.GONE);
+            }
+        }
         mNotificationPanelParams.height = getNotificationPanelHeight();
         mWindowManager.updateViewLayout(mNotificationPanel, mNotificationPanelParams);
         mShowSearchHoldoff = mContext.getResources().getInteger(
@@ -505,8 +522,18 @@ public class TabletStatusBar extends BaseStatusBar implements
         mNavigationArea = (ViewGroup) sb.findViewById(R.id.navigationArea);
         mHomeButton = mNavigationArea.findViewById(R.id.home);
         mMenuButton = mNavigationArea.findViewById(R.id.menu);
+        mVolumeDownButton = mNavigationArea.findViewById(R.id.sub);
+        mVolumeUpButton = mNavigationArea.findViewById(R.id.add);
         mRecentButton = mNavigationArea.findViewById(R.id.recent_apps);
         mRecentButton.setOnClickListener(mOnClickListener);
+
+        if ("true".equals(isEnableShowVoiceIcon)) {
+            mVolumeUpButton.setVisibility(View.VISIBLE);
+            mVolumeDownButton.setVisibility(View.VISIBLE);
+        } else {
+            mVolumeUpButton.setVisibility(View.GONE);
+            mVolumeDownButton.setVisibility(View.GONE);
+        }
 
         LayoutTransition lt = new LayoutTransition();
         lt.setDuration(250);
@@ -952,6 +979,12 @@ public class TabletStatusBar extends BaseStatusBar implements
         mBackButton.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         mHomeButton.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
         mRecentButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+        if ("true".equals(isEnableShowVoiceIcon) &&
+               mContext.getResources().getConfiguration()
+               .orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mVolumeUpButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+            mVolumeDownButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+        }
 
         mInputMethodSwitchButton.setScreenLocked(
                 (visibility & StatusBarManager.DISABLE_SYSTEM_INFO) != 0);

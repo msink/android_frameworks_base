@@ -229,7 +229,7 @@ public class RingtoneManager {
     private boolean mStopPreviousRingtone = true;
     private Ringtone mPreviousRingtone;
 
-    private boolean mIncludeDrm;
+    private boolean mIncludeDrm = true;
     
     /**
      * Constructs a RingtoneManager. This constructor is recommended as its

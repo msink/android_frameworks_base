@@ -994,7 +994,7 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
 
     private void forceTimeout() {
         removeMessages(MSG_TIMEOUT);
-        sendMessage(obtainMessage(MSG_TIMEOUT));
+        sendMessageDelayed(obtainMessage(MSG_TIMEOUT), 250);
     }
 
     public void onProgressChanged(SeekBar seekBar, int progress,

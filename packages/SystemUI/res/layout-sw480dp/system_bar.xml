@@ -85,6 +85,36 @@
                     android:contentDescription="@string/accessibility_menu"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
                     />
+                <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/sub_normal"
+                    systemui:keyCode="25"
+                    systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                    android:contentDescription="@string/accessibility_recent"
+                    />
+                <View
+                    android:layout_width="15dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:visibility="invisible"
+                    />
+                <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/add"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/add_normal"
+                    systemui:keyCode="24"
+                    systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                    android:contentDescription="@string/accessibility_recent"
+                    />
+                <View
+                    android:layout_width="15dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:visibility="invisible"
+                    />
                 <View
                     android:layout_width="15dp"
                     android:layout_height="match_parent"
