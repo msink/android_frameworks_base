@@ -126,7 +126,8 @@ public class CommandQueue extends IStatusBar.Stub {
             NotificationQueueEntry ne = new NotificationQueueEntry();
             ne.key = key;
             ne.notification = notification;
-            mHandler.obtainMessage(MSG_ADD_NOTIFICATION, 0, 0, ne).sendToTarget();
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(
+                MSG_ADD_NOTIFICATION, 0, 0, ne), 300);
         }
     }
 
@@ -141,7 +142,8 @@ public class CommandQueue extends IStatusBar.Stub {
 
     public void removeNotification(IBinder key) {
         synchronized (mList) {
-            mHandler.obtainMessage(MSG_REMOVE_NOTIFICATION, 0, 0, key).sendToTarget();
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(
+                MSG_REMOVE_NOTIFICATION, 0, 0, key), 500);
         }
     }
 

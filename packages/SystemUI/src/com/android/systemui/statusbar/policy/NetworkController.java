@@ -169,6 +169,8 @@ public class NetworkController extends BroadcastReceiver {
 
     boolean mDataAndWifiStacked = false;
 
+    private boolean mLocaleChanged = false;
+
     // yuck -- stop doing this here and put it in the framework
     IBatteryStats mBatteryStats;
 
@@ -253,6 +255,7 @@ public class NetworkController extends BroadcastReceiver {
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         filter.addAction(ETHERNET_STATE_CHANGED_ACTION);
+        filter.addAction(Intent.ACTION_LOCALE_CHANGED);
         mWimaxSupported = mContext.getResources().getBoolean(
                 com.android.internal.R.bool.config_wimaxEnabled);
         if(mWimaxSupported) {
@@ -430,6 +433,9 @@ public class NetworkController extends BroadcastReceiver {
                 action.equals(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION) ||
                 action.equals(WimaxManagerConstants.WIMAX_NETWORK_STATE_CHANGED_ACTION)) {
             updateWimaxState(intent);
+            refreshViews();
+        } else if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
+            mLocaleChanged = true;
             refreshViews();
         }
     }
@@ -1222,7 +1228,8 @@ public class NetworkController extends BroadcastReceiver {
                     + " mBluetoothTetherIconId=0x" + Integer.toHexString(mBluetoothTetherIconId));
         }
 
-        if (mLastPhoneSignalIconId          != mPhoneSignalIconId
+        if (mLocaleChanged
+         || mLastPhoneSignalIconId          != mPhoneSignalIconId
          || mLastDataDirectionOverlayIconId != combinedActivityIconId
          || mLastWifiIconId                 != mWifiIconId
          || mlastEthIconId                  != mEthIconId
@@ -1231,6 +1238,7 @@ public class NetworkController extends BroadcastReceiver {
          || mLastDataTypeIconId             != mDataTypeIconId
          || mLastAirplaneMode               != mAirplaneMode)
         {
+            mLocaleChanged = false;
             // NB: the mLast*s will be updated later
             for (SignalCluster cluster : mSignalClusters) {
                 refreshSignalCluster(cluster);
