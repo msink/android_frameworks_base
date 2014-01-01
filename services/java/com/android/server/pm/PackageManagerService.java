@@ -293,6 +293,8 @@ public class PackageManagerService extends IPackageManager.Stub {
     final File mVendorAppDir;
     final File mAppInstallDir;
     final File mDalvikCacheDir;
+    final File mPreinstallAppDir;
+    final File mPreinstallAppDelDir;
 
     /**
      * Directory to which applications installed internally have native
@@ -1168,6 +1170,19 @@ public class PackageManagerService extends IPackageManager.Stub {
             scanDirLI(mVendorAppDir, PackageParser.PARSE_IS_SYSTEM
                     | PackageParser.PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
+            mPreinstallAppDir = new File(Environment.getRootDirectory(), "preinstall");
+            mPreinstallAppDelDir = new File(Environment.getRootDirectory(), "preinstall_del");
+            if (!SystemProperties.getBoolean("persist.sys.preinstalled", false)) {
+                if (mPreinstallAppDir.exists()) {
+                    copyPackagesToAppInstallDir(mPreinstallAppDir);
+                }
+                if (mPreinstallAppDelDir.exists()) {
+                    copyPackagesToAppInstallDir(mPreinstallAppDelDir);
+                    deletePreinstallDir();
+                }
+                SystemProperties.set("persist.sys.preinstalled", "1");
+            }
+
             if (DEBUG_UPGRADE) Log.v(TAG, "Running installd update commands");
             mInstaller.moveFiles();
 
@@ -1316,6 +1331,39 @@ public class PackageManagerService extends IPackageManager.Stub {
             mRequiredVerifierPackage = getRequiredVerifierLPr();
         } // synchronized (mPackages)
         } // synchronized (mInstallLock)
+    }
+
+    private void copyPackagesToAppInstallDir(File srcDir) {
+        String[] files = srcDir.list();
+        if (files == null) {
+            Log.d(TAG, "No files in app dir " + srcDir);
+            return;
+        }
+
+        int i;
+        for (i = 0; i < files.length; i++) {
+            File srcFile = new File(srcDir, files[i]);
+            File destFile = new File(mAppInstallDir, files[i]);
+            Slog.d(TAG, "Copy " + srcFile.getPath() + " to " + destFile.getPath());
+            if (!isPackageFilename(files[i])) {
+                // Ignore entries which are not apk's
+                continue;
+            }
+            if (!FileUtils.copyFile(srcFile, destFile)) {
+                Slog.d(TAG, "Copy " + srcFile.getPath() + " to " + destFile.getPath() + " fail");
+                continue;
+            }
+            FileUtils.setPermissions(destFile.getAbsolutePath(), FileUtils.S_IRUSR
+                    | FileUtils.S_IWUSR | FileUtils.S_IRGRP | FileUtils.S_IROTH, -1, -1);
+        }
+    }
+
+    private void deletePreinstallDir() {
+        String[] files = mPreinstallAppDelDir.list();
+        if (files != null) {
+            Slog.d(TAG, "Ready to cleanup preinstall");
+            SystemProperties.set("ctl.start", "preinst_clr");
+        }
     }
 
     public boolean isFirstBoot() {
