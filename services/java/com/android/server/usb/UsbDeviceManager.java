@@ -198,7 +198,7 @@ public class UsbDeviceManager {
         final StorageManager storageManager = StorageManager.from(mContext);
         final StorageVolume primary = storageManager.getPrimaryVolume();
         massStorageSupported = primary != null && primary.allowMassStorage();
-        mUseUsbNotification = !massStorageSupported;
+        mUseUsbNotification = true;
 
         // make sure the ADB_ENABLED setting value matches the current state
         Settings.Global.putInt(mContentResolver, Settings.Global.ADB_ENABLED, mAdbEnabled ? 1 : 0);
@@ -562,6 +562,14 @@ public class UsbDeviceManager {
                 }
             }
 
+            boolean isMassStorage = containsFunction(mCurrentFunctions,
+                UsbManager.USB_FUNCTION_MASS_STORAGE);
+            if (mConnected && mConfigured && isMassStorage) {
+                SystemProperties.set("sys.usb.umsavailible", "true");
+            } else {
+                SystemProperties.set("sys.usb.umsavailible", "false");
+            }
+
             mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
         }
 
@@ -634,6 +642,7 @@ public class UsbDeviceManager {
                     if (mDebuggingManager != null) {
                         mDebuggingManager.setAdbEnabled(mAdbEnabled);
                     }
+                    updateUsbState();
                     break;
                 case MSG_USER_SWITCHED: {
                     final boolean mtpActive =
@@ -665,7 +674,6 @@ public class UsbDeviceManager {
                     id = com.android.internal.R.string.usb_ptp_notification_title;
                 } else if (containsFunction(mCurrentFunctions,
                         UsbManager.USB_FUNCTION_MASS_STORAGE)) {
-                    id = com.android.internal.R.string.usb_cd_installer_notification_title;
                 } else if (containsFunction(mCurrentFunctions, UsbManager.USB_FUNCTION_ACCESSORY)) {
                     id = com.android.internal.R.string.usb_accessory_notification_title;
                 } else {

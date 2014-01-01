@@ -3322,7 +3322,7 @@
     <!-- Shown when external media is being checked [CHAR LIMIT=30] -->
     <string name="ext_media_checking_notification_title" product="nosdcard">Preparing USB storage</string>
     <!-- Shown when external media is being checked -->
-    <string name="ext_media_checking_notification_title" product="default">Preparing SD card</string>
+    <string name="ext_media_checking_notification_title" product="default">Preparing storage</string>
     <string name="ext_media_checking_notification_message">Checking for errors.</string>
 
     <!-- Shown when external media is blank (or unsupported filesystem) [CHAR LIMIT=30] -->
@@ -3331,39 +3331,39 @@
     <string name="ext_media_nofs_notification_title" product="default">Blank SD card</string>
     <!-- Shown when USB storage cannot be read.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_nofs_notification_message" product="nosdcard">USB storage is blank or has unsupported filesystem.</string>
-    <string name="ext_media_nofs_notification_message" product="default">SD card is blank or has unsupported filesystem.</string>
+    <string name="ext_media_nofs_notification_message" product="default">Storage blank or has unsupported filesystem.</string>
 
     <!-- Shown when external media is unmountable (corrupt)) [CHAR LIMIT=30] -->
     <string name="ext_media_unmountable_notification_title" product="nosdcard">Damaged USB storage</string>
     <!-- Shown when external media is unmountable (corrupt)) -->
-    <string name="ext_media_unmountable_notification_title" product="default">Damaged SD card</string>
+    <string name="ext_media_unmountable_notification_title" product="default">Damaged Storage</string>
     <!-- Shown when USB storage cannot be read.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_unmountable_notification_message" product="nosdcard">USB storage is damaged. Try reformatting it.</string>
-    <string name="ext_media_unmountable_notification_message" product="default">SD card is damaged. Try reformatting it.</string>
+    <string name="ext_media_unmountable_notification_message" product="default">Storage damaged. You may have to reformat it.</string>
 
     <!-- Shown when external media is unsafely removed [CHAR LIMIT=30] -->
     <string name="ext_media_badremoval_notification_title" product="nosdcard">USB storage unexpectedly removed</string>
     <!-- Shown when external media is unsafely removed -->
-    <string name="ext_media_badremoval_notification_title" product="default">SD card unexpectedly removed</string>
+    <string name="ext_media_badremoval_notification_title" product="default">Storage unexpectedly removed</string>
     <!-- Shown when external media is unsafely removed.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_badremoval_notification_message" product="nosdcard">Unmount USB storage before removing to avoid data loss.</string>
-    <string name="ext_media_badremoval_notification_message" product="default">Unmount SD card before removing to avoid data loss.</string>
+    <string name="ext_media_badremoval_notification_message" product="default">Unmount storage before removing to avoid data loss.</string>
 
     <!-- Shown when external media has been safely removed [CHAR LIMIT=30] -->
     <string name="ext_media_safe_unmount_notification_title" product="nosdcard">USB storage safe to remove</string>
     <!-- Shown when external media has been safely removed -->
-    <string name="ext_media_safe_unmount_notification_title" product="default">SD card safe to remove</string>
+    <string name="ext_media_safe_unmount_notification_title" product="default">Storage safe to remove</string>
     <!-- Shown when external media has been safely removed.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_safe_unmount_notification_message" product="nosdcard">You can safely remove USB storage.</string>
-    <string name="ext_media_safe_unmount_notification_message" product="default">You can safely remove SD card.</string>
+    <string name="ext_media_safe_unmount_notification_message" product="default">You can safely remove storage.</string>
 
     <!-- Shown when external media is missing [CHAR LIMIT=30] -->
     <string name="ext_media_nomedia_notification_title" product="nosdcard">Removed USB storage</string>
     <!-- Shown when external media is missing -->
-    <string name="ext_media_nomedia_notification_title" product="default">Removed SD card</string>
+    <string name="ext_media_nomedia_notification_title" product="default">Removed storage</string>
     <!-- Shown when external media is missing.  [CHAR LIMIT=NONE] -->
     <string name="ext_media_nomedia_notification_message" product="nosdcard">USB storage removed. Insert new media.</string>
-    <string name="ext_media_nomedia_notification_message" product="default">SD card removed. Insert a new one.</string>
+    <string name="ext_media_nomedia_notification_message" product="default">Storage removed. Insert a new one.</string>
 
     <!-- Shown in LauncherActivity when the requested target Intent didn't return any matching Activities, leaving the list empty. -->
     <string name="activity_list_empty">No matching activities found.</string>
@@ -3530,27 +3530,27 @@
     <!-- Text for progress dialog while unmounting USB storage volume [CHAR LIMIT=NONE] -->
     <string name="progress_unmounting" product="nosdcard">Unmounting USB storage\u2026</string>
     <!-- Text for progress dialog while unmounting SD card [CHAR LIMIT=NONE] -->
-    <string name="progress_unmounting" product="default">Unmounting SD card\u2026</string>
+    <string name="progress_unmounting" product="default">Unmounting storage...</string>
     <!-- Text for progress dialog while erasing USB storage volume [CHAR LIMIT=NONE] -->
     <string name="progress_erasing" product="nosdcard">Erasing USB storage\u2026</string>
     <!-- Text for progress dialog while erasing SD card [CHAR LIMIT=NONE] -->
-    <string name="progress_erasing" product="default">Erasing SD card\u2026</string>
+    <string name="progress_erasing" product="default">Erasing storage...</string>
     <!-- Text for message to user that an error happened when formatting USB storage [CHAR LIMIT=NONE] -->
     <string name="format_error" product="nosdcard">Couldn\'t erase USB storage.</string>
     <!-- Text for message to user that an error happened when formatting SD card [CHAR LIMIT=NONE] -->
-    <string name="format_error" product="default">Couldn\'t erase SD card.</string>
+    <string name="format_error" product="default">Couldn\'t erase storage.</string>
     <!-- Text for message to user that SD card has been removed while in use [CHAR LIMIT=NONE] -->
-    <string name="media_bad_removal">SD card was removed before being unmounted.</string>
+    <string name="media_bad_removal">Storage was removed before being unmounted.</string>
     <!-- Text for message to user USB storage is currently being checked [CHAR LIMIT=NONE] -->
     <string name="media_checking" product="nosdcard">USB storage is currently being checked.</string>
     <!-- Text for message to user SD card is currently being checked [CHAR LIMIT=NONE] -->
-    <string name="media_checking" product="default">SD card is currently being checked.</string>
+    <string name="media_checking" product="default">Storage is currently being checked.</string>
     <!-- Text for message to user SD card has been removed [CHAR LIMIT=NONE] -->
-    <string name="media_removed">SD card has been removed.</string>
+    <string name="media_removed">Storage has been removed.</string>
     <!-- Text for message to user USB storage is currently mounted on a computer [CHAR LIMIT=NONE] -->
     <string name="media_shared" product="nosdcard">USB storage is currently in use by a computer.</string>
     <!-- Text for message to user SD card is currently mounted on a computer [CHAR LIMIT=NONE] -->
-    <string name="media_shared" product="default">SD card is currently in use by a computer.</string>
+    <string name="media_shared" product="default">Storage is currently in use by a computer.</string>
     <!-- Text for message for an unknown external media state [CHAR LIMIT=NONE] -->
     <string name="media_unknown_state">External media in unknown state.</string>
 
