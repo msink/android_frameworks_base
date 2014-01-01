@@ -30,6 +30,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
@@ -42,8 +43,12 @@ import android.text.format.Time;
 import android.util.Pair;
 import android.util.Slog;
 import android.util.TimeUtils;
+import android.util.Xml;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,10 +59,14 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import com.android.internal.util.LocalLog;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 class AlarmManagerService extends IAlarmManager.Stub {
     // The threshold for how long an alarm can be late before we print a
@@ -105,6 +114,9 @@ class AlarmManagerService extends IAlarmManager.Stub {
     private final ResultReceiver mResultReceiver = new ResultReceiver();
     private final PendingIntent mTimeTickSender;
     private final PendingIntent mDateChangeSender;
+    private final List<String> packageList = new ArrayList<String>();
+    private File  rootDir;
+    private File  alarmFilter;
 
     private static final class InFlight extends Intent {
         final PendingIntent mPendingIntent;
@@ -191,6 +203,11 @@ class AlarmManagerService extends IAlarmManager.Stub {
         mClockReceiver.scheduleTimeTickEvent();
         mClockReceiver.scheduleDateChangedEvent();
         mUninstallReceiver = new UninstallReceiver();
+
+        //create a xml file to list the packages that will be filterd
+        rootDir = Environment.getRootDirectory();
+        alarmFilter = new File(rootDir, "etc/alarm_filter.xml");
+        resolve(alarmFilter);
         
         if (mDescriptor != -1) {
             mWaitThread.start();
@@ -207,6 +224,42 @@ class AlarmManagerService extends IAlarmManager.Stub {
         }
     }
     
+    private void resolve(File file) {
+        if (!file.exists()) {
+            Slog.d(TAG, " Failed while trying resolve alarm filter file, not exists");
+            return;
+        }
+
+        try {
+            FileInputStream stream = new FileInputStream(file);
+            XmlPullParser parser = Xml.newPullParser();
+            parser.setInput(stream, null);
+
+            int type;
+            do {
+                type = parser.next();
+                if (type == XmlPullParser.START_TAG) {
+                    String tag = parser.getName();
+
+                    if ("app".equals(tag)) {
+                        String pkgName = parser.getAttributeValue(null, "package");
+                        packageList.add(pkgName);
+                    }
+                }
+            } while(type != XmlPullParser.END_DOCUMENT);
+        } catch (NullPointerException e) {
+            Slog.w(TAG, "Warning, failed parsing alarm_filter.xml: " + e);
+        } catch (NumberFormatException e) {
+            Slog.w(TAG, "Warning, failed parsing alarm_filter.xml: " + e);
+        } catch (XmlPullParserException e) {
+            Slog.w(TAG, "Warning, failed parsing alarm_filter.xml: " + e);
+        } catch (IOException e) {
+            Slog.w(TAG, "Warning, failed parsing alarm_filter.xml: " + e);
+        } catch (IndexOutOfBoundsException e) {
+            Slog.w(TAG, "Warning, failed parsing alarm_filter.xml: " + e);
+        }
+    }
+
     public void set(int type, long triggerAtTime, PendingIntent operation) {
         setRepeating(type, triggerAtTime, 0, operation);
     }
@@ -217,9 +270,22 @@ class AlarmManagerService extends IAlarmManager.Stub {
             Slog.w(TAG, "set/setRepeating ignored because there is no intent");
             return;
         }
+
+        int alarmType = type;
+        String pkgName = operation.getTargetPackage();
+        if (packageList != null) {
+            if (packageList.contains(pkgName)) {
+                if (alarmType == 0) {
+                    alarmType = 1;
+                } else if (alarmType == 2) {
+                     alarmType = 3;
+                }
+            }
+        }
+
         synchronized (mLock) {
             Alarm alarm = new Alarm();
-            alarm.type = type;
+            alarm.type = alarmType;
             alarm.when = triggerAtTime;
             alarm.repeatInterval = interval;
             alarm.operation = operation;
