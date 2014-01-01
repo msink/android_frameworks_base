@@ -3591,7 +3591,14 @@ class BackupManagerService extends IBackupManager.Stub {
                             } else {
                                 // So far so good -- do the signatures match the manifest?
                                 Signature[] sigs = mManifestSignatures.get(info.packageName);
-                                if (!signaturesMatch(sigs, pkg)) {
+                                if (signaturesMatch(sigs, pkg)) {
+                                    if (pkg.applicationInfo.uid < Process.FIRST_APPLICATION_UID &&
+                                               pkg.applicationInfo.backupAgentName == null) {
+                                        Slog.w(TAG, "Installed app " + info.packageName
+                                            + " has restricted uid and no agent");
+                                        okay = false;
+                                    }
+                                } else {
                                     Slog.w(TAG, "Installed app " + info.packageName
                                             + " signatures do not match restore manifest");
                                     okay = false;

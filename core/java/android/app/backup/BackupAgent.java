@@ -440,21 +440,22 @@ public abstract class BackupAgent extends ContextWrapper {
             basePath = getCacheDir().getCanonicalPath();
         } else {
             // Not a supported location
-            Log.i(TAG, "Data restored from non-app domain " + domain + ", ignoring");
+            Log.i(TAG, "Unrecognized domain " + domain);
         }
 
         // Now that we've figured out where the data goes, send it on its way
         if (basePath != null) {
             File outFile = new File(basePath, path);
-            if (DEBUG) Log.i(TAG, "[" + domain + " : " + path + "] mapped to " + outFile.getPath());
-            onRestoreFile(data, size, outFile, type, mode, mtime);
-        } else {
-            // Not a supported output location?  We need to consume the data
-            // anyway, so just use the default "copy the data out" implementation
-            // with a null destination.
-            if (DEBUG) Log.i(TAG, "[ skipping data from unsupported domain " + domain + "]");
-            FullBackup.restoreFile(data, size, type, mode, mtime, null);
+            String outPath = outFile.getCanonicalPath();
+            if (outPath.startsWith(basePath + File.separatorChar)) {
+                if (DEBUG) Log.i(TAG, "[" + domain + " : " + path + "] mapped to " + outPath);
+                onRestoreFile(data, size, outFile, type, mode, mtime);
+                return;
+            }
+            Log.e(TAG, "Cross-domain restore attempt: " + outPath);
         }
+        if (DEBUG) Log.i(TAG, "[ skipping file " + path + "]");
+        FullBackup.restoreFile(data, size, type, mode, mtime, null);
     }
 
     // ----- Core implementation -----
