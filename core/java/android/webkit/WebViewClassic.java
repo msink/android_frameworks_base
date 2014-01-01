@@ -706,6 +706,17 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     boolean mIsBatchingTextChanges = false;
     private long mLastEditScroll = 0;
 
+    private boolean mInDrag = false;
+    private boolean mInZoom = false;
+
+    private boolean tryExitA2() {
+        if (mInDrag || mInZoom) {
+            return false;
+        }
+        mWebView.exitA2(View.DEFAULT_EXIT_A2_DELAY);
+        return true;
+    }
+
     private static class OnTrimMemoryListener implements ComponentCallbacks2 {
         private static OnTrimMemoryListener sInstance = null;
 
@@ -3813,6 +3824,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
             invalidate();  // So we draw again
 
             if (!mScroller.isFinished()) {
+                mSendScroll.setPostpone(true);
                 int rangeX = computeMaxScrollX();
                 int rangeY = computeMaxScrollY();
                 int overflingDistance = mOverflingDistance;
@@ -3840,6 +3852,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
                 if (mOverScrollGlow != null) {
                     mOverScrollGlow.absorbGlow(x, y, oldX, oldY, rangeX, rangeY);
                 }
+                mSendScroll.setPostpone(false);
             } else {
                 if (mTouchMode == TOUCH_DRAG_LAYER_MODE) {
                     // Update the layer position instead of WebView.
@@ -3859,7 +3872,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
                     }
                 }
                 if (oldX != getScrollX() || oldY != getScrollY()) {
-                    sendOurVisibleRect();
+                    mSendScroll.send(true);
                 }
             }
         } else {
@@ -4505,9 +4518,13 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     }
 
     private void onZoomAnimationStart() {
+        mInZoom = true;
+        mWebView.enterA2();
     }
 
     private void onZoomAnimationEnd() {
+        mInZoom = false;
+        tryExitA2();
         mPrivateHandler.sendEmptyMessage(RELOCATE_AUTO_COMPLETE_POPUP);
     }
 
@@ -4716,7 +4733,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
             if (oldScrollX != getScrollX() || oldScrollY != getScrollY()) {
                 mWebViewPrivate.onScrollChanged(getScrollX(), getScrollY(), oldScrollX, oldScrollY);
             } else {
-                sendOurVisibleRect();
+                mSendScroll.send(true);
             }
         }
     }
@@ -5382,7 +5399,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
         ClipData clipData = cm.getPrimaryClip();
         if (clipData != null) {
             ClipData.Item clipItem = clipData.getItemAt(0);
-            CharSequence pasteText = clipItem.getText();
+            CharSequence pasteText = clipItem.coerceToText(mContext);
             if (mInputConnection != null) {
                 mInputConnection.replaceSelection(pasteText);
             }
@@ -5674,10 +5691,33 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
         contentScrollTo(scrollX, scrollY, false);
     }
 
+    private final class SendScrollToWebCore implements Runnable {
+        public void run() {
+            if (!mInOverScrollMode) {
+                sendOurVisibleRect();
+            }
+        }
+        private boolean mPostpone = false;
+        public void setPostpone(boolean set) { mPostpone = set; }
+        public void send(boolean force) {
+            mPrivateHandler.removeCallbacks(this);
+            if (!mPostpone || force) {
+                run();
+            } else {
+                mPrivateHandler.postAtFrontOfQueue(this);
+            }
+        }
+    }
+
+    SendScrollToWebCore mSendScroll = new SendScrollToWebCore();
+
     @Override
     public void onScrollChanged(int l, int t, int oldl, int oldt) {
+        if (tryExitA2()) {
+            mWebView.enterA2(View.DEFAULT_EXIT_A2_DELAY);
+        }
+        mSendScroll.send(false);
         if (!mInOverScrollMode) {
-            sendOurVisibleRect();
             // update WebKit if visible title bar height changed. The logic is same
             // as getVisibleTitleHeightImpl.
             int titleHeight = getTitleHeight();
@@ -6311,6 +6351,8 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     }
 
     private void startDrag() {
+        mInDrag = true;
+        mWebView.enterA2();
         WebViewCore.reducePriority();
         // to get better performance, pause updating the picture
         WebViewCore.pauseUpdatePicture(mWebViewCore);
@@ -6387,6 +6429,8 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     }
 
     private void stopTouch() {
+        mInDrag = false;
+        tryExitA2();
         if (mScroller.isFinished() && !mSelectingText
                 && (mTouchMode == TOUCH_DRAG_MODE
                 || mTouchMode == TOUCH_DRAG_LAYER_MODE)) {
@@ -6419,6 +6463,9 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     }
 
     private void cancelTouch() {
+        mInDrag = false;
+        tryExitA2();
+
         // we also use mVelocityTracker == null to tell us that we are
         // not "moving around", so we can take the slower/prettier
         // mode in the drawing code
@@ -8366,7 +8413,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
             mListBoxDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialog) {
-                    mWebViewCore.sendMessage(
+                    if (mWebViewCore != null) mWebViewCore.sendMessage(
                                 EventHub.SINGLE_LISTBOX_CHOICE, -2, 0);
                     mListBoxDialog = null;
                 }
