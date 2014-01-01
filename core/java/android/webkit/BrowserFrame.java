@@ -71,6 +71,8 @@ class BrowserFrame extends Handler {
      */
     private final static int MAX_OUTSTANDING_REQUESTS = 300;
 
+    private final static String SCHEME_HOST_DELIMITER = "://";
+
     private final CallbackProxy mCallbackProxy;
     private final WebSettingsClassic mSettings;
     private final Context mContext;
@@ -500,9 +502,13 @@ class BrowserFrame extends Handler {
                             .getCurrentItem();
                     if (item != null) {
                         WebAddress uri = new WebAddress(item.getUrl());
-                        String schemePlusHost = uri.getScheme() + uri.getHost();
+                        String schemePlusHost = uri.getScheme() + "://" + uri.getHost();
                         String[] up = mDatabase.getUsernamePassword(
                                 schemePlusHost);
+                        if (up == null) {
+                            schemePlusHost = uri.getScheme() + uri.getHost();
+                            up = mDatabase.getUsernamePassword(schemePlusHost);
+                        }
                         if (up != null && up[0] != null) {
                             setUsernamePassword(up[0], up[1]);
                         }
@@ -817,7 +823,7 @@ class BrowserFrame extends Handler {
             }
             WebAddress uri = new WebAddress(mCallbackProxy
                     .getBackForwardList().getCurrentItem().getUrl());
-            String schemePlusHost = uri.getScheme() + uri.getHost();
+            String schemePlusHost = uri.getScheme() + "://" + uri.getHost();
             // Check to see if the username & password appear in
             // the post data (there could be another form on the
             // page and that was posted instead.

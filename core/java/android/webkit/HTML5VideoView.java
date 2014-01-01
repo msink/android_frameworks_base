@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.webkit.HTML5VideoViewProxy;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -124,7 +125,8 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
     }
 
     public void seekTo(int pos) {
-        if (mCurrentState == STATE_PREPARED)
+        int delta = Math.abs(getCurrentPosition() - pos);
+        if (mCurrentState == STATE_PREPARED && delta > 1000)
             mPlayer.seekTo(pos);
         else
             mSaveSeekTime = pos;
@@ -199,6 +201,7 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
         if (isPrivate) {
             headers.put(HIDE_URL_LOGS, "true");
         }
+        headers.put("X-Requested-With", "com.android.browser");
 
         return headers;
     }
@@ -207,6 +210,15 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
         // When switching players, surface texture will be reused.
         mUri = Uri.parse(uri);
         mHeaders = generateHeaders(uri, proxy);
+        String ua = proxy.getWebView().getSettings().getUserAgentString();
+        if (ua.contains("iPhone") || ua.contains("iPad")) {
+            Locale currentLocale = Locale.getDefault();
+            String ipad = "AppleCoreMedia/1.0.0.9A405 (iPad; U; CPU OS 5_0_1 like Mac OS X; "
+                        + currentLocale + ")";
+            mHeaders.put("User-Agent", ipad);
+        } else {
+            mHeaders.put("User-Agent", ua);
+        }
     }
 
     // Listeners setup FUNCTIONS:

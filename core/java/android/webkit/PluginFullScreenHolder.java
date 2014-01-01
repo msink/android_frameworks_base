@@ -25,6 +25,7 @@
 package android.webkit;
 
 import android.content.Context;
+import android.os.SystemProperties;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -77,6 +78,7 @@ class PluginFullScreenHolder {
     }
 
     public void show() {
+        SystemProperties.set("sys.video.fullscreen", "1");
         // Other plugins may attempt to draw so hide them while we're active.
         if (mWebView.getViewManager() != null)
             mWebView.getViewManager().hideAll();
@@ -86,6 +88,7 @@ class PluginFullScreenHolder {
     }
 
     public void hide() {
+        SystemProperties.set("sys.video.fullscreen", "0");
         WebChromeClient client = mWebView.getWebChromeClient();
         client.onHideCustomView();
     }

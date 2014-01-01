@@ -19,6 +19,7 @@ package android.webkit;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.Metadata;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -256,6 +257,10 @@ public class HTML5VideoFullScreen extends HTML5VideoView
                     mProgressView = null;
                 }
                 mLayout = null;
+                if (mProxy != mProxy.getWebView().getHTML5VideoViewProxy()) {
+                    Log.d("HTML5VideoView", "prev html5 proxy has been destory, maybe due to new load");
+                    mProxy = mProxy.getWebView().getHTML5VideoViewProxy();
+                }
                 // Re enable plugin views.
                 mProxy.getWebView().getViewManager().showAll();
                 // Don't show the controller after exiting the full screen.
