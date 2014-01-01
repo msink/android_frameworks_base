@@ -115,6 +115,7 @@ public class MediaScanner
     }
 
     private final static String TAG = "MediaScanner";
+    private final static boolean DEBUG_MEDIASCANNER = false;
 
     private static final String[] FILES_PRESCAN_PROJECTION = new String[] {
             Files.FileColumns._ID, // 0
@@ -317,7 +318,7 @@ public class MediaScanner
     private final boolean mExternalIsEmulated;
 
     /** whether to use bulk inserts or individual inserts for each item */
-    private static final boolean ENABLE_BULK_INSERTS = true;
+    private static final boolean ENABLE_BULK_INSERTS = false;
 
     // used when scanning the image database so we know whether we have to prune
     // old thumbnail files
@@ -1064,8 +1065,8 @@ public class MediaScanner
         if (filePath != null) {
             // query for only one file
             where = MediaStore.Files.FileColumns._ID + ">?" +
-                " AND " + Files.FileColumns.DATA + "=?";
-            selectionArgs = new String[] { "", filePath };
+                " AND " + Files.FileColumns.DATA + " like '" + filePath + "%' ";
+            selectionArgs = new String[] { "" };
         } else {
             where = MediaStore.Files.FileColumns._ID + ">?";
             selectionArgs = new String[] { "" };
@@ -1290,7 +1291,9 @@ public class MediaScanner
         try {
             long start = System.currentTimeMillis();
             initialize(volumeName);
-            prescan(null, true);
+            for (int i = 0; i < directories.length; i++) {
+                prescan(directories[i], true);
+            }
             long prescan = System.currentTimeMillis();
 
             if (ENABLE_BULK_INSERTS) {

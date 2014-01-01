@@ -866,8 +866,30 @@ public class MediaPlayer
         throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
 
         String scheme = uri.getScheme();
+        boolean browserReq = false;
         if(scheme == null || scheme.equals("file")) {
+            String[] keys = null;
+            String[] values = null;
+            if (headers != null) {
+                keys = new String[headers.size()];
+                values = new String[headers.size()];
+                int i = 0;
+                for (Map.Entry<String,String> entry : headers.entrySet()) {
+                    keys[i] = entry.getKey();
+                    values[i] = entry.getValue();
+                    if (keys[i] == "X-Requested-With" &&
+                            values[i] == "com.android.browser") {
+                        browserReq = true;
+                        break;
+                    }
+                    i++;
+                }
+            }
             setDataSource(uri.getPath());
+            if (browserReq == true) {
+                int keyBrowserReq = 3188;
+                setParameter(keyBrowserReq, 1);
+            }
             return;
         }
 
