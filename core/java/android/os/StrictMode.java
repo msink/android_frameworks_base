@@ -115,8 +115,8 @@ public final class StrictMode {
     private static final String TAG = "StrictMode";
     private static final boolean LOG_V = Log.isLoggable(TAG, Log.VERBOSE);
 
-    private static final boolean IS_USER_BUILD = "user".equals(Build.TYPE);
-    private static final boolean IS_ENG_BUILD = "eng".equals(Build.TYPE);
+    private static final boolean IS_USER_BUILD = false;
+    private static final boolean IS_ENG_BUILD = false;
 
     /**
      * Boolean system property to disable strict mode checks outright.
