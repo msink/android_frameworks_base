@@ -46,4 +46,6 @@ interface IDisplayManager {
 
     // No permissions required.
     WifiDisplayStatus getWifiDisplayStatus();
+
+    boolean isWfdConnect();
 }

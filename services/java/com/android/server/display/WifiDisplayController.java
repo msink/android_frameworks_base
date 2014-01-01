@@ -35,16 +35,25 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pWfdInfo;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.net.wifi.p2p.WifiP2pManager.ConnectionInfoListener;
 import android.net.wifi.p2p.WifiP2pManager.GroupInfoListener;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Slog;
 import android.view.Surface;
+
+import android.os.SystemProperties;
+import java.util.ArrayList;
+import java.util.Collection;
+import android.widget.Toast;
+import android.os.Looper;
 
 import java.io.PrintWriter;
 import java.net.Inet4Address;
@@ -83,6 +92,11 @@ final class WifiDisplayController implements DumpUtils.Dump {
     private static final int CONNECT_MAX_RETRIES = 3;
     private static final int CONNECT_RETRY_DELAY_MILLIS = 500;
 
+    private static final int WIFI_DISPLAY_DISABLE = 1;
+    private static final int WIFI_DISPLAY_STARTING = 2;
+    private static final int WIFI_DISPLAY_ENABLED = 3;
+    private static final int WIFI_DISPLAY_CONNECTED = 3;
+
     // A unique token to identify the remote submix that is managed by Wifi display.
     // It must match what the media server uses when it starts recording the submix
     // for transmission.  We use 0 although the actual value is currently ignored.
@@ -101,6 +115,8 @@ final class WifiDisplayController implements DumpUtils.Dump {
     private boolean mWfdEnabled;
     private boolean mWfdEnabling;
     private NetworkInfo mNetworkInfo;
+    private WifiP2pDevice mP2pDeviceInfo;
+    private WifiP2pGroup mP2pGroupInfo;
 
     private final ArrayList<WifiP2pDevice> mAvailableWifiDisplayPeers =
             new ArrayList<WifiP2pDevice>();
@@ -148,6 +164,10 @@ final class WifiDisplayController implements DumpUtils.Dump {
 
     // True if the remote submix is enabled.
     private boolean mRemoteSubmixOn;
+    // True if the wfd service  is enabled.
+    private boolean mWifiWFDServicerOn = false;
+    private boolean mWfdHavePort;
+    private boolean mWfdState;
 
     // The information we have most recently told WifiDisplayAdapter about.
     private WifiDisplay mAdvertisedDisplay;
@@ -155,6 +175,11 @@ final class WifiDisplayController implements DumpUtils.Dump {
     private int mAdvertisedDisplayWidth;
     private int mAdvertisedDisplayHeight;
     private int mAdvertisedDisplayFlags;
+
+    private PowerManager.WakeLock mWakeLock;
+
+    private int wmUserRotationMode = -2;
+    private int wmUserRotation = -2;
 
     public WifiDisplayController(Context context, Handler handler, Listener listener) {
         mContext = context;
@@ -248,7 +273,7 @@ final class WifiDisplayController implements DumpUtils.Dump {
 
                 WifiP2pWfdInfo wfdInfo = new WifiP2pWfdInfo();
                 wfdInfo.setWfdEnabled(true);
-                wfdInfo.setDeviceType(WifiP2pWfdInfo.WFD_SOURCE);
+                wfdInfo.setDeviceType(WifiP2pWfdInfo.SOURCE_OR_PRIMARY_SINK);
                 wfdInfo.setSessionAvailable(true);
                 wfdInfo.setControlPort(DEFAULT_CONTROL_PORT);
                 wfdInfo.setMaxThroughput(MAX_THROUGHPUT);
@@ -371,7 +396,7 @@ final class WifiDisplayController implements DumpUtils.Dump {
                         Slog.d(TAG, "  " + describeWifiP2pDevice(device));
                     }
 
-                    if (isWifiDisplay(device)) {
+                    if (isWifiDisplay(device)||isWifiDisplaySource(device)) {
                         mAvailableWifiDisplayPeers.add(device);
                     }
                 }
@@ -585,7 +610,12 @@ final class WifiDisplayController implements DumpUtils.Dump {
             config.wps = wps;
             config.deviceAddress = mConnectingDevice.deviceAddress;
             // Helps with STA & P2P concurrency
-            config.groupOwnerIntent = WifiP2pConfig.MIN_GROUP_OWNER_INTENT;
+            String wifiChipVendor = SystemProperties.get("wlan.chip.type");
+            if ("esp8089".equals(wifiChipVendor)) {
+                config.groupOwnerIntent = 7;
+            } else {
+                config.groupOwnerIntent = WifiP2pConfig.MIN_GROUP_OWNER_INTENT;
+            }
 
             WifiDisplay display = createWifiDisplay(mConnectingDevice);
             advertiseDisplay(display, null, 0, 0, 0);
@@ -693,9 +723,112 @@ final class WifiDisplayController implements DumpUtils.Dump {
         requestPeers();
     }
 
+    private void setScreenLock(boolean on) {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager)mContext.getSystemService(mContext.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, TAG);
+        }
+        if (on) {
+            Slog.i(TAG, " mWakeLock.acquire()");
+            mWakeLock.acquire();
+        } else {
+            if (mWakeLock.isHeld()) {
+                Slog.i(TAG, " mWakeLock.release()");
+                mWakeLock.release();
+            }
+            mWakeLock = null;
+        }
+    }
+
+    private void handleWFDConnectionChanged(NetworkInfo networkInfo,WifiP2pDevice P2pDeviceInfo) {
+        mNetworkInfo = networkInfo;
+        mP2pDeviceInfo =P2pDeviceInfo;
+        Slog.d(TAG, "####onConnectionInfoAvailable(), mWfdEnabled networkInfo.isConnected()"
+                    + mWfdEnabled + networkInfo.isConnected());
+        if (mWfdEnabled && networkInfo.isConnected()) {
+            mWifiP2pManager.requestConnectionInfo(mWifiP2pChannel, new ConnectionInfoListener(){
+                @Override
+                public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                    Slog.d(TAG,"####onConnectionInfoAvailable(),info mDesiredDevice= "+info+mDesiredDevice);
+                    String command
+                        = "wfd:-s "+mP2pDeviceInfo.deviceAddress+":";
+                    mWfdHavePort = false;
+                    Slog.d(TAG,"####mP2pDeviceInfo.deviceAddress = "+mP2pDeviceInfo.deviceAddress);
+                    for (WifiP2pDevice device : mAvailableWifiDisplayPeers) {
+                        Slog.d(TAG,"####device = "+device);
+                        if (device.deviceAddress.equals(mP2pDeviceInfo.deviceAddress)) {
+                            mWfdHavePort =true;
+                            command +=device.wfdInfo.getControlPort();
+                            break;
+                        }
+                    }
+
+                    if (mWfdHavePort == false) {
+                        Slog.d(TAG, "######inited error mWfdHavePort is false");
+                        return;
+                    }
+                    Slog.d(TAG,"######inited setprop command"+command);
+                    SystemProperties.set("ctl.start",command);
+                    mWifiWFDServicerOn = true;
+                }
+            });
+        } else {
+            Slog.d(TAG,"######mWifiWFDServicerOn =mWfdEnabled+ networkInfo.isConnected()"
+                       + mWifiWFDServicerOn + mWfdEnabled + networkInfo.isConnected());
+            if (mWifiWFDServicerOn == true) {
+                mWifiWFDServicerOn = false;
+                SystemProperties.set("ctl.stop","wfd");
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Slog.d(TAG,"######mWifiWFDServicerOn restart####");
+                        updateSettings();
+                    }}, 2000);
+            }
+        }
+    }
+
+    public boolean isWfdConnect() {
+        return mWifiWFDServicerOn;
+    }
+
+    private void wmLockRotation() {
+        Slog.d(TAG, "###### wmLock ##########");
+        wmUserRotation = -2;
+        wmUserRotationMode = -2;
+        final ContentResolver resolver = mContext.getContentResolver();
+        wmUserRotationMode = (Settings.System.getIntForUser(resolver, "accelerometer_rotation", 0, -2) != 0) ? 0 : 1;
+        if (wmUserRotationMode == 1) {
+            wmUserRotation = Settings.System.getIntForUser(resolver, "user_rotation", 0, -2);
+            if (this.wmUserRotation != 1) {
+                Settings.System.putIntForUser(resolver, "user_rotation", 1, -2);
+            } else {
+                wmUserRotation = -2;
+                wmUserRotationMode = -2;
+            }
+        } else {
+            Settings.System.putIntForUser(resolver, "accelerometer_rotation", 0, -2);
+            Settings.System.putIntForUser(resolver, "user_rotation", 1, -2);
+        }
+    }
+
+    private void wmFreeRotation() {
+        Slog.d(TAG, "###### wmFree ##########");
+        if (wmUserRotation == -2 && wmUserRotationMode == -2) {
+            return;
+        }
+        final ContentResolver resolver = mContext.getContentResolver();
+        if (wmUserRotationMode == 0) {
+            Settings.System.putIntForUser(resolver, "accelerometer_rotation", 1, -2);
+        } else if (wmUserRotationMode == 1) {
+            Settings.System.putIntForUser(resolver, "user_rotation", wmUserRotation, -2);
+        }
+    }
+
     private void handleConnectionChanged(NetworkInfo networkInfo) {
         mNetworkInfo = networkInfo;
         if (mWfdEnabled && networkInfo.isConnected()) {
+            setScreenLock(true);
             if (mDesiredDevice != null) {
                 mWifiP2pManager.requestGroupInfo(mWifiP2pChannel, new GroupInfoListener() {
                     @Override
@@ -732,6 +865,7 @@ final class WifiDisplayController implements DumpUtils.Dump {
                 });
             }
         } else {
+            setScreenLock(false);
             disconnect();
 
             // After disconnection for a group, for some reason we have a tendency
@@ -875,6 +1009,17 @@ final class WifiDisplayController implements DumpUtils.Dump {
         return DEFAULT_CONTROL_PORT;
     }
 
+    private static boolean isWifiDisplaySource(WifiP2pDevice device) {
+        return device.wfdInfo != null
+                && device.wfdInfo.isWfdEnabled()
+                && isSourceDeviceType(device.wfdInfo.getDeviceType());
+    }
+
+    private static boolean isSourceDeviceType(int deviceType) {
+        return deviceType == WifiP2pWfdInfo.WFD_SOURCE
+                || deviceType == WifiP2pWfdInfo.SOURCE_OR_PRIMARY_SINK;
+    }
+
     private static boolean isWifiDisplay(WifiP2pDevice device) {
         return device.wfdInfo != null
                 && device.wfdInfo.isWfdEnabled()
@@ -895,7 +1040,8 @@ final class WifiDisplayController implements DumpUtils.Dump {
     }
 
     private static WifiDisplay createWifiDisplay(WifiP2pDevice device) {
-        return new WifiDisplay(device.deviceAddress, device.deviceName, null);
+        return new WifiDisplay(device.deviceAddress, device.deviceName, null,
+                    device.wfdInfo.getDeviceType(), device.groupCapability);
     }
 
     private final BroadcastReceiver mWifiP2pReceiver = new BroadcastReceiver() {
@@ -923,12 +1069,20 @@ final class WifiDisplayController implements DumpUtils.Dump {
             } else if (action.equals(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)) {
                 NetworkInfo networkInfo = (NetworkInfo)intent.getParcelableExtra(
                         WifiP2pManager.EXTRA_NETWORK_INFO);
+                WifiP2pDevice P2pDeviceInfo = (WifiP2pDevice)intent.getParcelableExtra(
+                        WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
                 if (DEBUG) {
                     Slog.d(TAG, "Received WIFI_P2P_CONNECTION_CHANGED_ACTION: networkInfo="
-                            + networkInfo);
+                            + networkInfo+" P2pDeviceInfo="+P2pDeviceInfo);
                 }
 
                 handleConnectionChanged(networkInfo);
+                if (mDesiredDevice == null) {
+                    Slog.d(TAG, "mDesiredDevice == NULL, So it is a sink device");
+                    handleWFDConnectionChanged(networkInfo, P2pDeviceInfo);
+                } else {
+                    Slog.d(TAG, "mDesiredDevice != NULL, So it is a source device");
+                }
             }
         }
     };
