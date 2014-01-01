@@ -169,4 +169,5 @@
 
     <!-- Default for Settings.Secure.USER_SETUP_COMPLETE -->
     <bool name="def_user_setup_complete">false</bool>
+    <integer name="def_hdmi_lcd_timeout">-1</integer>
 </resources>
