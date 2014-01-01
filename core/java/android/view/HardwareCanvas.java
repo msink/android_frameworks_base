@@ -148,4 +148,8 @@ public abstract class HardwareCanvas extends Canvas {
      * @see #pushLayerUpdate(HardwareLayer) 
      */
     abstract void clearLayerUpdates();
+
+    abstract void setOrientation(int orientation);
+
+    abstract boolean queryHWRenderEngine(String property);
 }

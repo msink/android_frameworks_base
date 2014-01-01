@@ -1797,7 +1797,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         final int diff = newVal ^ oldVal;
 
         if (diff != 0) {
-            mSystemUiVisibility = newVal;
+            mSystemUiVisibility = vis;
 
             if (0 != (diff & View.SYSTEM_UI_FLAG_LOW_PROFILE)) {
                 final boolean lightsOut = (0 != (vis & View.SYSTEM_UI_FLAG_LOW_PROFILE));
@@ -1813,6 +1813,13 @@ public class PhoneStatusBar extends BaseStatusBar {
                 }
 
                 setStatusBarLowProfile(lightsOut);
+            }
+
+            int fs = vis & View.GONE;
+            if (fs != 0) {
+                mNavigationBarView.setVisibility(View.GONE);
+            } else {
+                mNavigationBarView.setVisibility(View.VISIBLE);
             }
 
             notifyUiVisibilityChanged();

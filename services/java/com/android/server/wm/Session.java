@@ -24,6 +24,7 @@ import com.android.server.wm.WindowManagerService.H;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.os.Binder;
@@ -36,6 +37,7 @@ import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.util.Slog;
 import android.view.Display;
+import android.view.DisplayInfo;
 import android.view.IWindow;
 import android.view.IWindowSession;
 import android.view.InputChannel;
@@ -43,6 +45,11 @@ import android.view.Surface;
 import android.view.SurfaceSession;
 import android.view.WindowManager;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 /**
@@ -60,6 +67,7 @@ final class Session extends IWindowSession.Stub
     SurfaceSession mSurfaceSession;
     int mNumWindow = 0;
     boolean mClientDead = false;
+    String mCallingPkgName;
 
     public Session(WindowManagerService service, IInputMethodClient client,
             IInputContext inputContext) {
@@ -84,6 +92,35 @@ final class Session extends IWindowSession.Stub
         }
         sb.append("}");
         mStringName = sb.toString();
+
+        StringBuffer cmdline = new StringBuffer();
+        cmdline.append("/proc/");
+        cmdline.append(String.valueOf(mPid));
+        cmdline.append("/cmdline");
+        try {
+            FileInputStream stream = new FileInputStream(cmdline.toString());
+            InputStreamReader inputReader = new InputStreamReader(stream, "UTF-8");
+            BufferedReader bufferReader = new BufferedReader(inputReader);
+            mCallingPkgName = bufferReader.readLine();
+            bufferReader.close();
+            inputReader.close();
+            stream.close();
+        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
+        }
+        StringBuilder builder = new StringBuilder();
+        if (mCallingPkgName != null) {
+            for (int i = 0; i < mCallingPkgName.length(); i++) {
+                char str = mCallingPkgName.charAt(i);
+                if (Character.isDigit(str) || Character.isLetter(str) ||
+                        Character.compare(str, ".".charAt(0)) == 0) {
+                    builder.append(str);
+                } else {
+                    break;
+                }
+            }
+        }
+        mCallingPkgName = builder.toString();
 
         synchronized (mService.mWindowMap) {
             if (mService.mInputMethodManager == null && mService.mHaveInputMethods) {
@@ -232,6 +269,55 @@ final class Session extends IWindowSession.Stub
         synchronized(mService.mWindowMap) {
             return mService.mInTouchMode;
         }
+    }
+
+    public void hideWindowLayer(IWindow window, boolean flag){
+        long origId = Binder.clearCallingIdentity();
+        synchronized(mService.mWindowMap) {
+            WindowState win = mService.windowForClientLocked(this, window, false);
+            if (win == null) {
+                return;
+            }
+
+            Surface.openTransaction();
+            if (win.mWinAnimator.mSurface != null){
+                if (flag) {
+                    win.mWinAnimator.mSurfaceShown = false;
+                    win.mWinAnimator.mSurface.hide();
+                    win.mWinAnimator.mSurfaceHidden = true;
+                } else {
+                    win.mWinAnimator.mSurfaceShown = true;
+                    win.mWinAnimator.mSurface.show();
+                    win.mWinAnimator.mSurfaceHidden = false;
+                }
+            }
+            Surface.closeTransaction();
+        }
+        Binder.restoreCallingIdentity(origId);
+    }
+
+    public void updatePositionAndSize(IWindow window,int x,int y,int width,int height){
+        long origId = Binder.clearCallingIdentity();
+        synchronized(mService.mWindowMap) {
+            WindowState win = mService.windowForClientLocked(this, window, false);
+            if (win == null) {
+                 return;
+            }
+            win.mWinAnimator.mLastHidden = true;
+            if (win.mAttachedWindow != null) {
+                win.mAttachedWindow.mWinAnimator.mLastHidden = true;
+            }
+            Surface.openTransaction();
+            if (win.mWinAnimator.mSurface != null) {
+                win.mWinAnimator.mSurface.setPosition(x,y);
+                win.mWinAnimator.mSurface.setSize(width,height);
+                win.mWinAnimator.mSurface.setWindowCrop(new Rect(0,0,width,height));
+                win.mRequestedWidth = width;
+                win.mRequestedHeight = height;
+            }
+            Surface.closeTransaction();
+         }
+         Binder.restoreCallingIdentity(origId);
     }
 
     public boolean performHapticFeedback(IWindow window, int effectId,
@@ -493,5 +579,20 @@ final class Session extends IWindowSession.Stub
     @Override
     public String toString() {
         return mStringName;
+    }
+
+    @Override
+    public int getRotation(IWindow window) {
+        return mService.getScreenRotation();
+    }
+
+    @Override
+    public void getDisplaySize(IWindow window, Point curSize, Point appSize, Rect decorRect) {
+        DisplayInfo displayInfo = mService.getDefaultDisplayInfoLocked();
+        curSize.x = displayInfo.logicalWidth;
+        curSize.y = displayInfo.logicalHeight;
+        appSize.x = displayInfo.appWidth;
+        appSize.y = displayInfo.appHeight;
+        decorRect.set(mService.mSystemDecorRect);
     }
 }

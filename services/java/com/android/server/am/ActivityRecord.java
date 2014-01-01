@@ -297,6 +297,14 @@ final class ActivityRecord {
             return 0;
         }
 
+        @Override public boolean isHomeActivity()  throws RemoteException {
+            ActivityRecord activity = weakActivity.get();
+            if (activity.isHomeActivity) {
+                return true;
+            }
+            return false;
+        }
+
         public String toString() {
             StringBuilder sb = new StringBuilder(128);
             sb.append("Token{");

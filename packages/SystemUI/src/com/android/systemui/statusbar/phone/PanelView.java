@@ -270,6 +270,11 @@ public class PanelView extends FrameLayout {
             if (mRubberbanding && h < fh) {
                 h = fh;
             }
+            if (mClosing) {
+                h = 0;
+            } else {
+                h = fh;
+            }
 
             if (DEBUG) LOG("tick: new h=%d closing=%s", (int) h, mClosing?"true":"false");
 
@@ -376,10 +381,6 @@ public class PanelView extends FrameLayout {
                                     mPeekAnimator.cancel();
                                 }
                                 mJustPeeked = false;
-                            }
-                            if (!mJustPeeked) {
-                                PanelView.this.setExpandedHeightInternal(h);
-                                mBar.panelExpansionChanged(PanelView.this, mExpandedFraction);
                             }
 
                             trackMovement(event);

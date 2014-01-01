@@ -2285,6 +2285,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      */
     public static final int SYSTEM_UI_FLAG_FULLSCREEN = 0x00000004;
 
+    public static final int SYSTEM_UI_FLAG_SHOW_FULLSCREEN = 0x00000008;
+
     /**
      * Flag for {@link #setSystemUiVisibility(int)}: When using other layout
      * flags, we would like a stable view of the content insets given to

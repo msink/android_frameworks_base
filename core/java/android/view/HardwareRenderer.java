@@ -284,7 +284,7 @@ public abstract class HardwareRenderer {
      * @param width Width of the drawing surface.
      * @param height Height of the drawing surface.
      */
-    abstract void setup(int width, int height);
+    abstract void setup(int width, int height, int orientation);
 
     /**
      * Gets the current width of the surface. This is the width that the surface
@@ -301,6 +301,8 @@ public abstract class HardwareRenderer {
      * @return the current width of the surface
      */
     abstract int getHeight();
+
+    abstract int getOrientation();
 
     /**
      * Gets the current canvas associated with this HardwareRenderer.
@@ -511,13 +513,13 @@ public abstract class HardwareRenderer {
      * @return true if the surface was initialized, false otherwise. Returning
      *         false might mean that the surface was already initialized.
      */
-    boolean initializeIfNeeded(int width, int height, Surface surface)
+    boolean initializeIfNeeded(int width, int height, int orientation, Surface surface)
             throws Surface.OutOfResourcesException {
         if (isRequested()) {
             // We lost the gl context, so recreate it.
             if (!isEnabled()) {
                 if (initialize(surface)) {
-                    setup(width, height);
+                    setup(width, height, orientation);
                     return true;
                 }
             }
@@ -624,7 +626,7 @@ public abstract class HardwareRenderer {
         static EGLDisplay sEglDisplay;
         static EGLConfig sEglConfig;
         static final Object[] sEglLock = new Object[0];
-        int mWidth = -1, mHeight = -1;
+        int mWidth = -1, mHeight = -1, mOrientation = -1;
 
         static final ThreadLocal<ManagedEGLContext> sEglContextStorage
                 = new ThreadLocal<ManagedEGLContext>();
@@ -803,6 +805,11 @@ public abstract class HardwareRenderer {
                         }
                     }
 
+                    if (mCanvas != null) {
+                        sDirtyRegions = mCanvas.queryHWRenderEngine("debug.hwui.render_dirty_regions");
+                    }
+                    enableDirtyRegions();
+
                     return mCanvas != null;
                 }
             }
@@ -813,6 +820,7 @@ public abstract class HardwareRenderer {
         void updateSurface(Surface surface) throws Surface.OutOfResourcesException {
             if (isRequested() && isEnabled()) {
                 createEglSurface(surface);
+                enableDirtyRegions();
             }
         }
 
@@ -1044,6 +1052,7 @@ public abstract class HardwareRenderer {
                     return;
                 }
 
+                enableDirtyRegions();
                 mUpdateDirtyRegions = true;
 
                 if (mCanvas != null) {
@@ -1070,8 +1079,6 @@ public abstract class HardwareRenderer {
                         GLUtils.getEGLErrorString(sEgl.eglGetError()));
             }
 
-            enableDirtyRegions();
-
             return true;
         }
 
@@ -1081,8 +1088,10 @@ public abstract class HardwareRenderer {
         }
 
         @Override
-        void setup(int width, int height) {
+        void setup(int width, int height, int orientation) {
             if (validate()) {
+                mCanvas.setOrientation(orientation);
+                mOrientation = orientation;
                 mCanvas.setViewport(width, height);
                 mWidth = width;
                 mHeight = height;
@@ -1097,6 +1106,11 @@ public abstract class HardwareRenderer {
         @Override
         int getHeight() {
             return mHeight;
+        }
+
+        @Override
+        int getOrientation() {
+            return mOrientation;
         }
 
         @Override
@@ -1484,8 +1498,8 @@ public abstract class HardwareRenderer {
         }
 
         @Override
-        void setup(int width, int height) {
-            super.setup(width, height);
+        void setup(int width, int height, int orientation) {
+            super.setup(width, height, orientation);
             if (mVsyncDisabled) {
                 disableVsync();
             }

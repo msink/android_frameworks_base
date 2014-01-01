@@ -9201,6 +9201,10 @@ public class PackageManagerService extends IPackageManager.Stub {
 
         public static final int DUMP_PREFERRED_XML = 1 << 10;
 
+        public static final int DUMP_HARDWARE_ACC = 1 << 11;
+
+        public static final int DUMP_LCDC_COMPOSER_PKG = 1 << 12;
+
         public static final int OPTION_SHOW_FILTERS = 1 << 0;
 
         private int mTypes;
@@ -9334,6 +9338,9 @@ public class PackageManagerService extends IPackageManager.Stub {
                 dumpState.setDump(DumpState.DUMP_MESSAGES);
             } else if ("v".equals(cmd) || "verifiers".equals(cmd)) {
                 dumpState.setDump(DumpState.DUMP_VERIFIERS);
+            } else if ("hwacc".equals(cmd)) {
+                dumpState.setDump(DumpState.DUMP_HARDWARE_ACC);
+                dumpState.setDump(DumpState.DUMP_LCDC_COMPOSER_PKG);
             }
         }
 
@@ -9476,6 +9483,14 @@ public class PackageManagerService extends IPackageManager.Stub {
 
             if (dumpState.isDumping(DumpState.DUMP_SHARED_USERS)) {
                 mSettings.dumpSharedUsersLPr(pw, packageName, dumpState);
+            }
+
+            if (dumpState.isDumping(DumpState.DUMP_HARDWARE_ACC) && packageName == null) {
+                mSettings.dumphardwareAccPackage(pw, dumpState);
+            }
+
+            if (dumpState.isDumping(DumpState.DUMP_LCDC_COMPOSER_PKG) && packageName == null) {
+                mSettings.dumpLcdcComposerPackage(pw, dumpState);
             }
 
             if (dumpState.isDumping(DumpState.DUMP_MESSAGES) && packageName == null) {
@@ -10263,5 +10278,45 @@ public class PackageManagerService extends IPackageManager.Stub {
         } finally {
             Binder.restoreCallingIdentity(token);
         }
+    }
+
+    public int getPackageHardwareAccMode(String pkgName) {
+        for (int i=0; i<mSettings.mHardwareAccPackages.size(); i++) {
+            if (pkgName.toLowerCase().equals(mSettings.mHardwareAccPackages.get(i).name.toLowerCase())) {
+                return mSettings.mHardwareAccPackages.get(i).mode | PackageManager.HARDWARE_ACC_FLAG_ASSIGNED;
+            }
+        }
+
+        for (int i=0; i<mSettings.mHardwareAccPackages.size(); i++) {
+            if (pkgName.toLowerCase().contains(mSettings.mHardwareAccPackages.get(i).name.toLowerCase())) {
+                return mSettings.mHardwareAccPackages.get(i).mode | PackageManager.HARDWARE_ACC_FLAG_ASSIGNED;
+            }
+        }
+        return PackageManager.HARDWARE_ACC_MODE_UNKNOWN;
+    }
+
+    public void setPackageHardwareAccMode(String pkgName, int mode) {
+        HardwareAccSetting pkgHAS = null;
+        for (int i=0; i<mSettings.mHardwareAccPackages.size(); i++) {
+            if (mSettings.mHardwareAccPackages.get(i).name.equals(pkgName)) {
+                pkgHAS = mSettings.mHardwareAccPackages.get(i);
+            }
+        }
+        if (pkgHAS != null) {
+            pkgHAS.setMode(mode);
+        } else {
+            pkgHAS = new HardwareAccSetting(pkgName, mode);
+            mSettings.mHardwareAccPackages.add(0, pkgHAS);
+        }
+        mSettings.writeLPr();
+    }
+
+    public boolean shouldForceUseLcdcComposer(String pkgName) {
+        for (HardwareAccSetting pkg : mSettings.mLcdComposerPkgInfo) {
+            if (pkgName.equals(pkg.name)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

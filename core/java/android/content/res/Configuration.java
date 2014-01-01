@@ -17,6 +17,7 @@
 package android.content.res;
 
 import android.content.pm.ActivityInfo;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
@@ -357,6 +358,8 @@ public final class Configuration implements Parcelable, Comparable<Configuration
      * <a href="{@docRoot}guide/topics/resources/providing-resources.html#NavigationQualifier">wheel</a>
      * resource qualifier. */
     public static final int NAVIGATION_WHEEL = 4;
+
+    public static final int ROTATION_UNDEFINED = -1;
     
     /**
      * The kind of navigation method available on the device.
@@ -402,6 +405,8 @@ public final class Configuration implements Parcelable, Comparable<Configuration
      * {@link #ORIENTATION_LANDSCAPE}, {@link #ORIENTATION_PORTRAIT}.
      */
     public int orientation;
+
+    public int rotation;
 
     /** Constant for {@link #uiMode}: bits that encode the mode type. */
     public static final int UI_MODE_TYPE_MASK = 0x0f;
@@ -568,6 +573,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         navigation = o.navigation;
         navigationHidden = o.navigationHidden;
         orientation = o.orientation;
+        rotation = o.rotation;
         screenLayout = o.screenLayout;
         uiMode = o.uiMode;
         screenWidthDp = o.screenWidthDp;
@@ -732,6 +738,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         navigation = NAVIGATION_UNDEFINED;
         navigationHidden = NAVIGATIONHIDDEN_UNDEFINED;
         orientation = ORIENTATION_UNDEFINED;
+        rotation = ROTATION_UNDEFINED;
         screenLayout = SCREENLAYOUT_UNDEFINED;
         uiMode = UI_MODE_TYPE_UNDEFINED;
         screenWidthDp = compatScreenWidthDp = SCREEN_WIDTH_DP_UNDEFINED;
@@ -818,6 +825,13 @@ public final class Configuration implements Parcelable, Comparable<Configuration
                 && orientation != delta.orientation) {
             changed |= ActivityInfo.CONFIG_ORIENTATION;
             orientation = delta.orientation;
+        }
+        if (delta.rotation != ROTATION_UNDEFINED
+                && rotation != delta.rotation) {
+            if (Build.USE_LCDC_COMPOSER && Math.abs(delta.rotation - rotation) == 2) {
+                changed |= ActivityInfo.CONFIG_ORIENTATION;
+            }
+            rotation = delta.rotation;
         }
         if (getScreenLayoutNoDirection(delta.screenLayout) !=
                     (SCREENLAYOUT_SIZE_UNDEFINED | SCREENLAYOUT_LONG_UNDEFINED)
@@ -952,6 +966,12 @@ public final class Configuration implements Parcelable, Comparable<Configuration
                 && orientation != delta.orientation) {
             changed |= ActivityInfo.CONFIG_ORIENTATION;
         }
+        if (delta.rotation != ROTATION_UNDEFINED
+                && rotation != delta.rotation
+                && Build.USE_LCDC_COMPOSER
+                && Math.abs(delta.rotation - rotation) == 2) {
+            changed |= ActivityInfo.CONFIG_ORIENTATION;
+        }
         if (getScreenLayoutNoDirection(delta.screenLayout) !=
                     (SCREENLAYOUT_SIZE_UNDEFINED | SCREENLAYOUT_LONG_UNDEFINED)
                 && getScreenLayoutNoDirection(screenLayout) !=
@@ -1057,6 +1077,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         dest.writeInt(navigation);
         dest.writeInt(navigationHidden);
         dest.writeInt(orientation);
+        dest.writeInt(rotation);
         dest.writeInt(screenLayout);
         dest.writeInt(uiMode);
         dest.writeInt(screenWidthDp);
@@ -1085,6 +1106,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         navigation = source.readInt();
         navigationHidden = source.readInt();
         orientation = source.readInt();
+        rotation = source.readInt();
         screenLayout = source.readInt();
         uiMode = source.readInt();
         screenWidthDp = source.readInt();
@@ -1151,6 +1173,8 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         if (n != 0) return n;
         n = this.orientation - that.orientation;
         if (n != 0) return n;
+        n = this.rotation - that.rotation;
+        if (n != 0) return n;
         n = this.screenLayout - that.screenLayout;
         if (n != 0) return n;
         n = this.uiMode - that.uiMode;
@@ -1193,6 +1217,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
         result = 31 * result + navigation;
         result = 31 * result + navigationHidden;
         result = 31 * result + orientation;
+        result = 31 * result + rotation;
         result = 31 * result + screenLayout;
         result = 31 * result + uiMode;
         result = 31 * result + screenWidthDp;

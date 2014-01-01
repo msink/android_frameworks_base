@@ -25,11 +25,14 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.ServiceManager;
 import android.os.UEventObserver;
+import android.provider.Settings;
 import android.util.Slog;
 import android.media.AudioManager;
 import android.util.Log;
 import android.view.InputDevice;
+import android.view.IWindowManager;
 
 import com.android.internal.R;
 import com.android.server.input.InputManagerService;
@@ -86,6 +89,8 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
 
     private Context mContext;
     private WakeLock mHdmiWakeLock;
+    private int ismAccelerometerChecked;
+    private int TIMEOUT;
 
     public WiredAccessoryManager(Context context, InputManagerService inputManager) {
         PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
@@ -98,11 +103,22 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
         mUseDevInputEventForAudioJack =
                 context.getResources().getBoolean(R.bool.config_useDevInputEventForAudioJack);
 
+        ismAccelerometerChecked = Settings.System.getIntForUser(context.getContentResolver(),
+                "hide_rotation_lock_toggle_for_accessibility", 0, -2);
+
         mObserver = new WiredAccessoryObserver();
 
         context.registerReceiver(new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context ctx, Intent intent) {
+                        try {
+                            if (ismAccelerometerChecked == 0) {
+                                IWindowManager wm = IWindowManager.Stub.asInterface(
+                                    ServiceManager.getService(Context.WINDOW_SERVICE));
+                                wm.thawRotation();
+                            }
+                        } catch (Exception e) {
+                        }
                         bootCompleted();
                     }
                 },

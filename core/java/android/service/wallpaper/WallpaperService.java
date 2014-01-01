@@ -608,7 +608,13 @@ public abstract class WallpaperService extends Service {
                     if (!mCreated) {
                         mLayout.type = mIWallpaperEngine.mWindowType;
                         mLayout.gravity = Gravity.START|Gravity.TOP;
+                      if ("com.android.systemui.ImageWallpaper".equals
+                                          (WallpaperService.this.getClass().getName())) {
                         mLayout.setTitle(WallpaperService.this.getClass().getName());
+                        mLayout.flags |= WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION;
+                      } else {
+                        mLayout.setTitle("view.wallpaper.live");
+                      }
                         mLayout.windowAnimations =
                                 com.android.internal.R.style.Animation_Wallpaper;
                         mInputChannel = new InputChannel();

@@ -208,4 +208,5 @@
     <string name="sdcard_unmount">内部存储正在使用中</string>
     <string name="external_sd_unmount">SD卡未挂载</string>
     <string name="usb_storage_unmount">USB存储未挂载</string>
+    <string name="compat_mode_standard_screen_on">标准屏幕模式</string>
 </resources>

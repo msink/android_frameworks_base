@@ -45,6 +45,7 @@ import android.os.Bundle;
 import android.os.FactoryTest;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.IPowerManager;
 import android.os.IRemoteCallback;
 import android.os.Looper;
 import android.os.Message;
@@ -153,6 +154,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * WindowManagerPolicy implementation for the Android phone UI.  This
@@ -727,7 +730,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     performAuditoryFeedbackForAccessibilityIfNeed();
                 }
                 sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
-                showGlobalActionsDialog();
+                mWindowManagerFuncs.shutdown(true);
                 break;
             case LONG_PRESS_POWER_SHUT_OFF:
             case LONG_PRESS_POWER_SHUT_OFF_NO_CONFIRM:
@@ -1005,7 +1008,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         // SystemUI (status bar) layout policy
         int shortSizeDp = shortSize * DisplayMetrics.DENSITY_DEFAULT / density;
 
-        if (shortSizeDp < 600) {
+        String tabeltUI = SystemProperties.get("ro.rk.systembar.tabletUI");
+        if ("true".equals(tabeltUI)) {
+            mHasSystemNavBar = true;
+            mNavigationBarCanMove = false;
+        } else if (shortSizeDp < 600) {
             // 0-599dp: "phone" UI with a separate status & navigation bar
             mHasSystemNavBar = false;
             mNavigationBarCanMove = true;
@@ -1041,7 +1048,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             // out to be 16:aspect.  If this is less than 9, then hiding
             // the navigation bar will provide more useful space for wide
             // screen movies.
-            mCanHideNavigationBar = aspect < 9;
+            mCanHideNavigationBar = true;
         } else if (mHasNavigationBar) {
             // The navigation bar is at the right in landscape; it seems always
             // useful to hide it for showing a video.
@@ -2433,7 +2440,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             // then take that into account.
             navVisible |= !mCanHideNavigationBar;
 
-            if (mNavigationBar != null) {
+            if (mFocusedWindow != null) {
+                int fl = mFocusedWindow.getAttrs().flags;
+                if ((fl & 8) != 0) {
+                    navVisible = false;
+                }
+            }
+
+            if (mNavigationBar != null && (mLastSystemUiFlags & 8) == 0) {
                 // Force the navigation bar to its appropriate place and
                 // size.  We need to do this directly, instead of relying on
                 // it to bubble up from the nav bar, because this needs to
@@ -3822,6 +3836,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         waitForKeyguardWindowDrawn(windowToken, screenOnListener);
                     }
                 });
+                finishScreenTurningOn(screenOnListener);
                 return;
             } else {
                 mKeyguardMediator.onScreenTurnedOn(null);

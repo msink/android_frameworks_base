@@ -25,5 +25,6 @@ interface IApplicationToken
     void windowsGone();
     boolean keyDispatchingTimedOut();
     long getKeyDispatchingTimeout();
+    boolean isHomeActivity();
 }
 
