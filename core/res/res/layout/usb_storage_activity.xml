@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:padding="18dip"
+    android:background="@color/white"
     >
 
     <ImageView android:id="@+id/icon"
@@ -12,6 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/black"
         android:src="@drawable/usb_android" />
 
     <TextView android:id="@+id/banner"
@@ -22,6 +24,7 @@
         android:layout_height="wrap_content"
         android:textSize="24sp"
         android:gravity="center"
+        android:textColor="@color/black"
         android:text="@string/usb_storage_title" />
 
     <TextView android:id="@+id/message"
@@ -31,6 +34,7 @@
         android:layout_height="wrap_content"
         android:textSize="14sp"
         android:gravity="center"
+        android:textColor="@color/black"
         android:text="@string/usb_storage_message" />
 
     <RelativeLayout
