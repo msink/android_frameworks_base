@@ -1117,8 +1117,8 @@ public class GlowPadView extends View {
         // width or the specified outer radius.
         final float placementWidth = getRingWidth();
         final float placementHeight = getRingHeight();
-        float newWaveCenterX = mHorizontalInset
-                + Math.max(width, mMaxTargetWidth + placementWidth) / 2;
+        float newWaveCenterX =
+                  Math.max(width, mMaxTargetWidth + placementWidth) / 2;
         float newWaveCenterY = mVerticalInset
                 + Math.max(height, + mMaxTargetHeight + placementHeight) / 2;
 

@@ -123,6 +123,8 @@ class WindowStateAnimator {
     // an enter animation.
     boolean mEnterAnimationPending;
 
+    boolean mMirrorOrientation = false;
+
     /** This is set when there is no Surface */
     static final int NO_SURFACE = 0;
     /** This is set after the Surface has been created but before the window has been drawn. During
@@ -151,6 +153,7 @@ class WindowStateAnimator {
 
     /** Was this window last hidden? */
     boolean mLastHidden;
+    boolean mSurfaceHidden;
 
     int mAttrFlags;
     int mAttrType;
@@ -417,6 +420,9 @@ class WindowStateAnimator {
     }
 
     void hide() {
+        if (mSurfaceHidden) {
+            return;
+        }
         if (!mLastHidden) {
             //dump();
             mLastHidden = true;
@@ -674,16 +680,33 @@ class WindowStateAnimator {
                 if (!PixelFormat.formatHasAlpha(attrs.format)) {
                     flags |= Surface.OPAQUE;
                 }
+                String title = attrs.getTitle().toString();
+                if ((attrs.flags & WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION) != 0) {
+                    flags |= Surface.SF_FAKE_TRANSFORMATION;
+                }
+                if (mWin.mAttachedWindow != null) {
+                    String attachedWindowTitle = mWin.mAttachedWindow.getAttrs().getTitle().toString();
+                    if (attachedWindowTitle != null &&
+                            title.equals("SurfaceView") &&
+                            !attachedWindowTitle.contains("com.android") &&
+                            !attachedWindowTitle.contains("android.rk") &&
+                            !attachedWindowTitle.contains("com.google")) {
+                        title = "SurfaceView-benchmark";
+                    }
+                }
+                if (mSession.mCallingPkgName != null && title.equals("") &&
+                        mContext.getPackageManager().shouldForceUseLcdcComposer(mSession.mCallingPkgName)) {
+                    title = "com.aatt.fpsm";
+                    attrs.setTitle("com.aatt.fpsm");
+                }
                 if (DEBUG_SURFACE_TRACE) {
                     mSurface = new SurfaceTrace(
                             mSession.mSurfaceSession,
-                            attrs.getTitle().toString(),
-                            w, h, format, flags);
+                            title, w, h, format, flags);
                 } else {
                     mSurface = new Surface(
                         mSession.mSurfaceSession,
-                        attrs.getTitle().toString(),
-                        w, h, format, flags);
+                        title, w, h, format, flags);
                 }
                 mWin.mHasSurface = true;
                 if (SHOW_TRANSACTIONS || SHOW_SURFACE_ALLOC) Slog.i(TAG,
@@ -888,7 +911,18 @@ class WindowStateAnimator {
                 final float w = frame.width();
                 final float h = frame.height();
                 if (w>=1 && h>=1) {
+                  if (mService.mUseLcdcComposer) {
+                    DisplayInfo displayInfo = mWin.mDisplayContent.getDisplayInfo();
+                    if (mWin.mIsWallpaper) {
+                        tmpMatrix.setScale(1 - 4/(float)displayInfo.logicalWidth,
+                            1 - 4/(float)displayInfo.logicalHeight, w/2, h/2);
+                    } else {
+                        tmpMatrix.setScale(1 + 4/(float)displayInfo.logicalWidth,
+                            1 + 4/(float)displayInfo.logicalHeight, w/2, h/2);
+                    }
+                  } else {
                     tmpMatrix.setScale(1 + 2/w, 1 + 2/h, w/2, h/2);
+                  }
                 } else {
                     tmpMatrix.reset();
                 }
@@ -1045,8 +1079,14 @@ class WindowStateAnimator {
         // Initialize the decor rect to the entire frame.
         w.mSystemDecorRect.set(0, 0, w.mFrame.width(), w.mFrame.height());
         // Intersect with the decor rect, offsetted by window position.
-        w.mSystemDecorRect.intersect(decorRect.left-offX, decorRect.top-offY,
+        if (mService.mUseLcdcComposer && w.mIsWallpaper) {
+            DisplayInfo displayInfo = mService.getDefaultDisplayInfoLocked();
+            w.mSystemDecorRect.intersect(-offX, -offY,
+                displayInfo.logicalWidth-offX, displayInfo.logicalHeight-offY-64);
+        } else {
+            w.mSystemDecorRect.intersect(decorRect.left-offX, decorRect.top-offY,
                 decorRect.right-offX, decorRect.bottom-offY);
+        }
         // If size compatibility is being applied to the window, the
         // surface is scaled relative to the screen.  Also apply this
         // scaling to the crop rect.  We aren't using the standard rect
@@ -1097,7 +1137,9 @@ class WindowStateAnimator {
             applyDecorRect(mService.mSystemDecorRect);
         }
 
-        if (!w.mSystemDecorRect.equals(w.mLastSystemDecorRect)) {
+        if (!w.mSystemDecorRect.equals(w.mLastSystemDecorRect) ||
+                (mService.mUseLcdcComposer && mMirrorOrientation)) {
+            mMirrorOrientation = false;
             w.mLastSystemDecorRect.set(w.mSystemDecorRect);
             try {
                 if (WindowManagerService.SHOW_TRANSACTIONS) WindowManagerService.logSurface(w,

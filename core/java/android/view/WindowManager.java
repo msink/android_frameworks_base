@@ -804,6 +804,8 @@ public interface WindowManager extends ViewManager {
          * {@hide} */
         public static final int FLAG_SYSTEM_ERROR = 0x40000000;
 
+        public static final int FLAG_DRAW_WITH_ROTATION = 0x80000000;
+
         /**
          * Various behavioral options/flags.  Default is none.
          * 

@@ -426,8 +426,11 @@ final class DisplayPowerController {
             float[] y = new float[n];
             y[0] = normalizeAbsoluteBrightness(brightness[0]);
             for (int i = 1; i < n; i++) {
-                x[i] = lux[i - 1];
+                x[i - 1] = lux[i - 1];
                 y[i] = normalizeAbsoluteBrightness(brightness[i]);
+            }
+            if (n > 0) {
+                x[n - 1] = lux[n - 1];
             }
 
             Spline spline = Spline.createMonotoneCubicSpline(x, y);

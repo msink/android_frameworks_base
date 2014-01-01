@@ -31,6 +31,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -48,6 +49,8 @@ import android.view.WindowManagerGlobal;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 
 /**
  * Provides access to the system wallpaper. With WallpaperManager, you can
@@ -296,8 +299,18 @@ public class WallpaperManager {
         }
         
         private Bitmap getDefaultWallpaperLocked(Context context) {
+            InputStream is = null;
+            final File defaultfactoryConfigFile = new File("system/media/rkfactory");
+            if (!defaultfactoryConfigFile.exists()) {
+                defaultfactoryConfigFile.mkdirs();
+            }
+            final File defaultWorkspaceConfigFile = new File("system/media/rkfactory/default_wallpaper.jpg");
             try {
-                InputStream is = context.getResources().openRawResource(
+                Log.d(TAG,"LOAD DEFAULT WALLPAPER  ......"+defaultWorkspaceConfigFile.exists());
+                if (defaultWorkspaceConfigFile.exists())
+                    is = new FileInputStream(defaultWorkspaceConfigFile);
+                else
+                    is = context.getResources().openRawResource(
                         com.android.internal.R.drawable.default_wallpaper);
                 if (is != null) {
                     int width = mService.getWidthHint();
@@ -317,6 +330,8 @@ public class WallpaperManager {
                         }
                     }
                 }
+            } catch (IOException e) {
+	        e.printStackTrace();
             } catch (RemoteException e) {
                 // Ignore
             }
@@ -707,6 +722,7 @@ public class WallpaperManager {
      * @param yOffset The offset along the Y dimension, from 0 to 1.
      */
     public void setWallpaperOffsets(IBinder windowToken, float xOffset, float yOffset) {
+        if (Build.USE_LCDC_COMPOSER) return;
         try {
             //Log.v(TAG, "Sending new wallpaper offsets from app...");
             WindowManagerGlobal.getWindowSession(mContext.getMainLooper()).setWallpaperPosition(
@@ -819,8 +835,15 @@ public class WallpaperManager {
 
             if (deltaw > 0 || deltah > 0) {
                 // We need to scale up so it covers the entire area.
+                boolean useRadio = false;
+                if (Build.USE_LCDC_COMPOSER) {
+                    useRadio = (width / (float)targetRect.right
+                                > height / (float)targetRect.bottom);
+                } else {
+                    useRadio = (deltaw > deltah);
+                }
                 float scale;
-                if (deltaw > deltah) {
+                if (useRadio) {
                     scale = width / (float)targetRect.right;
                 } else {
                     scale = height / (float)targetRect.bottom;

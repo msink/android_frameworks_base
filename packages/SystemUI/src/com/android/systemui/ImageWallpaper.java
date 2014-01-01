@@ -27,12 +27,14 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Region.Op;
 import android.opengl.GLUtils;
+import android.os.Build;
 import android.os.SystemProperties;
 import android.renderscript.Matrix4f;
 import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
@@ -62,12 +64,15 @@ public class ImageWallpaper extends WallpaperService {
 
     static final boolean FIXED_SIZED_SURFACE = true;
     static final boolean USE_OPENGL = true;
+    private static final boolean USE_LCDC_COMPOSER = Build.USE_LCDC_COMPOSER;
 
     WallpaperManager mWallpaperManager;
 
     DrawableEngine mEngine;
 
     boolean mIsHwAccelerated;
+    int mHardwareRotation;
+    int force_ues_rgb565 = SystemProperties.getInt("sys.wallpaper.rgb565", 0);
 
     @Override
     public void onCreate() {
@@ -80,6 +85,8 @@ public class ImageWallpaper extends WallpaperService {
                 mIsHwAccelerated = ActivityManager.isHighEndGfx();
             }
         }
+
+        mHardwareRotation = SystemProperties.getInt("ro.sf.hwrotation", 0) / 90;
     }
 
     @Override
@@ -269,6 +276,9 @@ public class ImageWallpaper extends WallpaperService {
                     mYOffset = yOffset;
                     mOffsetsChanged = true;
                 }
+                if (USE_LCDC_COMPOSER) {
+                    mRedrawNeeded = true;
+                }
                 drawFrameLocked();
             }
         }
@@ -282,6 +292,7 @@ public class ImageWallpaper extends WallpaperService {
             super.onSurfaceChanged(holder, format, width, height);
 
             synchronized (mLock) {
+                mRedrawNeeded = true;
                 drawFrameLocked();
             }
         }
@@ -458,6 +469,30 @@ public class ImageWallpaper extends WallpaperService {
             final Rect frame = sh.getSurfaceFrame();
             final Matrix4f ortho = new Matrix4f();
             ortho.loadOrtho(0.0f, frame.width(), frame.height(), 0.0f, -1.0f, 1.0f);
+
+            if (USE_LCDC_COMPOSER) {
+                int rotation = ((WindowManager) getSystemService(WINDOW_SERVICE)).
+                    getDefaultDisplay().getRotation();
+                switch ((mHardwareRotation + rotation) % 4) {
+                case Surface.ROTATION_0:
+                    break;
+                case Surface.ROTATION_270:
+                    ortho.translate(mBackground.getWidth() / 2, mBackground.getHeight() / 2, 0);
+                    ortho.rotate(-90, 0, 0, 1);
+                    ortho.translate(-mBackground.getWidth() / 2, -mBackground.getHeight() / 2, 0);
+                    break;
+                case Surface.ROTATION_90:
+                    ortho.translate(mBackground.getWidth() / 2, mBackground.getHeight() / 2, 0);
+                    ortho.rotate(90, 0, 0, 1);
+                    ortho.translate(-mBackground.getWidth() / 2, -mBackground.getHeight() / 2, 0);
+                    break;
+                case Surface.ROTATION_180:
+                    ortho.translate(mBackground.getWidth() / 2, mBackground.getHeight() / 2, 0);
+                    ortho.rotate(180, 0, 0, 1);
+                    ortho.translate(-mBackground.getWidth() / 2, -mBackground.getHeight() / 2, 0);
+                    break;
+                }
+            }
 
             final FloatBuffer triangleVertices = createMesh(left, top, right, bottom);
 
@@ -671,18 +706,73 @@ public class ImageWallpaper extends WallpaperService {
     
         private EGLConfig chooseEglConfig() {
             int[] configsCount = new int[1];
-            EGLConfig[] configs = new EGLConfig[1];
             int[] configSpec = getConfig();
-            if (!mEgl.eglChooseConfig(mEglDisplay, configSpec, configs, 1, configsCount)) {
-                throw new IllegalArgumentException("eglChooseConfig failed " +
-                        GLUtils.getEGLErrorString(mEgl.eglGetError()));
-            } else if (configsCount[0] > 0) {
-                return configs[0];
+            if (USE_LCDC_COMPOSER && force_ues_rgb565 == 1) {
+                int[] numConfigs = new int[1];
+                numConfigs[0] = 1;
+                configsCount[0] = 1;
+                mEgl.eglGetConfigs(mEglDisplay, null, 0, numConfigs);
+                if (!mEgl.eglChooseConfig(mEglDisplay, configSpec, null, 0,
+                    numConfigs)) {
+                    throw new IllegalArgumentException("eglChooseConfig failed");
+                }
+
+                EGLConfig[] configs = new EGLConfig[numConfigs[0]];
+                if (!mEgl.eglChooseConfig(mEglDisplay, configSpec, configs, numConfigs[0],
+                    configsCount)) {
+                    throw new IllegalArgumentException("eglChooseConfig failed " +
+                            GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                } else {
+                    int index = -1;
+                    for (int j=0; j<numConfigs[0]; j++) {
+                        if (findConfigAttrib(mEgl, mEglDisplay, configs[j], EGL_RED_SIZE, 0) == 5) {
+                            index = j;
+                            break;
+                        }
+                    }
+
+                    if (index == -1) {
+                        Log.w(TAG, "Did not find sane config, using first");
+                    }
+
+                    EGLConfig config = configs.length > 0 ? configs[index] : null;
+                    if (config == null) {
+                        throw new IllegalArgumentException("No config chosen");
+                    } else {
+                        return config;
+                    }
+                }
+            } else {
+                EGLConfig[] configs = new EGLConfig[1];
+                if (!mEgl.eglChooseConfig(mEglDisplay, configSpec, configs, 1, configsCount)) {
+                    throw new IllegalArgumentException("eglChooseConfig failed " +
+                            GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                } else if (configsCount[0] > 0) {
+                    return configs[0];
+                }
+                return null;
             }
-            return null;
+        }
+
+        private int findConfigAttrib(EGL10 egl, EGLDisplay display,
+                EGLConfig config, int attribute, int defaultValue) {
+            int[] mValue = new int[1];
+            if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
+                return mValue[0];
+            }
+            return 0;
         }
 
         private int[] getConfig() {
+          if (USE_LCDC_COMPOSER  && force_ues_rgb565 == 1 ) {
+            return new int[] {
+                    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+                    EGL_RED_SIZE, 5,
+                    EGL_GREEN_SIZE, 6,
+                    EGL_BLUE_SIZE, 5,
+                    EGL_NONE
+            };
+          } else {
             return new int[] {
                     EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
                     EGL_RED_SIZE, 8,
@@ -694,6 +784,7 @@ public class ImageWallpaper extends WallpaperService {
                     EGL_CONFIG_CAVEAT, EGL_NONE,
                     EGL_NONE
             };
+          }
         }
     }
 }

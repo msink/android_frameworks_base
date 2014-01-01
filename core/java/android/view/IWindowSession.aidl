@@ -19,6 +19,7 @@ package android.view;
 
 import android.content.ClipData;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.os.Bundle;
@@ -185,4 +186,8 @@ interface IWindowSession {
      * Notifies that a rectangle on the screen has been requested.
      */
     void onRectangleOnScreenRequested(IBinder token, in Rect rectangle, boolean immediate);
+
+    int getRotation(IWindow window);
+
+    void getDisplaySize(IWindow window, out Point curSize, out Point appSize, out Rect decorRect);
 }

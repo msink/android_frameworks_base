@@ -592,7 +592,31 @@ public class MockPackageManager extends PackageManager {
      * @hide
      */
     @Override
+    public int getPackageHardwareAccMode(String pkgName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @hide
+     */
+    @Override
     public VerifierDeviceIdentity getVerifierDeviceIdentity() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @hide
+     */
+    @Override
+    public void setPackageHardwareAccMode(String pkgName, int mode)  {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @hide
+     */
+    @Override
+    public boolean shouldForceUseLcdcComposer(String pkgName) {
         throw new UnsupportedOperationException();
     }
 }

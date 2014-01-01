@@ -39,6 +39,7 @@ import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
@@ -194,10 +195,16 @@ public final class ViewRootImpl implements ViewParent,
 
     int mWidth;
     int mHeight;
+    int mOrientation = -1;
+    int mHardwareRotation = 0;
+    Point mCurDisplaySize = new Point();
+    Point mAppDisplaySize = new Point();
+    Rect mDecorRect = new Rect();
     Rect mDirty;
     final Rect mCurrentDirty = new Rect();
     final Rect mPreviousDirty = new Rect();
     boolean mIsAnimating;
+    boolean mOldKeepScreenOn = false;
 
     CompatibilityInfo.Translator mTranslator;
 
@@ -264,6 +271,7 @@ public final class ViewRootImpl implements ViewParent,
 
     final Configuration mLastConfiguration = new Configuration();
     final Configuration mPendingConfiguration = new Configuration();
+    boolean mConfigurationChanged = false;
 
     boolean mScrollMayChange;
     int mSoftInputMode;
@@ -505,6 +513,12 @@ public final class ViewRootImpl implements ViewParent,
                     mLastInCompatMode = true;
                 }
 
+                attrs.flags |= WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION;
+                if (shouldTransform(mWindowAttributes.getTitle().toString(), mWindowAttributes.type)) {
+                    attrs.flags &= ~WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION;
+                    mOrientation = -1;
+                }
+
                 mSoftInputMode = attrs.softInputMode;
                 mWindowAttributesChanged = true;
                 mWindowAttributesChangesFlag = WindowManager.LayoutParams.EVERYTHING_CHANGED;
@@ -686,6 +700,14 @@ public final class ViewRootImpl implements ViewParent,
         // Don't enable hardware acceleration when the application is in compatibility mode
         if (mTranslator != null) return;
 
+        if (attrs.packageName != null && attrs.packageName.contains("aurorasoftworks.quadrant")) {
+            attrs.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+        }
+        if (attrs != null && attrs.getTitle() != null &&
+                attrs.getTitle().toString().contains("com.android.systemui.recent.RecentsActivity")) {
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+        }
+
         // Try to enable hardware acceleration if requested
         final boolean hardwareAccelerated = 
                 (attrs.flags & WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED) != 0;
@@ -752,6 +774,28 @@ public final class ViewRootImpl implements ViewParent,
         return mLocation;
     }
 
+    boolean shouldTransform(String name, int type) {
+        String pkgName = mView.getContext().getApplicationInfo().packageName;
+        if (pkgName != null && pkgName.contains("com.aatt.fpsm")) {
+            return false;
+        }
+        if (type != WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG
+         && type != WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG
+         && type != WindowManager.LayoutParams.TYPE_BOOT_PROGRESS
+         && type != WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+         && type != WindowManager.LayoutParams.TYPE_APPLICATION
+         && type != WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA
+         && type != WindowManager.LayoutParams.TYPE_PHONE
+         && type != WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY
+         && type != WindowManager.LayoutParams.TYPE_TOAST
+         && type != WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+         && type != WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL
+         && type != WindowManager.LayoutParams.TYPE_VOLUME_OVERLAY) {
+            return false;
+        }
+        return true;
+    }
+
     void setLayoutParams(WindowManager.LayoutParams attrs, boolean newView) {
         synchronized (this) {
             int oldSoftInputMode = mWindowAttributes.softInputMode;
@@ -765,6 +809,12 @@ public final class ViewRootImpl implements ViewParent,
             attrs.subtreeSystemUiVisibility = mWindowAttributes.subtreeSystemUiVisibility;
             mWindowAttributesChangesFlag = mWindowAttributes.copyFrom(attrs);
             mWindowAttributes.flags |= compatibleWindowFlag;
+
+            mWindowAttributes.flags |= WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION;
+            if (shouldTransform(mWindowAttributes.getTitle().toString(), mWindowAttributes.type)) {
+                mWindowAttributes.flags &= ~WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION;
+                mOrientation = -1;
+            }
 
             applyKeepScreenOnFlag(mWindowAttributes);
 
@@ -1012,10 +1062,11 @@ public final class ViewRootImpl implements ViewParent,
 
     private boolean collectViewAttributes() {
         final View.AttachInfo attachInfo = mAttachInfo;
-        if (attachInfo.mRecomputeGlobalAttributes) {
+        if (attachInfo.mRecomputeGlobalAttributes ||
+                mOldKeepScreenOn != mAttachInfo.mKeepScreenOn) {
             //Log.i(TAG, "Computing view hierarchy attributes!");
             attachInfo.mRecomputeGlobalAttributes = false;
-            boolean oldScreenOn = attachInfo.mKeepScreenOn;
+            boolean oldScreenOn = mOldKeepScreenOn;
             attachInfo.mKeepScreenOn = false;
             attachInfo.mSystemUiVisibility = 0;
             attachInfo.mHasSystemUiListeners = false;
@@ -1026,6 +1077,7 @@ public final class ViewRootImpl implements ViewParent,
                     || attachInfo.mSystemUiVisibility != params.subtreeSystemUiVisibility
                     || attachInfo.mHasSystemUiListeners != params.hasSystemUiListeners) {
                 applyKeepScreenOnFlag(params);
+                mOldKeepScreenOn = mAttachInfo.mKeepScreenOn;
                 params.subtreeSystemUiVisibility = attachInfo.mSystemUiVisibility;
                 params.hasSystemUiListeners = attachInfo.mHasSystemUiListeners;
                 mView.dispatchWindowSystemUiVisiblityChanged(attachInfo.mSystemUiVisibility);
@@ -1341,7 +1393,11 @@ public final class ViewRootImpl implements ViewParent,
         int relayoutResult = 0;
 
         if (mFirst || windowShouldResize || insetsChanged ||
-                viewVisibilityChanged || params != null) {
+                viewVisibilityChanged || params != null || mConfigurationChanged) {
+
+            if (Build.USE_LCDC_COMPOSER && mConfigurationChanged) {
+                mConfigurationChanged = false;
+            }
 
             if (viewVisibility == View.VISIBLE) {
                 // If this window is giving internal insets to the window
@@ -1408,16 +1464,23 @@ public final class ViewRootImpl implements ViewParent,
                         HardwareCanvas hwRendererCanvas = mAttachInfo.mHardwareRenderer.getCanvas();
                         HardwareCanvas layerCanvas = null;
                         try {
+                            int convertWidth = mWidth;
+                            int convertHeight = mHeight;
+                            if (mOrientation != -1 && (mOrientation % 2) == 1) {
+                                convertWidth = mHeight;
+                                convertHeight = mWidth;
+                            }
                             if (mResizeBuffer == null) {
                                 mResizeBuffer = mAttachInfo.mHardwareRenderer.createHardwareLayer(
-                                        mWidth, mHeight, false);
-                            } else if (mResizeBuffer.getWidth() != mWidth ||
-                                    mResizeBuffer.getHeight() != mHeight) {
-                                mResizeBuffer.resize(mWidth, mHeight);
+                                        convertWidth, convertHeight, false);
+                            } else if (mResizeBuffer.getWidth() != convertWidth ||
+                                    mResizeBuffer.getHeight() != convertHeight) {
+                                mResizeBuffer.resize(convertWidth, convertHeight);
                             }
                             // TODO: should handle create/resize failure
                             layerCanvas = mResizeBuffer.start(hwRendererCanvas);
-                            layerCanvas.setViewport(mWidth, mHeight);
+                            layerCanvas.setOrientation(mOrientation);
+                            layerCanvas.setViewport(convertWidth, convertHeight);
                             layerCanvas.onPreDraw(null);
                             final int restoreCount = layerCanvas.save();
 
@@ -1429,6 +1492,21 @@ public final class ViewRootImpl implements ViewParent,
                                 mScroller.abortAnimation();
                             } else {
                                 yoff = mScrollY;
+                            }
+
+                            switch (mOrientation) {
+                                case Surface.ROTATION_270:
+                                    layerCanvas.rotate(90);
+                                    layerCanvas.translate(0, -convertHeight);
+                                    break;
+                                case Surface.ROTATION_90:
+                                    layerCanvas.rotate(-90);
+                                    layerCanvas.translate(-convertWidth, 0);
+                                    break;
+                                case Surface.ROTATION_180:
+                                    layerCanvas.rotate(180);
+                                    layerCanvas.translate(-convertWidth, -convertHeight);
+                                    break;
                             }
 
                             layerCanvas.translate(0, -yoff);
@@ -1622,8 +1700,15 @@ public final class ViewRootImpl implements ViewParent,
                     mAttachInfo.mHardwareRenderer.isEnabled()) {
                 if (hwInitialized || windowShouldResize ||
                         mWidth != mAttachInfo.mHardwareRenderer.getWidth() ||
-                        mHeight != mAttachInfo.mHardwareRenderer.getHeight()) {
-                    mAttachInfo.mHardwareRenderer.setup(mWidth, mHeight);
+                        mHeight != mAttachInfo.mHardwareRenderer.getHeight() ||
+                        mOrientation != mAttachInfo.mHardwareRenderer.getOrientation()) {
+                    int convertWidth = mWidth;
+                    int convertHeight = mHeight;
+                    if ((mOrientation % 2) == 1) {
+                        convertWidth = mHeight;
+                        convertHeight = mWidth;
+                    }
+                    mAttachInfo.mHardwareRenderer.setup(convertWidth, convertHeight, mOrientation);
                     if (!hwInitialized) {
                         mAttachInfo.mHardwareRenderer.invalidate(mHolder.getSurface());
                         mFullRedrawNeeded = true;
@@ -2169,6 +2254,9 @@ public final class ViewRootImpl implements ViewParent,
                 mCurrentDirty.union(mPreviousDirty);
                 mPreviousDirty.set(dirty);
                 dirty.setEmpty();
+                if (mCurrentDirty.equals(mDecorRect)) {
+                    mCurrentDirty.set(0, 0, mWidth, mHeight);
+                }
 
                 if (attachInfo.mHardwareRenderer.draw(mView, attachInfo, this,
                         animating ? null : mCurrentDirty)) {
@@ -2210,6 +2298,30 @@ public final class ViewRootImpl implements ViewParent,
             int top = dirty.top;
             int right = dirty.right;
             int bottom = dirty.bottom;
+
+            float appScale = mAttachInfo.mApplicationScale;
+            int width = (int) (mWidth * appScale + 0.5f);
+            int height = (int) (mHeight * appScale + 0.5f);
+            switch (mOrientation) {
+                case Surface.ROTATION_270:
+                    dirty.left = top;
+                    dirty.top = width - right;
+                    dirty.right = bottom;
+                    dirty.bottom = width - left;
+                    break;
+                case Surface.ROTATION_90:
+                    dirty.left = height - bottom;
+                    dirty.top = left;
+                    dirty.right = height - top;
+                    dirty.bottom = right;
+                    break;
+                case Surface.ROTATION_180:
+                    dirty.left = width - right;
+                    dirty.top = height - bottom;
+                    dirty.right = width - left;
+                    dirty.bottom = height - top;
+                    break;
+            }
 
             canvas = mSurface.lockCanvas(dirty);
 
@@ -2277,6 +2389,23 @@ public final class ViewRootImpl implements ViewParent,
                 }
                 canvas.setScreenDensity(scalingRequired ? mNoncompatDensity : 0);
                 attachInfo.mSetIgnoreDirtyState = false;
+
+                int convertWidth = mWidth;
+                int convertHeight = mHeight;
+                switch (this.mOrientation) {
+                    case Surface.ROTATION_270:
+                        canvas.rotate(-90);
+                        canvas.translate(-convertWidth, 0);
+                        break;
+                    case Surface.ROTATION_90:
+                        canvas.rotate(90);
+                        canvas.translate(0, -convertHeight);
+                        break;
+                    case Surface.ROTATION_180:
+                        canvas.rotate(180);
+                        canvas.translate(-convertWidth, -convertHeight);
+                        break;
+                }
 
                 mView.draw(canvas);
 
@@ -2694,6 +2823,9 @@ public final class ViewRootImpl implements ViewParent,
                     mView.setLayoutDirection(currentLayoutDirection);
                 }
                 mView.dispatchConfigurationChanged(config);
+                if (Build.USE_LCDC_COMPOSER) {
+                    mConfigurationChanged = true;
+                }
             }
         }
     }
@@ -2896,7 +3028,7 @@ public final class ViewRootImpl implements ViewParent,
                             mFullRedrawNeeded = true;
                             try {
                                 if (mAttachInfo.mHardwareRenderer.initializeIfNeeded(
-                                        mWidth, mHeight, mHolder.getSurface())) {
+                                        mWidth, mHeight, mOrientation, mHolder.getSurface())) {
                                     mFullRedrawNeeded = true;
                                 }
                             } catch (Surface.OutOfResourcesException e) {
@@ -3958,6 +4090,15 @@ public final class ViewRootImpl implements ViewParent,
                 params.type = mOrigWindowType;
             }
         }
+        mWindowSession.getDisplaySize(mWindow, mCurDisplaySize, mAppDisplaySize, mDecorRect);
+        mOrientation = mWindowSession.getRotation(mWindow);
+        if (mOrientation != -1) {
+            mOrientation = (mOrientation + mHardwareRotation) % 4;
+        }
+        if (mOrientation != -1 && (mWindowAttributes.flags &
+                WindowManager.LayoutParams.FLAG_DRAW_WITH_ROTATION) == 0) {
+            mOrientation = -1;
+        }
         int relayoutResult = mWindowSession.relayout(
                 mWindow, mSeq, params,
                 (int) (mView.getMeasuredWidth() * appScale + 0.5f),
@@ -4129,6 +4270,7 @@ public final class ViewRootImpl implements ViewParent,
                 mHandler.sendEmptyMessageDelayed(MSG_INVALIDATE_WORLD, 200);
             }
         }
+        mHardwareRotation = SystemProperties.getInt("ro.sf.hwrotation", 0) / 90;
     }
 
     private void destroyHardwareRenderer() {

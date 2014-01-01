@@ -49,6 +49,7 @@ class GLES20Canvas extends HardwareCanvas {
 
     private final boolean mOpaque;
     private int mRenderer;
+    private int mOrientation = -1;
 
     // The native renderer will be destroyed when this object dies.
     // DO NOT overwrite this reference once it is set.
@@ -215,6 +216,19 @@ class GLES20Canvas extends HardwareCanvas {
     int getRenderer() {
         return mRenderer;
     }
+
+    public void setOrientation(int orientation) {
+        mOrientation = orientation;
+        nSetOrientation(mRenderer, orientation);
+    }
+
+    private static native void nSetOrientation(int renderer, int orientation);
+
+    public boolean queryHWRenderEngine(String property) {
+        return nQueryHWEngine(mRenderer, property);
+    }
+
+    private static native boolean nQueryHWEngine(int renderer, String property);
 
     ///////////////////////////////////////////////////////////////////////////
     // Setup

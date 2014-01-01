@@ -155,6 +155,8 @@ public class Surface implements Parcelable {
 
     // 0x1000 is reserved for an independent DRM protected flag in framework
 
+    public static final int SF_FAKE_TRANSFORMATION = 0x00004000;
+
     /**
      * Surface creation flag: Creates a normal surface.
      * This is the default.
@@ -420,6 +422,10 @@ public class Surface implements Parcelable {
      */
     public int getGenerationId() {
         return mGenerationId;
+    }
+
+    public int getSurfaceToken() {
+        return nativeGetIdentity();
     }
 
     /**

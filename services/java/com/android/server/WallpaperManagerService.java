@@ -40,7 +40,9 @@ import android.content.pm.ServiceInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.UserInfo;
 import android.content.res.Resources;
+import android.graphics.Point;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileUtils;
@@ -637,6 +639,19 @@ class WallpaperManagerService extends IWallpaperManager.Stub {
             }
             if (width <= 0 || height <= 0) {
                 throw new IllegalArgumentException("width and height must be > 0");
+            }
+
+            if (Build.USE_LCDC_COMPOSER && (width != 320 || height != 480)) {
+                Point size = new Point();
+                WindowManager wm = (WindowManager)
+                    mContext.getSystemService(Context.WINDOW_SERVICE);
+                Display d = wm.getDefaultDisplay();
+                d.getRealSize(size);
+                int minDim = Math.max(Math.min(width, height), Math.max(size.x, size.y));
+                minDim = (int)Math.ceil((float)(minDim - size.x) / 128) * 128
+                       + (int)Math.ceil((float)(size.x) / 64) * 64;
+                height = minDim;
+                width = minDim;
             }
 
             if (width != wallpaper.width || height != wallpaper.height) {

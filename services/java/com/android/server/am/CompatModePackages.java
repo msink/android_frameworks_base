@@ -19,6 +19,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageManager;
 import android.content.res.CompatibilityInfo;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
@@ -37,6 +38,8 @@ public class CompatModePackages {
     public static final int COMPAT_FLAG_DONT_ASK = 1<<0;
     // Compatibility state: compatibility mode is enabled.
     public static final int COMPAT_FLAG_ENABLED = 1<<1;
+    //
+    public static final int COMPAT_FLAG_STANDAR_SCREEN = 1<<2;
 
     private final HashMap<String, Integer> mPackages = new HashMap<String, Integer>();
 
@@ -104,6 +107,55 @@ public class CompatModePackages {
                     fis.close();
                 } catch (java.io.IOException e1) {
                 }
+            } else {
+
+        File etcDir = new File(Environment.getRootDirectory(), "etc");
+        AtomicFile initFile = new AtomicFile(new File(etcDir, "packages-compat.xml"));
+
+        FileInputStream etcFis = null;
+        try {
+            etcFis = initFile.openRead();
+            XmlPullParser parser = Xml.newPullParser();
+            parser.setInput(etcFis, null);
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.START_TAG) {
+                eventType = parser.next();
+            }
+            String tagName = parser.getName();
+            if ("compat-packages".equals(tagName)) {
+                eventType = parser.next();
+                do {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        tagName = parser.getName();
+                        if (parser.getDepth() == 2) {
+                            if ("pkg".equals(tagName)) {
+                                String pkg = parser.getAttributeValue(null, "name");
+                                if (pkg != null) {
+                                    String mode = parser.getAttributeValue(null, "mode");
+                                    int modeInt = 0;
+                                    if (mode != null) {
+                                        try {
+                                            modeInt = Integer.parseInt(mode);
+                                        } catch (NumberFormatException e) {
+                                        }
+                                    }
+                                    mPackages.put(pkg, modeInt);
+                                }
+                            }
+                        }
+                    }
+                    eventType = parser.next();
+                } while (eventType != XmlPullParser.END_DOCUMENT);
+            }
+            mHandler.removeMessages(300);
+            Message msg = mHandler.obtainMessage(300);
+            mHandler.sendMessageDelayed(msg, 10000);
+        } catch (XmlPullParserException e) {
+            Slog.w(TAG, "Error reading compat-packages", e);
+        } catch (java.io.IOException e) {
+            if (etcFis != null) Slog.w(TAG, "Error reading system compat-packages", e);
+        }
+
             }
         }
     }
@@ -152,6 +204,8 @@ public class CompatModePackages {
 
     public int computeCompatModeLocked(ApplicationInfo ai) {
         boolean enabled = (getPackageFlags(ai.packageName)&COMPAT_FLAG_ENABLED) != 0;
+      boolean standardScreenOn = (getPackageFlags(ai.packageName)&COMPAT_FLAG_STANDAR_SCREEN) != 0;
+      if (!standardScreenOn) {
         CompatibilityInfo info = new CompatibilityInfo(ai,
                 mService.mConfiguration.screenLayout,
                 mService.mConfiguration.smallestScreenWidthDp, enabled);
@@ -160,6 +214,10 @@ public class CompatModePackages {
         }
         if (info.neverSupportsScreen()) {
             return ActivityManager.COMPAT_MODE_ALWAYS;
+        }
+      }
+        if (standardScreenOn) {
+            return ActivityManager.COMPAT_MODE_STANDAR_SCREEN;
         }
         return enabled ? ActivityManager.COMPAT_MODE_ENABLED
                 : ActivityManager.COMPAT_MODE_DISABLED;
@@ -245,8 +303,9 @@ public class CompatModePackages {
         final String packageName = ai.packageName;
 
         int curFlags = getPackageFlags(packageName);
-
+        boolean standardScreenMode = false;
         boolean enable;
+
         switch (mode) {
             case ActivityManager.COMPAT_MODE_DISABLED:
                 enable = false;
@@ -256,6 +315,10 @@ public class CompatModePackages {
                 break;
             case ActivityManager.COMPAT_MODE_TOGGLE:
                 enable = (curFlags&COMPAT_FLAG_ENABLED) == 0;
+                break;
+            case ActivityManager.COMPAT_MODE_STANDAR_SCREEN:
+                standardScreenMode = true;
+                enable = false;
                 break;
             default:
                 Slog.w(TAG, "Unknown screen compat mode req #" + mode + "; ignoring");
@@ -267,6 +330,11 @@ public class CompatModePackages {
             newFlags |= COMPAT_FLAG_ENABLED;
         } else {
             newFlags &= ~COMPAT_FLAG_ENABLED;
+        }
+        if (standardScreenMode) {
+            newFlags |= COMPAT_FLAG_STANDAR_SCREEN;
+        } else {
+            newFlags &= ~COMPAT_FLAG_STANDAR_SCREEN;
         }
 
         CompatibilityInfo ci = compatibilityInfoForPackageLocked(ai);
@@ -362,6 +430,14 @@ public class CompatModePackages {
                 if (mode == 0) {
                     continue;
                 }
+                if (mode == ActivityManager.COMPAT_MODE_STANDAR_SCREEN) {
+                    out.startTag(null, "pkg");
+                    out.attribute(null, "name", pkg);
+                    out.attribute(null, "mode", Integer.toString(mode));
+                    out.endTag(null, "pkg");
+                    continue;
+                }
+
                 ApplicationInfo ai = null;
                 try {
                     ai = pm.getApplicationInfo(pkg, 0, 0);

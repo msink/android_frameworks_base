@@ -46,6 +46,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -54,6 +55,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.util.EventLog;
 import android.util.Log;
@@ -66,6 +68,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Timer;
 
 /**
  * State and management of a single stack of activities.
@@ -256,6 +259,18 @@ final class ActivityStack {
     ActivityRecord mLastStartedActivity = null;
     
     /**
+     *
+     */
+    DevicePerformanceTool mDevicePerformanceTool;
+
+    boolean mHardwareUsePerformanceTool = false;
+    boolean mSystemAppFreqLimited = false;
+    boolean mUseLcdcComposer = Build.USE_LCDC_COMPOSER;
+
+    boolean retTag;
+    Timer timer;
+
+    /**
      * Set when we know we are going to be calling updateConfiguration()
      * soon, so want to skip intermediate config checks.
      */
@@ -419,6 +434,23 @@ final class ActivityStack {
         mGoingToSleep = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Sleep");
         mLaunchingActivity = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Launch");
         mLaunchingActivity.setReferenceCounted(false);
+
+        String value = SystemProperties.get("ro.hardware","rk30board");
+        if (value.equals("rk30board")
+                || value.equals("rk2928board")
+                || value.equals("rk29board")) {
+            mHardwareUsePerformanceTool = true;
+            mDevicePerformanceTool = new DevicePerformanceTool();
+        }
+
+        value = SystemProperties.get("ro.board.platform","rk30xx");
+        if (value.equals("rk30xx")) {
+            mSystemAppFreqLimited = true;
+        }
+
+        if (mUseLcdcComposer) {
+            mSystemAppFreqLimited = false;
+        }
     }
 
     private boolean okToShow(ActivityRecord r) {
@@ -1465,6 +1497,7 @@ final class ActivityStack {
         mWaitingVisibleActivities.remove(next);
 
         next.updateOptionsLocked(options);
+        checkApplicationHardwareAccMode();
 
         if (DEBUG_SWITCH) Slog.v(TAG, "Resuming " + next);
 
@@ -4728,5 +4761,18 @@ final class ActivityStack {
     
     public void dismissKeyguardOnNextActivityLocked() {
         mDismissKeyguardOnNextActivity = true;
+    }
+
+    private void checkApplicationHardwareAccMode() {
+        if (mHardwareUsePerformanceTool) {
+            int mode = mService.getFrontActivityHardwareAccModeLocked(mSystemAppFreqLimited);
+            mDevicePerformanceTool.setPerformanceMode(mode);
+        }
+    }
+
+    public void forceHardwareAccMode(int mode) {
+        if (mHardwareUsePerformanceTool) {
+            mDevicePerformanceTool.setPerformanceMode(mode);
+        }
     }
 }
