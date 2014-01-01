@@ -1502,8 +1502,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         if (dispatcher != null) {
             dispatcher.handleUpEvent(event);
         }
-        //Log.i(TAG, "Key up: repeat=" + event.getRepeatCount()
-        //        + " flags=0x" + Integer.toHexString(event.getFlags()));
+        Log.i(TAG, "Key up: repeat=" + event.getRepeatCount()
+                + " flags=0x" + Integer.toHexString(event.getFlags()));
         
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
