@@ -33,6 +33,7 @@ public class Environment {
     private static final String TAG = "Environment";
 
     private static final String ENV_EXTERNAL_STORAGE = "EXTERNAL_STORAGE";
+    private static final String ENV_EXTERNAL_STORAGE_USE_DATA = "EXTERNAL_STORAGE_USE_DATA";
     private static final String ENV_EMULATED_STORAGE_SOURCE = "EMULATED_STORAGE_SOURCE";
     private static final String ENV_EMULATED_STORAGE_TARGET = "EMULATED_STORAGE_TARGET";
     private static final String ENV_MEDIA_STORAGE = "MEDIA_STORAGE";
@@ -97,6 +98,10 @@ public class Environment {
         public UserEnvironment(int userId) {
             // See storage config details at http://source.android.com/tech/storage/
             String rawExternalStorage = System.getenv(ENV_EXTERNAL_STORAGE);
+            int policy = SystemProperties.getInt("ro.factory.storage_policy", 0);
+            if (policy == 1) {
+                rawExternalStorage = System.getenv(ENV_EXTERNAL_STORAGE_USE_DATA);
+            }
             String rawEmulatedStorageTarget = System.getenv(ENV_EMULATED_STORAGE_TARGET);
             String rawMediaStorage = System.getenv(ENV_MEDIA_STORAGE);
             if (TextUtils.isEmpty(rawMediaStorage)) {
@@ -319,6 +324,10 @@ public class Environment {
 
     /** {@hide} */
     public static File getLegacyExternalStorageDirectory() {
+        int policy = SystemProperties.getInt("ro.factory.storage_policy", 0);
+        if (policy == 1) {
+            return new File(System.getenv(ENV_EXTERNAL_STORAGE_USE_DATA));
+        }
         return new File(System.getenv(ENV_EXTERNAL_STORAGE));
     }
 

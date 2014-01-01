@@ -38,6 +38,7 @@ import android.inputmethodservice.InputMethodService;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.storage.StorageManager;
 import android.text.TextUtils;
 import android.util.Slog;
 import android.view.Display;
@@ -132,6 +133,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     View mMenuButton;
     View mRecentButton;
     private boolean mAltBackButtonEnabledForIme;
+    private StorageManager mStorageManager;
 
     ViewGroup mFeedbackIconArea; // notification icons, IME icon, compat icon
     InputMethodButton mInputMethodSwitchButton;
@@ -377,6 +379,8 @@ public class TabletStatusBar extends BaseStatusBar implements
     @Override
     public void start() {
         super.start(); // will add the main bar view
+        mStorageManager = (StorageManager)mContext.getSystemService(Context.STORAGE_SERVICE);
+        mStorageManager.registerListener(new com.android.systemui.usb.StorageNotification(mContext));
     }
 
     @Override
