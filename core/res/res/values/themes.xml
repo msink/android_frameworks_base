@@ -1171,7 +1171,7 @@ please see themes_device_defaults.xml.
         <item name="dividerVertical">?android:attr/listDivider</item>
         <item name="dividerHorizontal">?android:attr/listDivider</item>
         <item name="buttonBarStyle">@android:style/Holo.ButtonBar</item>
-        <item name="buttonBarButtonStyle">?android:attr/borderlessButtonStyle</item>
+        <item name="buttonBarButtonStyle">?android:attr/buttonStyle</item>
         <item name="segmentedButtonStyle">@android:style/Holo.SegmentedButton</item>
 
         <!-- SearchView attributes -->
@@ -1488,7 +1488,7 @@ please see themes_device_defaults.xml.
         <item name="dividerVertical">?android:attr/listDivider</item>
         <item name="dividerHorizontal">?android:attr/listDivider</item>
         <item name="buttonBarStyle">@android:style/Holo.Light.ButtonBar</item>
-        <item name="buttonBarButtonStyle">?android:attr/borderlessButtonStyle</item>
+        <item name="buttonBarButtonStyle">?android:attr/buttonStyle</item>
         <item name="segmentedButtonStyle">@android:style/Holo.Light.SegmentedButton</item>
 
         <!-- SearchView attributes -->
