@@ -98,6 +98,24 @@
                 android:contentDescription="@string/accessibility_menu"
                 systemui:glowBackground="@drawable/ic_sysbar_highlight"
                 />
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/sub_normal"
+                systemui:keyCode="25"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/add"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/add_normal"
+                systemui:keyCode="24"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
         </LinearLayout>
 
         <!-- lights out layout to match exactly -->
@@ -186,6 +204,24 @@
             >
             
             <!-- navigation controls -->
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/sub_normal"
+                systemui:keyCode="25"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/add"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/add_normal"
+                systemui:keyCode="24"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/menu"
                 android:layout_height="40dp"
                 android:layout_width="match_parent"

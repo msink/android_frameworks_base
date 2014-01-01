@@ -464,6 +464,7 @@ public class AudioManager {
      * @hide
      */
     public void handleKeyDown(KeyEvent event, int stream) {
+        Log.d(TAG, "<--WLQ-->handleKeyUp");
         int keyCode = event.getKeyCode();
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
@@ -506,6 +507,7 @@ public class AudioManager {
      */
     public void handleKeyUp(KeyEvent event, int stream) {
         int keyCode = event.getKeyCode();
+        Log.d(TAG, "<--WLQ-->handleKeyUp");
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
