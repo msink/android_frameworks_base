@@ -98,6 +98,14 @@
                 android:contentDescription="@string/accessibility_menu"
                 systemui:glowBackground="@drawable/ic_sysbar_highlight"
                 />
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/screenshot"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/capture"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
@@ -204,6 +212,14 @@
             >
             
             <!-- navigation controls -->
+            <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/screenshot"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/capture"
+                android:layout_weight="0"
+                android:contentDescription="@string/accessibility_recent"
+                systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                />
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/sub"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"

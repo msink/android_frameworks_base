@@ -1950,6 +1950,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.HDMI_LCD_TIMEOUT,
                     R.integer.def_hdmi_lcd_timeout);
 
+            loadBooleanSetting(stmt, Settings.System.SCREENSHOT_BUTTON_SHOW,
+                    R.bool.def_screenshot_button_show);
+
+            int policy = SystemProperties.getInt("ro.factory.storage_policy", 0);
+            if (policy == 1) {
+                loadSetting(stmt, Settings.System.SCREENSHOT_LOCATION,
+                         "/storage/sdcard0");
+            } else {
+                loadStringSetting(stmt, Settings.System.SCREENSHOT_LOCATION,
+                        R.string.def_screenshot_location);
+            }
+
             loadBooleanSetting(stmt, Settings.System.SCREEN_BRIGHTNESS_MODE,
                     R.bool.def_screen_brightness_automatic_mode);
 

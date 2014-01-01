@@ -81,6 +81,19 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Messenger;
+import android.provider.Settings;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.io.File;
+
 public class TabletStatusBar extends BaseStatusBar implements
         InputMethodsPanel.OnHardKeyboardEnabledChangeListener {
     public static final boolean DEBUG = false;
@@ -133,6 +146,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     View mHomeButton;
     View mMenuButton;
     View mRecentButton;
+    View mScreenShotButton;
     View mVolumeDownButton;
     View mVolumeUpButton;
     private String isEnableShowVoiceIcon =
@@ -396,6 +410,12 @@ public class TabletStatusBar extends BaseStatusBar implements
                  View.STATUS_BAR_DISABLE_BACK |
                  View.STATUS_BAR_DISABLE_HOME)) == 0) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.SCREENSHOT_BUTTON_SHOW, 0) == 1) {
+                    mScreenShotButton.setVisibility(View.VISIBLE);
+                } else {
+                    mScreenShotButton.setVisibility(View.GONE);
+                }
                 mVolumeUpButton.setVisibility(View.VISIBLE);
                 mVolumeDownButton.setVisibility(View.VISIBLE);
             } else {
@@ -464,6 +484,11 @@ public class TabletStatusBar extends BaseStatusBar implements
     protected View makeStatusBarView() {
         final Context context = mContext;
 
+        IntentFilter intentfilter = new IntentFilter();
+        intentfilter.addAction("rk.android.screenshot.SHOW");
+        intentfilter.addAction("rk.android.screenshot.ACTION");
+        context.registerReceiver(receiver, intentfilter);
+
         loadDimens();
 
         final TabletStatusBarView sb = (TabletStatusBarView)View.inflate(
@@ -526,6 +551,15 @@ public class TabletStatusBar extends BaseStatusBar implements
         mVolumeUpButton = mNavigationArea.findViewById(R.id.add);
         mRecentButton = mNavigationArea.findViewById(R.id.recent_apps);
         mRecentButton.setOnClickListener(mOnClickListener);
+        mScreenShotButton = mNavigationArea.findViewById(R.id.screenshot);
+
+        boolean show = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SCREENSHOT_BUTTON_SHOW, 0) == 1);
+        if (show) {
+            mScreenShotButton.setVisibility(View.VISIBLE);
+        } else {
+            mScreenShotButton.setVisibility(View.GONE);
+        }
 
         if ("true".equals(isEnableShowVoiceIcon)) {
             mVolumeUpButton.setVisibility(View.VISIBLE);
@@ -534,6 +568,19 @@ public class TabletStatusBar extends BaseStatusBar implements
             mVolumeUpButton.setVisibility(View.GONE);
             mVolumeDownButton.setVisibility(View.GONE);
         }
+
+        mScreenShotButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction() & MotionEvent.ACTION_MASK;
+                if (action == MotionEvent.ACTION_DOWN) {
+                    takeScreenshot();
+                } else if (action == MotionEvent.ACTION_CANCEL) {
+                } else if (action == MotionEvent.ACTION_UP) {
+                }
+                return false;
+            }
+        });
 
         LayoutTransition lt = new LayoutTransition();
         lt.setDuration(250);
@@ -975,6 +1022,8 @@ public class TabletStatusBar extends BaseStatusBar implements
         boolean disableHome = ((visibility & StatusBarManager.DISABLE_HOME) != 0);
         boolean disableRecent = ((visibility & StatusBarManager.DISABLE_RECENT) != 0);
         boolean disableBack = ((visibility & StatusBarManager.DISABLE_BACK) != 0);
+        boolean show = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SCREENSHOT_BUTTON_SHOW, 0) == 1;
 
         mBackButton.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         mHomeButton.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
@@ -984,6 +1033,11 @@ public class TabletStatusBar extends BaseStatusBar implements
                .orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mVolumeUpButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
             mVolumeDownButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+        }
+        if (show) {
+            mScreenShotButton.setVisibility(View.VISIBLE);
+        } else {
+            mScreenShotButton.setVisibility(View.GONE);
         }
 
         mInputMethodSwitchButton.setScreenLocked(
@@ -1254,6 +1308,109 @@ public class TabletStatusBar extends BaseStatusBar implements
                 onClickInputMethodSwitchButton();
             } else if (v == mCompatModeButton) {
                 onClickCompatModeButton();
+            }
+        }
+    };
+
+    final Object mScreenshotLock = new Object();
+    ServiceConnection mScreenshotConnection = null;
+
+    final Runnable mScreenshotTimeout = new Runnable() {
+        @Override public void run() {
+            synchronized (mScreenshotLock) {
+                if (mScreenshotConnection != null) {
+                    mContext.unbindService(mScreenshotConnection);
+                    mScreenshotConnection = null;
+                }
+            }
+        }
+    };
+
+    private void takeScreenshot() {
+        String imageDir = Settings.System.getString(mContext.getContentResolver(),
+                          Settings.System.SCREENSHOT_LOCATION);
+        File file = new File(imageDir + "/Screenshots");
+        String text = null;
+
+        file.mkdir();
+
+        if (!file.exists()) {
+           if (imageDir.equals("/mnt/sdcard") || imageDir.equals("/storage/sdcard0")) {
+                text = mContext.getResources().getString(R.string.sdcard_unmount);
+           } else if (imageDir.equals("/mnt/external_sd")) {
+                text = mContext.getResources().getString(R.string.external_sd_unmount);
+           } else if (imageDir.equals("/mnt/usb_storage")) {
+                text = mContext.getResources().getString(R.string.usb_storage_unmount);
+           }
+           Toast.makeText(mContext, text, 3000).show();
+           return;
+        }
+
+        synchronized (mScreenshotLock) {
+            if (mScreenshotConnection != null) {
+                return;
+            }
+            ComponentName cn = new ComponentName("com.android.systemui",
+                    "com.android.systemui.screenshot.TakeScreenshotService");
+            Intent intent = new Intent();
+            intent.setComponent(cn);
+            ServiceConnection conn = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    synchronized (mScreenshotLock) {
+                        if (mScreenshotConnection != this) {
+                            return;
+                        }
+                        Messenger messenger = new Messenger(service);
+                        Message msg = Message.obtain(null, 1);
+                        final ServiceConnection myConn = this;
+                        Handler h = new Handler(mHandler.getLooper()) {
+                            @Override
+                            public void handleMessage(Message msg) {
+                                synchronized (mScreenshotLock) {
+                                    if (mScreenshotConnection == myConn) {
+                                        mContext.unbindService(mScreenshotConnection);
+                                        mScreenshotConnection = null;
+                                        mHandler.removeCallbacks(mScreenshotTimeout);
+                                    }
+                                }
+                            }
+                        };
+                        msg.replyTo = new Messenger(h);
+                        msg.arg1 = 0;
+                        msg.arg2 = 1;
+                        try {
+                            messenger.send(msg);
+                        } catch (RemoteException e) {
+                        }
+                    }
+                }
+                @Override
+                public void onServiceDisconnected(ComponentName name) {}
+            };
+            if (mContext.bindService(intent, conn, Context.BIND_AUTO_CREATE)) {
+                mScreenshotConnection = conn;
+                mHandler.postDelayed(mScreenshotTimeout, 10000);
+            }
+        }
+    }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action=intent.getAction();
+            Log.d("screenshot", action);
+            if (action.equals("rk.android.screenshot.SHOW")){
+                boolean show=intent.getBooleanExtra("show", false);
+                if (show) {
+                    Log.d("screenshot","show screenshot button");
+                    mScreenShotButton.setVisibility(View.VISIBLE);
+                } else {
+                    Log.d("screenshot","disable screenshot button");
+                    mScreenShotButton.setVisibility(View.GONE);
+                }
+            } else {
+                takeScreenshot();
             }
         }
     };
