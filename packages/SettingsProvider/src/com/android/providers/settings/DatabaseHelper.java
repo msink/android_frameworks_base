@@ -1947,6 +1947,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
                     R.integer.def_screen_brightness);
 
+            loadIntegerSetting(stmt, Settings.System.HDMI_LCD_TIMEOUT,
+                    R.integer.def_hdmi_lcd_timeout);
+
             loadBooleanSetting(stmt, Settings.System.SCREEN_BRIGHTNESS_MODE,
                     R.bool.def_screen_brightness_automatic_mode);
 

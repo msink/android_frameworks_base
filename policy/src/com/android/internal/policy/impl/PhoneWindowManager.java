@@ -3991,6 +3991,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // Ignore sensor when plugged into HDMI.
                 // Note that the dock orientation overrides the HDMI orientation.
                 preferredRotation = mHdmiRotation;
+                return mHdmiRotation;
             } else if ((mUserRotationMode == WindowManagerPolicy.USER_ROTATION_FREE
                             && (orientation == ActivityInfo.SCREEN_ORIENTATION_USER
                                     || orientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED))
@@ -4089,6 +4090,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     @Override
     public boolean rotationHasCompatibleMetricsLw(int orientation, int rotation) {
+        if (mHdmiPlugged) {
+            return true;
+        }
         switch (orientation) {
             case ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:
             case ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT:
