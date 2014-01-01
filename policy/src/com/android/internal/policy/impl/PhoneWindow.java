@@ -26,6 +26,7 @@ import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
 import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
 import static android.view.WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
 
+import com.android.internal.telephony.CallManager;
 import com.android.internal.view.RootViewSurfaceTaker;
 import com.android.internal.view.StandaloneActionMode;
 import com.android.internal.view.menu.ContextMenuBuilder;
@@ -1513,6 +1514,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 // eat the event instead, because we have mVolumeControlStreamType
                 // and they don't.
                 getAudioManager().handleKeyUp(event, mVolumeControlStreamType);
+                CallManager.getInstance().handleKeyUp(event, mVolumeControlStreamType);
                 return true;
             }
 

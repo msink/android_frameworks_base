@@ -91,6 +91,7 @@ public class DctConstants {
     public static final int CMD_SET_DEPENDENCY_MET = BASE + 31;
     public static final int CMD_SET_POLICY_DATA_ENABLE = BASE + 32;
     public static final int EVENT_ICC_CHANGED = BASE + 33;
+    public static final int EVENT_DONGLE_OPEATOT_READY = BASE + 34;
 
     /***** Constants *****/
 
