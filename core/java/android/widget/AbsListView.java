@@ -3216,6 +3216,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         } else {
             int touchMode = mTouchMode;
             if (touchMode == TOUCH_MODE_OVERSCROLL || touchMode == TOUCH_MODE_OVERFLING) {
+                exitA2(DEFAULT_EXIT_A2_DELAY);
                 if (mFlingRunnable != null) {
                     mFlingRunnable.endFling();
                 }
@@ -3474,6 +3475,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                         } else {
                             mTouchMode = TOUCH_MODE_REST;
                             reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                            exitA2(DEFAULT_EXIT_A2_DELAY);
                             if (mFlingRunnable != null) {
                                 mFlingRunnable.endFling();
                             }
@@ -3963,6 +3965,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             } else {
                 mTouchMode = TOUCH_MODE_REST;
                 reportScrollStateChange(OnScrollListener.SCROLL_STATE_IDLE);
+                exitA2(DEFAULT_EXIT_A2_DELAY);
             }
         }
 
@@ -4007,6 +4010,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         }
 
         void endFling() {
+            exitA2(DEFAULT_EXIT_A2_DELAY);
             mTouchMode = TOUCH_MODE_REST;
 
             removeCallbacks(this);
@@ -4027,6 +4031,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         }
 
         public void run() {
+            enterA2();
             switch (mTouchMode) {
             default:
                 endFling();
@@ -4853,6 +4858,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         if (cannotScrollDown || cannotScrollUp) {
             return incrementalDeltaY != 0;
         }
+
+        enterA2();
 
         final boolean down = incrementalDeltaY < 0;
 

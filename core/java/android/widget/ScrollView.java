@@ -498,6 +498,7 @@ public class ScrollView extends FrameLayout {
                 final int yDiff = Math.abs(y - mLastMotionY);
                 if (yDiff > mTouchSlop) {
                     mIsBeingDragged = true;
+                    enterA2();
                     mLastMotionY = y;
                     initVelocityTrackerIfNotExists();
                     mVelocityTracker.addMovement(ev);
@@ -613,6 +614,7 @@ public class ScrollView extends FrameLayout {
                     if (parent != null) {
                         parent.requestDisallowInterceptTouchEvent(true);
                     }
+                    enterA2();
                     mIsBeingDragged = true;
                     if (deltaY > 0) {
                         deltaY -= mTouchSlop;
@@ -666,6 +668,7 @@ public class ScrollView extends FrameLayout {
 
                     if (getChildCount() > 0) {
                         if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+                            enterA2();
                             fling(-initialVelocity);
                         } else {
                             if (mScroller.springBack(mScrollX, mScrollY, 0, 0, 0,
@@ -1220,6 +1223,7 @@ public class ScrollView extends FrameLayout {
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
+            enterA2();
             // This is called at drawing time by ViewGroup.  We don't want to
             // re-show the scrollbars at this point, which scrollTo will do,
             // so we replicate most of scrollTo here.
@@ -1265,6 +1269,9 @@ public class ScrollView extends FrameLayout {
                 postInvalidateOnAnimation();
             }
         } else {
+            if (!mIsBeingDragged) {
+                exitA2(DEFAULT_EXIT_A2_DELAY);
+            }
             if (mFlingStrictSpan != null) {
                 mFlingStrictSpan.finish();
                 mFlingStrictSpan = null;

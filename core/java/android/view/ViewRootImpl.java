@@ -43,13 +43,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.LatencyTimer;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.Trace;
@@ -82,7 +85,9 @@ import com.android.internal.view.RootViewSurfaceTaker;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
 
 /**
@@ -1151,6 +1156,161 @@ public final class ViewRootImpl implements ViewParent,
         }
 
         return windowSizeMayChange;
+    }
+
+    public List<View> mAutoViews = new CopyOnWriteArrayList();
+    public List<View> mA2Views = new CopyOnWriteArrayList();
+    public List<View> mUnionViews = new CopyOnWriteArrayList();
+
+    public View.EINK_MODE mEinkMode = View.EINK_MODE.EPD_NULL;
+
+    final public static int SF_SETMODE = 1021;
+    final public static int SF_A2 = 1023;
+    final public static int SF_UNION = 1024;
+    final public static int SF_DIRTY = 1025;
+
+    public synchronized boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force) {
+        boolean needFullRedraw = false;
+        if (mode == View.EINK_MODE.EPD_AUTO) {
+            if (!mAutoViews.contains(child)) {
+                mAutoViews.add(child);
+            }
+        } else {
+            if (mode == View.EINK_MODE.EPD_PART && mAutoViews.contains(child)) {
+                mAutoViews.remove(child);
+                if (mAutoViews.isEmpty()) {
+                    needFullRedraw = true;
+                }
+            }
+        }
+        if (mode == View.EINK_MODE.EPD_A2) {
+            if (!mA2Views.contains(child)) {
+                mA2Views.add(child);
+            }
+        } else {
+            mEinkMode = mode;
+            if (mA2Views.contains(child)) {
+                mA2Views.remove(child);
+                if (mA2Views.isEmpty() || needFullRedraw) {
+                    mFullRedrawNeeded = true;
+                    scheduleTraversals();
+                }
+            }
+        }
+        if (force) {
+            applyEinkMode(force);
+        }
+        return true;
+    }
+
+    public boolean requestEpdUnion(View child) {
+        if (!mUnionViews.contains(child) ) {
+            mUnionViews.add(child);
+        }
+        return true;
+    }
+
+    private void applyEinkMode(boolean force, Rect dirty) {
+        applyEinkMode(force);
+        String title = mWindowAttributes.getTitle() + "";
+        if ("StatusBar".equals(title) || "NavigationBar".equals(title)) {
+            Slog.e(TAG, "Skipped update region:" + title);
+            return;
+        }
+        if (dirty != null && !dirty.isEmpty()) {
+            try {
+                IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+                if (surfaceFlinger != null) {
+                    Parcel data = Parcel.obtain();
+                    data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                    data.writeInt(mSurface.getSurfaceToken());
+                    data.writeInt(dirty.left);
+                    data.writeInt(dirty.top);
+                    data.writeInt(dirty.right);
+                    data.writeInt(dirty.bottom);
+                    surfaceFlinger.transact(SF_DIRTY, data, null, 0);
+                    data.recycle();
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "failed to transact SF_DIRTY.", ex);
+            }
+        }
+    }
+
+    private synchronized void applyEinkMode(boolean force) {
+        Rect rect = new Rect();
+        for (View v : mA2Views) {
+            if (!v.isVisibleToUser()) {
+                mA2Views.remove(v);
+            }
+        }
+        for (View v : mUnionViews) {
+            if (!v.isVisibleToUser()) {
+                mUnionViews.remove(v);
+            }
+        }
+        for (View v : mAutoViews) {
+            if (!v.isVisibleToUser()) {
+                mAutoViews.remove(v);
+            }
+        }
+
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null && mSurface != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                data.writeInt(mUnionViews.size());
+                for (View v : mUnionViews) {
+                    v.getGlobalVisibleRect(rect);
+                    data.writeInt(rect.left);
+                    data.writeInt(rect.top);
+                    data.writeInt(rect.right);
+                    data.writeInt(rect.bottom);
+                }
+                surfaceFlinger.transact(SF_UNION, data, null, 0);
+                data.recycle();
+                data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                data.writeInt(mA2Views.size());
+                for (View v : mA2Views) {
+                    v.getGlobalVisibleRect(rect);
+                    data.writeInt(rect.left);
+                    data.writeInt(rect.top);
+                    data.writeInt(rect.right);
+                    data.writeInt(rect.bottom);
+                }
+                surfaceFlinger.transact(SF_A2, data, null, 0);
+                data.recycle();
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "failed to transact SF_UNION.", ex);
+        }
+
+        if (!mAutoViews.isEmpty()) {
+            mEinkMode = View.EINK_MODE.EPD_AUTO;
+        }
+        if (mEinkMode == View.EINK_MODE.EPD_NULL) {
+            mEinkMode = View.EINK_MODE.EPD_PART;
+        }
+
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                data.writeInt(mEinkMode.getValue());
+                data.writeInt(force ? 1 : 0);
+                surfaceFlinger.transact(SF_SETMODE, data, null, 0);
+                data.recycle();
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "failed to transact SF_SETMODE.", ex);
+        }
+        mEinkMode = View.EINK_MODE.EPD_NULL;
     }
 
     private void performTraversals() {
@@ -2242,6 +2402,8 @@ public final class ViewRootImpl implements ViewParent,
         }
 
         attachInfo.mTreeObserver.dispatchOnDraw();
+
+        applyEinkMode(false, dirty);
 
         if (!dirty.isEmpty() || mIsAnimating) {
             if (attachInfo.mHardwareRenderer != null && attachInfo.mHardwareRenderer.isEnabled()) {

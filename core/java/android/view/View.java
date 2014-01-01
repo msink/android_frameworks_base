@@ -11570,6 +11570,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if (mAttachInfo != null && mDisplayList != null) {
             mAttachInfo.mViewRootImpl.dequeueDisplayList(mDisplayList);
         }
+
+        mAttached = true;
     }
 
     /**
@@ -11859,6 +11861,9 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         mCurrentAnimation = null;
 
         resetAccessibilityStateChanged();
+
+        mAttached = false;
+        exitA2(0);
     }
 
     /**
@@ -18401,5 +18406,100 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         final String key = (prefix > 0 ? name.substring(0, prefix) : name) + bits + name;
         final String output = bits + " " + name;
         found.put(key, output);
+    }
+
+    public enum EINK_MODE {
+        EPD_NULL(-1),
+        EPD_AUTO(0),
+        EPD_FULL(1),
+        EPD_A2(2),
+        EPD_PART(3),
+        EPD_FULL_DITHER(4),
+        EPD_RESET(5),
+        EPD_BLACK_WHITE(6),
+        EPD_TEXT(7),
+        EPD_BLOCK(8),
+        EPD_FULL_WIN(9),
+        EPD_OED_PART(10),
+        EPD_DIRECT_PART(11),
+        EPD_DIRECT_A2(12),
+        EPD_STANDBY(13),
+        EPD_POWEROFF(14);
+
+        private int mMode;
+        private EINK_MODE(int mode) {
+            mMode = mode;
+        }
+        public int getValue() {
+            return mMode;
+        }
+    }
+
+    public static final int DEFAULT_EXIT_A2_DELAY = 500;
+    public boolean mAttached = false;
+
+    private boolean mIsInA2 = false;
+    Runnable mExitA2Runnable = new Runnable() {
+        public void run() {
+            exitA2(0);
+        }
+    };
+
+    public boolean requestEpdMode(EINK_MODE mode) {
+        return requestEpdMode(mode, false);
+    }
+
+    public boolean requestEpdMode(EINK_MODE mode, boolean force) {
+        return requestEpdMode(this, mode, force);
+    }
+
+    public boolean requestEpdMode(View child, EINK_MODE mode, boolean force) {
+        if (mParent != null) {
+            return mParent.requestEpdMode(child, mode, force);
+        }
+        return false;
+    }
+
+    public boolean requestEpdUnion() {
+        return requestEpdUnion(this);
+    }
+
+    public boolean requestEpdUnion(View child) {
+        if (mParent != null) {
+            return mParent.requestEpdUnion(child);
+        }
+        return false;
+    }
+
+    public boolean enterA2() {
+        return enterA2(0);
+    }
+
+    public boolean enterA2(long exitDelay) {
+        if (!mIsInA2) {
+            mIsInA2 = true;
+            Log.e("jeffy", "enterA2");
+        }
+        removeCallbacks(mExitA2Runnable);
+        if (exitDelay > 0) {
+            exitA2(exitDelay);
+        }
+        return requestEpdMode(EINK_MODE.EPD_A2);
+    }
+
+    public boolean exitA2(long delay) {
+        if (!mIsInA2) {
+            return false;
+        }
+        removeCallbacks(mExitA2Runnable);
+        if (delay != 0) {
+            postDelayed(mExitA2Runnable, delay);
+            return true;
+        }
+        if (mIsInA2) {
+            mIsInA2 = false;
+            Log.e("jeffy", "exitA2");
+        }
+        return requestEpdMode(EINK_MODE.EPD_NULL);
     }
 }

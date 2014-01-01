@@ -468,6 +468,7 @@ public class HorizontalScrollView extends FrameLayout {
                 final int xDiff = (int) Math.abs(x - mLastMotionX);
                 if (xDiff > mTouchSlop) {
                     mIsBeingDragged = true;
+                    enterA2();
                     mLastMotionX = x;
                     initVelocityTrackerIfNotExists();
                     mVelocityTracker.addMovement(ev);
@@ -577,6 +578,7 @@ public class HorizontalScrollView extends FrameLayout {
                     if (parent != null) {
                         parent.requestDisallowInterceptTouchEvent(true);
                     }
+                    enterA2();
                     mIsBeingDragged = true;
                     if (deltaX > 0) {
                         deltaX -= mTouchSlop;
@@ -630,6 +632,7 @@ public class HorizontalScrollView extends FrameLayout {
 
                     if (getChildCount() > 0) {
                         if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+                            enterA2();
                             fling(-initialVelocity);
                         } else {
                             if (mScroller.springBack(mScrollX, mScrollY, 0,
@@ -1232,6 +1235,7 @@ public class HorizontalScrollView extends FrameLayout {
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
+            enterA2();
             // This is called at drawing time by ViewGroup.  We don't want to
             // re-show the scrollbars at this point, which scrollTo will do,
             // so we replicate most of scrollTo here.
@@ -1274,6 +1278,11 @@ public class HorizontalScrollView extends FrameLayout {
 
             if (!awakenScrollBars()) {
                 postInvalidateOnAnimation();
+            }
+
+        } else {
+            if (!mIsBeingDragged) {
+                exitA2(DEFAULT_EXIT_A2_DELAY);
             }
         }
     }
