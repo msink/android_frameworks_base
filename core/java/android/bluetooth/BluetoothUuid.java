@@ -64,10 +64,49 @@ public final class BluetoothUuid {
             ParcelUuid.fromString("0000000f-0000-1000-8000-00805F9B34FB");
     public static final ParcelUuid PBAP_PSE =
             ParcelUuid.fromString("0000112f-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid FileTransfer =
+            ParcelUuid.fromString("00001106-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid PhoneBookAccess =
+            ParcelUuid.fromString("00001130-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid BasicPrinting =
+            ParcelUuid.fromString("00001122-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid SerialPort =
+            ParcelUuid.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid DUN =
+            ParcelUuid.fromString("00001103-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid SIM_ACC =
+            ParcelUuid.fromString("0000112D-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid GenericAudio =
+            ParcelUuid.fromString("00001203-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid GN =
+            ParcelUuid.fromString("00001117-0000-1000-8000-00805f9b34fb");
+    public static final ParcelUuid SYNC_ =
+            ParcelUuid.fromString("00001104-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid CTP =
+            ParcelUuid.fromString("00001109-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid ICP =
+            ParcelUuid.fromString("00001110-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid FAX =
+            ParcelUuid.fromString("00001111-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid LAP =
+            ParcelUuid.fromString("00001102-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid BIP =
+            ParcelUuid.fromString("0000111A-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid VIDEO_DIST =
+            ParcelUuid.fromString("00001305-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid MAP =
+            ParcelUuid.fromString("00001134-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid MSE =
+            ParcelUuid.fromString("00001132-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid MNS =
+            ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid IRMC_SYNC_CMD =
+            ParcelUuid.fromString("00001107-0000-1000-8000-00805F9B34FB");
 
     public static final ParcelUuid[] RESERVED_UUIDS = {
         AudioSink, AudioSource, AdvAudioDist, HSP, Handsfree, AvrcpController, AvrcpTarget,
-        ObexObjectPush, PANU, NAP};
+        ObexObjectPush, PANU, NAP,
+        Hid, FileTransfer, PhoneBookAccess, BasicPrinting, SerialPort, DUN, SIM_ACC};
 
     public static boolean isAudioSource(ParcelUuid uuid) {
         return uuid.equals(AudioSource);
@@ -112,6 +151,43 @@ public final class BluetoothUuid {
     public static boolean isBnep(ParcelUuid uuid) {
         return uuid.equals(BNEP);
     }
+
+    public static boolean isPbap(ParcelUuid uuid) {
+        return uuid.equals(PhoneBookAccess);
+    }
+
+    public static boolean isOpp(ParcelUuid uuid) {
+        return uuid.equals(ObexObjectPush);
+    }
+
+    public static boolean isFtp(ParcelUuid uuid) {
+        return uuid.equals(FileTransfer);
+    }
+
+    public static boolean isSerialPort(ParcelUuid uuid) {
+        return uuid.equals(SerialPort);
+    }
+
+    public static boolean isDun(ParcelUuid uuid) {
+        return uuid.equals(DUN);
+    }
+
+    public static boolean isSap(ParcelUuid uuid) {
+        return uuid.equals(SIM_ACC);
+    }
+
+    public static boolean isMap(ParcelUuid uuid) {
+        return uuid.equals(MAP);
+    }
+
+    public static boolean isMse(ParcelUuid uuid) {
+        return uuid.equals(MSE);
+    }
+
+    public static boolean isMns(ParcelUuid uuid) {
+        return uuid.equals(MNS);
+    }
+
     /**
      * Returns true if ParcelUuid is present in uuidArray
      *

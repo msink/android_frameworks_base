@@ -99,6 +99,9 @@ public final class BluetoothAdapter {
     public static final String ACTION_STATE_CHANGED =
             "android.bluetooth.adapter.action.STATE_CHANGED";
 
+    public static final String ACTION_RADIO_STATE_CHANGED =
+            "android.bluetooth.adapter.action.RADIO_STATE_CHANGED";
+
     /**
      * Used as an int extra field in {@link #ACTION_STATE_CHANGED}
      * intents to request the current power state. Possible values are:
@@ -139,6 +142,10 @@ public final class BluetoothAdapter {
      * should immediately attempt graceful disconnection of any remote links.
      */
     public static final int STATE_TURNING_OFF = 13;
+
+    public static final int STATE_RADIO_ON = 14;
+
+    public static final int STATE_RADIO_OFF = 15;
 
     /**
      * Activity Action: Show a system activity that requests discoverable mode.
@@ -449,6 +456,15 @@ public final class BluetoothAdapter {
         return false;
     }
 
+    public boolean isRadioEnabled() {
+        try {
+            synchronized(mManagerCallback) {
+                if (mService != null) return mService.isRadioEnabled();
+            }
+        } catch (RemoteException e) {Log.e(TAG, "", e);}
+        return false;
+     }
+
     /**
      * Get the current state of the local Bluetooth adapter.
      * <p>Possible return values are
@@ -466,7 +482,7 @@ public final class BluetoothAdapter {
                 if (mService != null)
                 {
                     int state=  mService.getState();
-                    if (VDBG) Log.d(TAG, "" + hashCode() + ": getState(). Returning " + state);
+                    //if (VDBG) Log.d(TAG, "" + hashCode() + ": getState(). Returning " + state);
                     return state;
                 }
                 // TODO(BT) there might be a small gap during STATE_TURNING_ON that
@@ -511,6 +527,14 @@ public final class BluetoothAdapter {
         }
         try {
             return mManagerService.enable();
+        } catch (RemoteException e) {Log.e(TAG, "", e);}
+        return false;
+    }
+
+    public boolean enableRadio() {
+        boolean enabled = false;
+        try {
+            return mManagerService.enableRadio();
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
     }
@@ -560,6 +584,13 @@ public final class BluetoothAdapter {
 
         try {
             return mManagerService.disable(persist);
+        } catch (RemoteException e) {Log.e(TAG, "", e);}
+        return false;
+    }
+
+    public boolean disableRadio() {
+        try {
+            return mManagerService.disableRadio();
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
     }
@@ -1212,7 +1243,7 @@ public final class BluetoothAdapter {
     final private IBluetoothManagerCallback mManagerCallback =
         new IBluetoothManagerCallback.Stub() {
             public void onBluetoothServiceUp(IBluetooth bluetoothService) {
-                if (VDBG) Log.d(TAG, "onBluetoothServiceUp: " + bluetoothService);
+                if (DBG) Log.d(TAG, "onBluetoothServiceUp: " + bluetoothService);
                 synchronized (mManagerCallback) {
                     mService = bluetoothService;
                     for (IBluetoothManagerCallback cb : mProxyServiceStateCallbacks ){
@@ -1228,7 +1259,7 @@ public final class BluetoothAdapter {
             }
 
             public void onBluetoothServiceDown() {
-                if (VDBG) Log.d(TAG, "onBluetoothServiceDown: " + mService);
+                if (DBG) Log.d(TAG, "onBluetoothServiceDown: " + mService);
                 synchronized (mManagerCallback) {
                     mService = null;
                     for (IBluetoothManagerCallback cb : mProxyServiceStateCallbacks ){

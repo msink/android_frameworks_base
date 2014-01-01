@@ -185,6 +185,9 @@ public final class BluetoothDevice implements Parcelable {
     public static final String ACTION_BOND_STATE_CHANGED =
             "android.bluetooth.device.action.BOND_STATE_CHANGED";
 
+    public static final String ACTION_AUTHORIZE_REQUEST =
+            "android.bluetooth.device.action.ACTION_AUTHORIZE_REQUEST";
+
     /**
      * Used as a Parcelable {@link BluetoothDevice} extra field in every intent
      * broadcast by this class. It contains the {@link BluetoothDevice} that
@@ -954,6 +957,18 @@ public final class BluetoothDevice implements Parcelable {
         }
         try {
             return sService.cancelBondProcess(this);
+        } catch (RemoteException e) {Log.e(TAG, "", e);}
+        return false;
+    }
+
+    public boolean authorizeService(ParcelUuid ServiceId,
+                                    boolean authorize, boolean autoReply) {
+        if (sService == null) {
+            Log.e(TAG, "BT not enabled. Cannot authorize service");
+            return false;
+        }
+        try {
+            return sService.authorizeService(this, ServiceId, authorize, autoReply);
         } catch (RemoteException e) {Log.e(TAG, "", e);}
         return false;
     }
