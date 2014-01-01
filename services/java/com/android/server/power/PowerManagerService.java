@@ -39,7 +39,9 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.hardware.SensorManager;
 import android.hardware.SystemSensorManager;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Handler;
@@ -93,6 +95,8 @@ public final class PowerManagerService extends IPowerManager.Stub
     private static final int MSG_SCREEN_ON_BLOCKER_RELEASED = 3;
     // Message: Sent to poll whether the boot animation has terminated.
     private static final int MSG_CHECK_IF_BOOT_ANIMATION_FINISHED = 4;
+    //
+    private static final int MSG_DISABLE_WIFI_FOR_WIFIP2P = 5;
 
     // Dirty bit: mWakeLocks changed
     private static final int DIRTY_WAKE_LOCKS = 1 << 0;
@@ -454,6 +458,9 @@ public final class PowerManagerService extends IPowerManager.Stub
         }
     }
 
+    private DisplayManager mDisplayManager = null;
+    private WifiManager mWifiManager = null;
+
     public PowerManagerService() {
         synchronized (mLock) {
             mWakeLockSuspendBlocker = createSuspendBlockerLocked("PowerManagerService");
@@ -495,6 +502,8 @@ public final class PowerManagerService extends IPowerManager.Stub
         // activity manager is not running when the constructor is called, so we
         // have to defer setting the screen state until this point.
         mDisplayBlanker.unblankAllDisplays();
+
+        mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
     }
 
     public void setPolicy(WindowManagerPolicy policy) {
@@ -1177,6 +1186,12 @@ public final class PowerManagerService extends IPowerManager.Stub
 
     // Called from native code.
     private void goToSleepFromNative(long eventTime, int reason) {
+        if (reason != PowerManager.GO_TO_SLEEP_REASON_DEVICE_ADMIN &&
+                 reason != PowerManager.GO_TO_SLEEP_REASON_TIMEOUT &&
+                 mDisplayManager.isWfdConnect()) {
+            mHandler.sendEmptyMessage(MSG_DISABLE_WIFI_FOR_WIFIP2P);
+            return;
+        }
         goToSleepInternal(eventTime, reason);
     }
 
@@ -2610,6 +2625,12 @@ public final class PowerManagerService extends IPowerManager.Stub
                     break;
                 case MSG_CHECK_IF_BOOT_ANIMATION_FINISHED:
                     checkIfBootAnimationFinished();
+                    break;
+                case MSG_DISABLE_WIFI_FOR_WIFIP2P:
+                    mWifiManager = (WifiManager)
+                        mContext.getSystemService(Context.WIFI_SERVICE);
+                    mWifiManager.setWifiEnabled(false);
+                    mWifiManager.setWifiEnabled(true);
                     break;
             }
         }

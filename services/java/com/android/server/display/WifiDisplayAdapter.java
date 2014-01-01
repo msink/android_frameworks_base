@@ -228,7 +228,8 @@ final class WifiDisplayAdapter extends DisplayAdapter {
 
         WifiDisplay display = mPersistentDataStore.getRememberedWifiDisplay(address);
         if (display != null && !Objects.equal(display.getDeviceAlias(), alias)) {
-            display = new WifiDisplay(address, display.getDeviceName(), alias);
+            display = new WifiDisplay(address, display.getDeviceName(), alias,
+                display.getDeviceType(), display.getGroupCapability());
             if (mPersistentDataStore.rememberWifiDisplay(display)) {
                 mPersistentDataStore.saveIfNeeded();
                 updateRememberedDisplaysLocked();
@@ -644,5 +645,12 @@ final class WifiDisplayAdapter extends DisplayAdapter {
                     break;
             }
         }
+    }
+
+    public boolean isWfdConnect() {
+        if (mDisplayController != null) {
+            return mDisplayController.isWfdConnect();
+        }
+        return false;
     }
 }

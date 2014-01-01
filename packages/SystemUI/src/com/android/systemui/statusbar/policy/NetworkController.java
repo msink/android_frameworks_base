@@ -165,6 +165,7 @@ public class NetworkController extends BroadcastReceiver {
     String mLastCombinedLabel = "";
 
     private boolean mHasMobileDataFeature;
+    private boolean mLastHasMobileDataFeature = false;
 
     boolean mDataAndWifiStacked = false;
 
@@ -454,6 +455,8 @@ public class NetworkController extends BroadcastReceiver {
                 Slog.d(TAG, "onServiceStateChanged state=" + state.getState());
             }
             mServiceState = state;
+            mHasMobileDataFeature =
+                (mServiceState.getState() != ServiceState.STATE_OUT_OF_SERVICE);
             updateTelephonySignalStrength();
             updateDataNetType();
             updateDataIcon();
@@ -1223,6 +1226,7 @@ public class NetworkController extends BroadcastReceiver {
          || mLastDataDirectionOverlayIconId != combinedActivityIconId
          || mLastWifiIconId                 != mWifiIconId
          || mlastEthIconId                  != mEthIconId
+         || mLastHasMobileDataFeature       != mHasMobileDataFeature
          || mLastWimaxIconId                != mWimaxIconId
          || mLastDataTypeIconId             != mDataTypeIconId
          || mLastAirplaneMode               != mAirplaneMode)
@@ -1392,6 +1396,10 @@ public class NetworkController extends BroadcastReceiver {
             } else {
                 v.setVisibility(View.VISIBLE);
             }
+        }
+
+        if (mLastHasMobileDataFeature != mHasMobileDataFeature) {
+            mLastHasMobileDataFeature = mHasMobileDataFeature;
         }
 
         // e-call label

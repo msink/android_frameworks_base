@@ -315,6 +315,15 @@ public final class DisplayManagerGlobal {
         }
     }
 
+    public boolean isWfdConnect() {
+        try {
+            return mDm.isWfdConnect();
+        } catch (RemoteException ex) {
+            Log.e(TAG, "Failed to get Wifi display status.", ex);
+            return false;
+        }
+    }
+
     private final class DisplayManagerCallback extends IDisplayManagerCallback.Stub {
         @Override
         public void onDisplayEvent(int displayId, int event) {

@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import android.hardware.display.WifiDisplay;
+import android.text.TextUtils;
 import android.util.AtomicFile;
 import android.util.Slog;
 import android.util.Xml;
@@ -105,7 +106,8 @@ final class PersistentDataStore {
                 alias = mRememberedWifiDisplays.get(index).getDeviceAlias();
             }
             if (!Objects.equal(display.getDeviceAlias(), alias)) {
-                return new WifiDisplay(display.getDeviceAddress(), display.getDeviceName(), alias);
+                return new WifiDisplay(display.getDeviceAddress(), display.getDeviceName(), alias,
+                                       display.getDeviceType(), display.getGroupCapability());
             }
         }
         return display;
@@ -249,6 +251,16 @@ final class PersistentDataStore {
                 String deviceAddress = parser.getAttributeValue(null, "deviceAddress");
                 String deviceName = parser.getAttributeValue(null, "deviceName");
                 String deviceAlias = parser.getAttributeValue(null, "deviceAlias");
+                String deviceTypeS = parser.getAttributeValue(null, "deviceType");
+                String deviceGroupCapabilityS = parser.getAttributeValue(null, "deviceGroupCapability");
+                int deviceType = -1;
+                int deviceGroupCapability = 0;
+                if (!TextUtils.isEmpty(deviceTypeS)) {
+                    deviceType = Integer.valueOf(deviceTypeS).intValue();
+                }
+                if (!TextUtils.isEmpty(deviceGroupCapabilityS)) {
+                    deviceGroupCapability = Integer.valueOf(deviceGroupCapabilityS).intValue();
+                }
                 if (deviceAddress == null || deviceName == null) {
                     throw new XmlPullParserException(
                             "Missing deviceAddress or deviceName attribute on wifi-display.");
@@ -259,7 +271,7 @@ final class PersistentDataStore {
                 }
 
                 mRememberedWifiDisplays.add(
-                        new WifiDisplay(deviceAddress, deviceName, deviceAlias));
+                        new WifiDisplay(deviceAddress, deviceName, deviceAlias, deviceType, deviceGroupCapability));
             }
         }
     }
@@ -276,6 +288,8 @@ final class PersistentDataStore {
             if (display.getDeviceAlias() != null) {
                 serializer.attribute(null, "deviceAlias", display.getDeviceAlias());
             }
+            serializer.attribute(null, "deviceType", Integer.toString(display.getDeviceType()));
+            serializer.attribute(null, "deviceGroupCapability", Integer.toString(display.getGroupCapability()));
             serializer.endTag(null, "wifi-display");
         }
         serializer.endTag(null, "remembered-wifi-displays");

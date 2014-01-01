@@ -275,6 +275,13 @@ public final class DisplayManager {
     }
 
     /**
+     * @hide
+     */
+    public boolean isWfdConnect() {
+        return mGlobal.isWfdConnect();
+    }
+
+    /**
      * Listens for changes in available display devices.
      */
     public interface DisplayListener {

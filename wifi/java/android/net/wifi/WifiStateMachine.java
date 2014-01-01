@@ -193,6 +193,7 @@ public class WifiStateMachine extends StateMachine {
 
     // Wakelock held during wifi start/stop and driver load/unload
     private PowerManager.WakeLock mWakeLock;
+    private PowerManager.WakeLock mApWakeLock;
 
     private Context mContext;
 
@@ -683,6 +684,7 @@ public class WifiStateMachine extends StateMachine {
 
         PowerManager powerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        mApWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 
         mSuspendWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiSuspend");
         mSuspendWakeLock.setReferenceCounted(false);
@@ -774,10 +776,14 @@ public class WifiStateMachine extends StateMachine {
     public void setWifiApEnabled(WifiConfiguration wifiConfig, boolean enable) {
         mLastApEnableUid.set(Binder.getCallingUid());
         if (enable) {
+            mApWakeLock.acquire();
             /* Argument is the state that is entered prior to load */
             sendMessage(obtainMessage(CMD_LOAD_DRIVER, WIFI_AP_STATE_ENABLING, 0));
             sendMessage(obtainMessage(CMD_START_AP, wifiConfig));
         } else {
+            if (mApWakeLock.isHeld()) {
+                mApWakeLock.release();
+            }
             sendMessage(CMD_STOP_AP);
             /* Argument is the state that is entered upon success */
             sendMessage(obtainMessage(CMD_UNLOAD_DRIVER, WIFI_AP_STATE_DISABLED, 0));
@@ -3728,11 +3734,16 @@ public class WifiStateMachine extends StateMachine {
         public boolean processMessage(Message message) {
             if (DBG) log(getName() + message.toString() + "\n");
             switch (message.what) {
-                case WifiMonitor.WPS_SUCCESS_EVENT:
+                case WifiMonitor.NETWORK_CONNECTION_EVENT:
                     replyToMessage(mSourceMessage, WifiManager.WPS_COMPLETED);
                     mSourceMessage.recycle();
                     mSourceMessage = null;
+                    deferMessage(message);
                     transitionTo(mDisconnectedState);
+                    break;
+                case WifiMonitor.WPS_SUCCESS_EVENT:
+                case WifiMonitor.SUPPLICANT_STATE_CHANGE_EVENT:
+                case WifiMonitor.AUTHENTICATION_FAILURE_EVENT:
                     break;
                 case WifiMonitor.WPS_OVERLAP_EVENT:
                     replyToMessage(mSourceMessage, WifiManager.WPS_FAILED,
@@ -3775,24 +3786,11 @@ public class WifiStateMachine extends StateMachine {
                 case CMD_ENABLE_NETWORK:
                 case CMD_RECONNECT:
                 case CMD_REASSOCIATE:
-                case WifiMonitor.NETWORK_CONNECTION_EVENT: /* Handled after exiting WPS state */
                     deferMessage(message);
                     break;
                 case WifiMonitor.NETWORK_DISCONNECTION_EVENT:
                     if (DBG) log("Network connection lost");
                     handleNetworkDisconnect();
-                    break;
-                case WifiMonitor.AUTHENTICATION_FAILURE_EVENT:
-                    // Disregard auth failure events during WPS connection. The
-                    // EAP sequence is retried several times, and there might be
-                    // failures (especially for wps pin). We will get a WPS_XXX
-                    // event at the end of the sequence anyway.
-                    if (DBG) log("Ignore auth failure during WPS connection");
-                    break;
-                case WifiMonitor.SUPPLICANT_STATE_CHANGE_EVENT:
-                    //Throw away supplicant state changes when WPS is running.
-                    //We will start getting supplicant state changes once we get
-                    //a WPS success or failure
                     break;
                 default:
                     return NOT_HANDLED;

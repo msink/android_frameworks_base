@@ -117,6 +117,8 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
     private AsyncChannel mReplyChannel = new AsyncChannel();
     private AsyncChannel mWifiChannel;
 
+    private static int P2pConnected_Group = 0;
+
     private static final Boolean JOIN_GROUP = true;
     private static final Boolean FORM_GROUP = false;
 
@@ -317,6 +319,16 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
         mP2pStateMachine.start();
     }
 
+    private class P2pScanRunnable implements Runnable {
+        public P2pScanRunnable() {}
+        public void run() {
+            if (P2pConnected_Group == 0) {
+                mP2pStateMachine.mWifiNative.p2pFind(60);
+            }
+            mP2pStateMachine.getHandler().postDelayed(new P2pScanRunnable(), 60000);
+        }
+    }
+
     public void connectivityServiceReady() {
         IBinder b = ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE);
         mNwService = INetworkManagementService.Stub.asInterface(b);
@@ -378,8 +390,9 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
         private UserAuthorizingJoinState mUserAuthorizingJoinState = new UserAuthorizingJoinState();
         private OngoingGroupRemovalState mOngoingGroupRemovalState = new OngoingGroupRemovalState();
 
-        private WifiNative mWifiNative = new WifiNative(mInterface);
+        public  WifiNative mWifiNative = new WifiNative(mInterface);
         private WifiMonitor mWifiMonitor = new WifiMonitor(this, mWifiNative);
+        private WifiP2pDevice mConnectedDevice;
 
         private final WifiP2pDeviceList mPeers = new WifiP2pDeviceList();
         /* During a connection, supplicant can tell us that a device was lost. From a supplicant's
@@ -952,6 +965,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
 
         @Override
         public void exit() {
+            logd(getName() + "exit");
             sendP2pStateChangedBroadcast(false);
             mNetworkInfo.setIsAvailable(false);
         }
@@ -1197,6 +1211,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
 
         @Override
         public void exit() {
+            logd(getName() + "exit");
             //TODO: dismiss dialog if not already done
         }
     }
@@ -1303,6 +1318,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                     }
 
                     if (mGroup.isGroupOwner()) {
+                        logd("P2P_GROUP_STARTED_EVENT don't set mConnectedDevice when it is owner");
                         /* Setting an idle time out on GO causes issues with certain scenarios
                          * on clients where it can be off-channel for longer and with the power
                          * save modes used.
@@ -1317,6 +1333,9 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                                 P2pStateMachine.this, mGroup.getInterface());
                         mDhcpStateMachine.sendMessage(DhcpStateMachine.CMD_START_DHCP);
                         WifiP2pDevice groupOwner = mGroup.getOwner();
+                        mConnectedDevice = groupOwner;
+                        logd("P2P_GROUP_STARTED_EVENT set mConnectedDevice when it is client"
+                            + groupOwner.deviceName + groupOwner.deviceAddress);
                         /* update group owner details with the ones found at discovery */
                         groupOwner.update(mPeers.get(groupOwner.deviceAddress));
                         mPeers.updateStatus(groupOwner.deviceAddress, WifiP2pDevice.CONNECTED);
@@ -1463,6 +1482,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
         }
 
         public void exit() {
+            logd(getName() + "exit");
             if (mFrequencyConflictDialog != null) mFrequencyConflictDialog.dismiss();
         }
     }
@@ -1506,7 +1526,11 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                         }
                         mPeers.updateStatus(deviceAddress, WifiP2pDevice.CONNECTED);
                         if (DBG) logd(getName() + " ap sta connected");
+                        mConnectedDevice = device;
+                        logd(getName() + " ap sta connected device " + mConnectedDevice);
                         sendP2pPeersChangedBroadcast();
+                        mWifiNative.p2pStopFind();
+                        P2pConnected_Group = 1;
                     } else {
                         loge("Connect on null device address, ignore");
                     }
@@ -1549,16 +1573,21 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                         sendP2pConnectionChangedBroadcast();
                         //Turn on power save on client
                         mWifiNative.setP2pPowerSave(mGroup.getInterface(), true);
+                        mWifiNative.p2pStopFind();
+                        P2pConnected_Group = 2;
                     } else {
                         loge("DHCP failed");
                         mWifiNative.p2pGroupRemove(mGroup.getInterface());
                     }
                     break;
+                case WifiP2pManager.CANCEL_CONNECT:
                 case WifiP2pManager.REMOVE_GROUP:
                     if (DBG) logd(getName() + " remove group");
                     if (mWifiNative.p2pGroupRemove(mGroup.getInterface())) {
                         transitionTo(mOngoingGroupRemovalState);
                         replyToMessage(message, WifiP2pManager.REMOVE_GROUP_SUCCEEDED);
+                        mWifiNative.p2pFind(60);
+                        P2pConnected_Group = 0;
                     } else {
                         handleGroupRemoved();
                         transitionTo(mInactiveState);
@@ -1581,6 +1610,8 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                     if (DBG) logd(getName() + " group removed");
                     handleGroupRemoved();
                     transitionTo(mInactiveState);
+                    mWifiNative.p2pFind(60);
+                    P2pConnected_Group = 0;
                     break;
                 case WifiMonitor.P2P_DEVICE_LOST_EVENT:
                     device = (WifiP2pDevice) message.obj;
@@ -1693,6 +1724,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
         }
 
         public void exit() {
+            logd(getName() + "exit");
             mSavedProvDiscDevice = null;
             updateThisDevice(WifiP2pDevice.AVAILABLE);
             resetWifiP2pInfo();
@@ -1740,6 +1772,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
 
         @Override
         public void exit() {
+            logd(getName() + "exit");
             //TODO: dismiss dialog if not already done
         }
     }
@@ -1815,6 +1848,7 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                 | Intent.FLAG_RECEIVER_REPLACE_PENDING);
         intent.putExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO, new WifiP2pInfo(mWifiP2pInfo));
         intent.putExtra(WifiP2pManager.EXTRA_NETWORK_INFO, new NetworkInfo(mNetworkInfo));
+        intent.putExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE, new WifiP2pDevice(mConnectedDevice));
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
         mWifiChannel.sendMessage(WifiP2pService.P2P_CONNECTION_CHANGED,
                 new NetworkInfo(mNetworkInfo));
