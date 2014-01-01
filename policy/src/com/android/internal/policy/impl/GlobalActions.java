@@ -387,6 +387,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private void prepareDialog() {
         refreshSilentMode();
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                                   Settings.Global.AIRPLANE_MODE_ON, 0) != 0) {
+            mAirplaneState = ToggleAction.State.On;
+        } else {
+            mAirplaneState = ToggleAction.State.Off;
+        }
         mAirplaneModeOn.updateState(mAirplaneState);
         mAdapter.notifyDataSetChanged();
         mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
@@ -605,7 +611,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             }
 
             public boolean inTransition() {
-                return inTransition;
+                return false;
             }
         }
 

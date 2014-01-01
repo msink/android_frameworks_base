@@ -584,11 +584,11 @@ public class WindowManagerService extends IWindowManager.Stub
 
     PowerManagerService mPowerManager;
 
-    float mWindowAnimationScale = 1.0f;
-    float mTransitionAnimationScale = 1.0f;
-    float mWindowAnimationScaleBackup = 1.0f;
-    float mTransitionAnimationScaleBackup = 1.0f;
-    float mAnimatorDurationScale = 1.0f;
+    float mWindowAnimationScale = 0;
+    float mTransitionAnimationScale = 0;
+    float mWindowAnimationScaleBackup = 0;
+    float mTransitionAnimationScaleBackup = 0;
+    float mAnimatorDurationScale = 0;
 
     final InputManagerService mInputManager;
     final DisplayManagerService mDisplayManagerService;
@@ -4287,208 +4287,6 @@ public class WindowManagerService extends IWindowManager.Stub
                 "setAppStartingWindow()")) {
             throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
         }
-
-        synchronized(mWindowMap) {
-            if (DEBUG_STARTING_WINDOW) Slog.v(
-                    TAG, "setAppStartingWindow: token=" + token + " pkg=" + pkg
-                    + " transferFrom=" + transferFrom);
-
-            AppWindowToken wtoken = findAppWindowToken(token);
-            if (wtoken == null) {
-                Slog.w(TAG, "Attempted to set icon of non-existing app token: " + token);
-                return;
-            }
-
-            // If the display is frozen, we won't do anything until the
-            // actual window is displayed so there is no reason to put in
-            // the starting window.
-            if (!okToDisplay()) {
-                return;
-            }
-
-            if (wtoken.startingData != null) {
-                return;
-            }
-
-            if (transferFrom != null) {
-                AppWindowToken ttoken = findAppWindowToken(transferFrom);
-                if (ttoken != null) {
-                    WindowState startingWindow = ttoken.startingWindow;
-                    if (startingWindow != null) {
-                        if (mStartingIconInTransition) {
-                            // In this case, the starting icon has already
-                            // been displayed, so start letting windows get
-                            // shown immediately without any more transitions.
-                            mSkipAppTransitionAnimation = true;
-                        }
-                        if (DEBUG_STARTING_WINDOW) Slog.v(TAG,
-                                "Moving existing starting " + startingWindow + " from " + ttoken
-                                + " to " + wtoken);
-                        final long origId = Binder.clearCallingIdentity();
-
-                        // Transfer the starting window over to the new
-                        // token.
-                        wtoken.startingData = ttoken.startingData;
-                        wtoken.startingView = ttoken.startingView;
-                        wtoken.startingDisplayed = ttoken.startingDisplayed;
-                        ttoken.startingDisplayed = false;
-                        wtoken.startingWindow = startingWindow;
-                        wtoken.reportedVisible = ttoken.reportedVisible;
-                        ttoken.startingData = null;
-                        ttoken.startingView = null;
-                        ttoken.startingWindow = null;
-                        ttoken.startingMoved = true;
-                        startingWindow.mToken = wtoken;
-                        startingWindow.mRootToken = wtoken;
-                        startingWindow.mAppToken = wtoken;
-                        startingWindow.mWinAnimator.mAppAnimator = wtoken.mAppAnimator;
-
-                        if (DEBUG_WINDOW_MOVEMENT || DEBUG_ADD_REMOVE || DEBUG_STARTING_WINDOW) {
-                            Slog.v(TAG, "Removing starting window: " + startingWindow);
-                        }
-                        startingWindow.getWindowList().remove(startingWindow);
-                        mWindowsChanged = true;
-                        if (DEBUG_ADD_REMOVE) Slog.v(TAG,
-                                "Removing starting " + startingWindow + " from " + ttoken);
-                        ttoken.windows.remove(startingWindow);
-                        ttoken.allAppWindows.remove(startingWindow);
-                        addWindowToListInOrderLocked(startingWindow, true);
-
-                        // Propagate other interesting state between the
-                        // tokens.  If the old token is displayed, we should
-                        // immediately force the new one to be displayed.  If
-                        // it is animating, we need to move that animation to
-                        // the new one.
-                        if (ttoken.allDrawn) {
-                            wtoken.allDrawn = true;
-                        }
-                        if (ttoken.firstWindowDrawn) {
-                            wtoken.firstWindowDrawn = true;
-                        }
-                        if (!ttoken.hidden) {
-                            wtoken.hidden = false;
-                            wtoken.hiddenRequested = false;
-                            wtoken.willBeHidden = false;
-                        }
-                        if (wtoken.clientHidden != ttoken.clientHidden) {
-                            wtoken.clientHidden = ttoken.clientHidden;
-                            wtoken.sendAppVisibilityToClients();
-                        }
-                        final AppWindowAnimator tAppAnimator = ttoken.mAppAnimator;
-                        final AppWindowAnimator wAppAnimator = wtoken.mAppAnimator;
-                        if (tAppAnimator.animation != null) {
-                            wAppAnimator.animation = tAppAnimator.animation;
-                            wAppAnimator.animating = tAppAnimator.animating;
-                            wAppAnimator.animLayerAdjustment = tAppAnimator.animLayerAdjustment;
-                            tAppAnimator.animation = null;
-                            tAppAnimator.animLayerAdjustment = 0;
-                            wAppAnimator.updateLayers();
-                            tAppAnimator.updateLayers();
-                        }
-
-                        updateFocusedWindowLocked(UPDATE_FOCUS_WILL_PLACE_SURFACES,
-                                true /*updateInputWindows*/);
-                        getDefaultDisplayContentLocked().layoutNeeded = true;
-                        performLayoutAndPlaceSurfacesLocked();
-                        Binder.restoreCallingIdentity(origId);
-                        return;
-                    } else if (ttoken.startingData != null) {
-                        // The previous app was getting ready to show a
-                        // starting window, but hasn't yet done so.  Steal it!
-                        if (DEBUG_STARTING_WINDOW) Slog.v(TAG,
-                                "Moving pending starting from " + ttoken
-                                + " to " + wtoken);
-                        wtoken.startingData = ttoken.startingData;
-                        ttoken.startingData = null;
-                        ttoken.startingMoved = true;
-                        Message m = mH.obtainMessage(H.ADD_STARTING, wtoken);
-                        // Note: we really want to do sendMessageAtFrontOfQueue() because we
-                        // want to process the message ASAP, before any other queued
-                        // messages.
-                        mH.sendMessageAtFrontOfQueue(m);
-                        return;
-                    }
-                    final AppWindowAnimator tAppAnimator = ttoken.mAppAnimator;
-                    final AppWindowAnimator wAppAnimator = wtoken.mAppAnimator;
-                    if (tAppAnimator.thumbnail != null) {
-                        // The old token is animating with a thumbnail, transfer
-                        // that to the new token.
-                        if (wAppAnimator.thumbnail != null) {
-                            wAppAnimator.thumbnail.destroy();
-                        }
-                        wAppAnimator.thumbnail = tAppAnimator.thumbnail;
-                        wAppAnimator.thumbnailX = tAppAnimator.thumbnailX;
-                        wAppAnimator.thumbnailY = tAppAnimator.thumbnailY;
-                        wAppAnimator.thumbnailLayer = tAppAnimator.thumbnailLayer;
-                        wAppAnimator.thumbnailAnimation = tAppAnimator.thumbnailAnimation;
-                        tAppAnimator.thumbnail = null;
-                    }
-                }
-            }
-
-            // There is no existing starting window, and the caller doesn't
-            // want us to create one, so that's it!
-            if (!createIfNeeded) {
-                return;
-            }
-
-            // If this is a translucent window, then don't
-            // show a starting window -- the current effect (a full-screen
-            // opaque starting window that fades away to the real contents
-            // when it is ready) does not work for this.
-            if (DEBUG_STARTING_WINDOW) Slog.v(TAG, "Checking theme of starting window: 0x"
-                    + Integer.toHexString(theme));
-            if (theme != 0) {
-                AttributeCache.Entry ent = AttributeCache.instance().get(wtoken.userId,
-                        pkg, theme, com.android.internal.R.styleable.Window);
-                if (ent == null) {
-                    // Whoops!  App doesn't exist.  Um.  Okay.  We'll just
-                    // pretend like we didn't see that.
-                    return;
-                }
-                if (DEBUG_STARTING_WINDOW) Slog.v(TAG, "Translucent="
-                        + ent.array.getBoolean(
-                                com.android.internal.R.styleable.Window_windowIsTranslucent, false)
-                        + " Floating="
-                        + ent.array.getBoolean(
-                                com.android.internal.R.styleable.Window_windowIsFloating, false)
-                        + " ShowWallpaper="
-                        + ent.array.getBoolean(
-                                com.android.internal.R.styleable.Window_windowShowWallpaper, false));
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowIsTranslucent, false)) {
-                    return;
-                }
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowIsFloating, false)) {
-                    return;
-                }
-                if (ent.array.getBoolean(
-                        com.android.internal.R.styleable.Window_windowShowWallpaper, false)) {
-                    if (mWallpaperTarget == null) {
-                        // If this theme is requesting a wallpaper, and the wallpaper
-                        // is not curently visible, then this effectively serves as
-                        // an opaque window and our starting window transition animation
-                        // can still work.  We just need to make sure the starting window
-                        // is also showing the wallpaper.
-                        windowFlags |= FLAG_SHOW_WALLPAPER;
-                    } else {
-                        return;
-                    }
-                }
-            }
-
-            if (DEBUG_STARTING_WINDOW) Slog.v(TAG, "Creating StartingData");
-            mStartingIconInTransition = true;
-            wtoken.startingData = new StartingData(pkg, theme, compatInfo, nonLocalizedLabel,
-                    labelRes, icon, windowFlags);
-            Message m = mH.obtainMessage(H.ADD_STARTING, wtoken);
-            // Note: we really want to do sendMessageAtFrontOfQueue() because we
-            // want to process the message ASAP, before any other queued
-            // messages.
-            if (DEBUG_STARTING_WINDOW) Slog.v(TAG, "Enqueueing ADD_STARTING");
-            mH.sendMessageAtFrontOfQueue(m);
-        }
     }
 
     public void setAppWillBeHidden(IBinder token) {
@@ -7550,7 +7348,7 @@ public class WindowManagerService extends IWindowManager.Stub
 
                 case ADD_STARTING: {
                     final AppWindowToken wtoken = (AppWindowToken)msg.obj;
-                    final StartingData sd = wtoken.startingData;
+                    final StartingData sd = null;
 
                     if (sd == null) {
                         // Animation has been canceled... do nothing.
