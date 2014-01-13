@@ -308,6 +308,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         StatusBarView sb = (StatusBarView)View.inflate(context, R.layout.status_bar, null);
         sb.mService = this;
+        sb.setVisibility(View.GONE);
 
         // figure out which pixel-format to use for the status bar.
         mPixelFormat = PixelFormat.TRANSLUCENT;

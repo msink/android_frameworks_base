@@ -31,6 +31,7 @@
         android:layout_width="270dip"
         android:layout_height="match_parent"
         android:layout_gravity="left"
+        android:paddingLeft="3dip"
         android:orientation="horizontal">
             
         <LinearLayout android:id="@+id/button_layout_Home"
@@ -44,17 +45,16 @@
                 android:layout_height="40dip"
                 android:textColor="#000"
                 android:gravity="center"
-                android:background="@drawable/home_btu"
+                android:background="@drawable/home_normal"
                 />
         </LinearLayout>
-
         <LinearLayout android:id="@+id/statusIcons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:paddingRight="6dip"
             android:gravity="center_vertical"
-            android:orientation="horizontal"/>    
+            android:orientation="horizontal"/>
 
         <com.android.systemui.statusbar.IconMerger android:id="@+id/notificationIcons"
             android:layout_width="0dip"
@@ -64,71 +64,54 @@
             android:layout_weight="1.0"
             />
     </LinearLayout>
-
         <com.android.systemui.statusbar.Clock
-            android:textAppearance="@*android:style/TextAppearance.StatusBar.Icon"
-            android:layout_width="match_parent"
+            android:layout_width="110dip"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="28sp"
-            android:paddingTop="3dip"
-            android:paddingBottom="3dip"
-            android:singleLine="true"
             android:layout_toLeftOf="@+id/button_layout"
             android:layout_toRightOf="@id/icons"
+            android:gravity="center"
+            android:paddingTop="3dip"
+            android:paddingBottom="1dip"
+            android:singleLine="true"
+            android:textAppearance="@*android:style/TextAppearance.StatusBar.Icon"
+            android:textSize="22sp"
             />
-
     <LinearLayout android:id="@+id/button_layout"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center"
         android:layout_gravity="right"
         android:orientation="horizontal"
-        android:paddingRight="6dip"
+        android:paddingRight="20dip"
         android:layout_alignParentRight="true"
         >
-        <TextView android:id="@+id/status_bar_left"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/left_btn"
-            />
-        <TextView android:id="@+id/status_bar_right"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/right_btn"
-            />
         <TextView android:id="@+id/status_bar_sub"
             android:layout_width="60dip"
             android:layout_height="match_parent"
             android:textColor="#ff000000"
             android:gravity="center"
             android:background="@drawable/sub_btu"
+            android:visibility="invisible"
             />
         <TextView android:id="@+id/status_bar_add"
             android:layout_width="60dip"
             android:layout_height="match_parent"
-            android:textColor="#ff000000"
             android:gravity="center"
             android:background="@drawable/add_btu"
-            />
-        <TextView android:id="@+id/status_bar_back"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
             android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/back_btu"
+            android:visibility="invisible"
             />
-        <TextView android:id="@+id/status_bar_menu"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/menu_btu"
-            />
+        <LinearLayout android:id="@+id/lin_status_bar_back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView android:id="@+id/status_bar_back"
+                android:layout_width="64dip"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:background="@drawable/back_normal"
+                android:textColor="#ff000000"
+                />
+        </LinearLayout>
     </LinearLayout>
         
     <LinearLayout android:id="@+id/ticker"
