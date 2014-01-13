@@ -39,6 +39,9 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.util.Slog;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class StorageNotification extends StorageEventListener {
     private static final String TAG = "StorageNotification";
 
@@ -72,6 +75,15 @@ public class StorageNotification extends StorageEventListener {
     private StorageManager mStorageManager;
 
     private Handler        mAsyncEventHandler;
+
+    private boolean sdcardBroadCast = false;
+    private boolean isFirstEnter = false;
+
+    Handler handler;
+    private AlertDialog sdcardDialog;
+    Timer timer;
+    TimerTask task;
+    static PowerManager.WakeLock wl;
 
     public StorageNotification(Context context) {
         mContext = context;
@@ -124,6 +136,24 @@ public class StorageNotification extends StorageEventListener {
         updateUsbMassStorageNotification(connected);
     }
 
+    private void acquireWakeLock() {
+        if (wl == null) {
+            PowerManager pm = (PowerManager)mContext.getSystemService("power");
+            wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK |
+                                PowerManager.ON_AFTER_RELEASE |
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                                "My_Tag");
+            wl.acquire();
+        }
+    }
+
+    private void releaseWakeLock() {
+        if (wl != null && wl.isHeld()) {
+            wl.release();
+            wl = null;
+        }
+    }
+
     /*
      * @override com.android.os.storage.StorageEventListener
      */
@@ -140,6 +170,99 @@ public class StorageNotification extends StorageEventListener {
     private void onStorageStateChangedAsync(String path, String oldState, String newState) {
         Slog.i(TAG, String.format(
                 "Media {%s} state changed from {%s} -> {%s}", path, oldState, newState));
+
+        SystemProperties.get("EXTERNAL_STORAGE_STATE", Environment.MEDIA_UNMOUNTED);
+        if     (oldState.equals(Environment.MEDIA_CHECKING) &&
+                newState.equals(Environment.MEDIA_MOUNTED) &&
+                path.equals(Environment.getExternalStorageDirectory().toString())) {
+            LayoutInflater inflater = (LayoutInflater)mContext.getSystemService("layout_inflater");
+            View layout = inflater.inflate(R.layout.sdcard_inject, null);
+            if (sdcardDialog != null && sdcardDialog.isShowing()) {
+                sdcardDialog.dismiss();
+            }
+            sdcardDialog = new AlertDialog.Builder(mContext).create();
+            sdcardDialog.setCancelable(true);
+            sdcardDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            if (sdcardDialog != null) {
+                sdcardDialog.show();
+                acquireWakeLock();
+            }
+            sdcardDialog.setCanceledOnTouchOutside(true);
+            sdcardDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                                               ViewGroup.LayoutParams.MATCH_PARENT);
+            sdcardDialog.getWindow().setContentView(layout);
+            timer = new Timer();
+            handler = new Handler() {
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                    case 1:
+                        timer = null;
+                        task = null;
+                        if (sdcardDialog.isShowing()) {
+                            sdcardDialog.dismiss();
+                            releaseWakeLock();
+                        }
+                        break;
+                    }
+                    super.handleMessage(msg);
+                }
+            };
+            task = new TimerTask() {
+                public void run() {
+                    Message message = new Message();
+                    message.what = 1;
+                    handler.sendMessage(message);
+                }
+            };
+            timer.schedule(task, 5000);
+        } else if (oldState.equals(Environment.MEDIA_MOUNTED) &&
+                   newState.equals(Environment.MEDIA_UNMOUNTED) &&
+                   path.equals(Environment.getExternalStorageDirectory().toString())) {
+            LayoutInflater inflater = (LayoutInflater)mContext.getSystemService("layout_inflater");
+            View layout = inflater.inflate(R.layout.sdcard_eject, null);
+            if (sdcardDialog != null && sdcardDialog.isShowing()) {
+                sdcardDialog.dismiss();
+            }
+            sdcardDialog = new AlertDialog.Builder(mContext).create();
+            sdcardDialog.setCancelable(true);
+            sdcardDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            if (sdcardDialog != null) {
+                sdcardDialog.show();
+                acquireWakeLock();
+            }
+            sdcardDialog.setCanceledOnTouchOutside(true);
+            sdcardDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                                               ViewGroup.LayoutParams.MATCH_PARENT);
+            sdcardDialog.getWindow().setContentView(layout);
+            timer = new Timer();
+            handler = new Handler() {
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                    case 1:
+                        timer = null;
+                        task = null;
+                        if (sdcardDialog.isShowing()) {
+                            sdcardDialog.dismiss();
+                            releaseWakeLock();
+                        }
+                        break;
+                    }
+                    super.handleMessage(msg);
+                }
+            };
+            task = new TimerTask() {
+                public void run() {
+                    Message message = new Message();
+                    message.what = 1;
+                    handler.sendMessage(message);
+                }
+            };
+            timer.schedule(task, 5000);
+        }
+        if (oldState.equals("removed")) {
+            sdcardBroadCast = true;
+        }
+
         if (newState.equals(Environment.MEDIA_SHARED)) {
             /*
              * Storage is now shared. Modify the UMS notification
@@ -196,6 +319,8 @@ public class StorageNotification extends StorageEventListener {
              * because the user is enabling/disabling UMS, in which case we don't
              * want to display the 'safe to unmount' notification.
              */
+            if (oldState.equals(Environment.MEDIA_MOUNTED)) {
+            }
             if (!mStorageManager.isUsbMassStorageEnabled()) {
                 if (oldState.equals(Environment.MEDIA_SHARED)) {
                     /*

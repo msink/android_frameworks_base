@@ -18,6 +18,7 @@
             />
 
         <activity android:name=".usb.UsbStorageActivity"
+                android:theme="@*android:style/Theme.NoTitleBar.Fullscreen"
                 android:excludeFromRecents="true">
         </activity>
         <activity android:name="com.android.internal.app.ExternalMediaFormatActivity"
@@ -26,4 +27,9 @@
         </activity>
 
     </application>
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 </manifest>

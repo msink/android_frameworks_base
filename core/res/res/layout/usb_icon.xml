@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="fill_vertical">
+    <TextView
+        android:layout_width="500px"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8px"
+        android:layout_marginTop="8px"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:paddingLeft="15px"
+        android:textSize="25sp"
+        android:textColor="#ffffffff"
+        android:background="@drawable/usb_title"
+        android:text="@string/usb_storage_title"
+        />
+    <ImageView android:id="@+id/image_usb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="143px"
+        android:layout_marginTop="310px"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/usb_icon"
+        />
+    <TextView android:id="@+id/txt_usb_content"
+        android:layout_below="@id/image_usb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="93px"
+        android:layout_centerHorizontal="true"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:text="@string/usb_storage_title"
+        />
+////</RelativeLayout>
