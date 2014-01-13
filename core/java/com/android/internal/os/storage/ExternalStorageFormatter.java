@@ -170,6 +170,7 @@ public class ExternalStorageFormatter extends Service
             IMountService mountService = getMountService();
             try {
                 if (mPath.equals(Environment.getFlashStorageDirectory().toString())) {
+                    System.out.println("shy changed Unmounting Internal Mass Storage+++++++++++++");
                     updateProgressDialog(R.string.progress_unmounting_nand);
                     mountService.unmountVolume(Environment.
                                  getExternalStorageDirectory().toString(), true);

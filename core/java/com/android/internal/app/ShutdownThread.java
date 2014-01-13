@@ -211,6 +211,7 @@ public final class ShutdownThread extends Thread {
                                        WindowManager.LayoutParams.MATCH_PARENT);
         dialog_2.getWindow().setContentView(layout);
         dialog_2.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+        System.out.println("0329  Shutdown  0329 33 systemClock===" + System.currentTimeMillis());
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;

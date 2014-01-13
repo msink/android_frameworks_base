@@ -414,6 +414,7 @@ public class PowerManager
     public void userActivity(long when, boolean noChangeLights)
     {
         try {
+            Log.e("jeffy", "userActivity:" + when, new Throwable());
             mService.userActivity(when, noChangeLights);
         } catch (RemoteException e) {
         }
@@ -553,6 +554,7 @@ public class PowerManager
     }
 
     public void setBacklight(int brightness) {
+        System.out.println("PowerManager shy setBacklightBrightness  brightness==" + brightness);
         try {
             if (mService != null) {
                 mService.setBacklightBrightness(brightness);

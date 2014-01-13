@@ -430,6 +430,7 @@ class PowerManagerService extends IPowerManager.Stub
                 String action = intent.getAction();
                 if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
                     mUSBConnectState = intent.getIntExtra("status", 3);
+                    System.out.println("PowerManagerService shy   mUSBConnectState=" + mUSBConnectState);
                 }
                 if (mSpew) Log.d(TAG, "wasPowered =" + wasPowered + " mIsPowered = " + mIsPowered);
                 if (mIsPowered != wasPowered) {
@@ -1582,6 +1583,7 @@ class PowerManagerService extends IPowerManager.Stub
             updateNativePowerStateLocked();
         }
 
+        System.out.println("PowerManagerService shy   isSendSleepBroadcast=" + isSendSleepBroadcast);
         if (oldScreenOn != newScreenOn && !newScreenOn) {
             if (!isSendSleepBroadcast) {
                 Intent intent = new Intent("broadcast.receive.autoshutdown");
@@ -1792,6 +1794,7 @@ class PowerManagerService extends IPowerManager.Stub
             intent.putExtra("autoShutdownTime", GOTOSLEEP);
             intent.putExtra("batteryState", mUSBConnectState);
             mContext.sendBroadcast(intent);
+            System.out.println("shy PowerManagerService sendBroadcast goto sleep.");
         }
     };
 

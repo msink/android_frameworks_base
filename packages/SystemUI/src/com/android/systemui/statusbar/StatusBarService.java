@@ -215,11 +215,13 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         try {
             Runtime.getRuntime().exec("busybox  chmod 0777 /data/data/com.android.systemui");
             Runtime.getRuntime().exec("busybox chmod 0777 /data/data/com.android.systemui/shared_prefs/");
+            System.out.println("shy StatusBarService  chomod okkkk");
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("shy ---------" + e.getMessage());
         }
         File MyFilePreference = new File("/data/data/com.android.systemui/shared_prefs/MyPrefsFile.xml");
+        System.out.println("shy StatusBarService is MyFilePreference==" + MyFilePreference.exists());
         if (!MyFilePreference.exists()) {
             String value = "";
             try {
@@ -247,6 +249,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
                 editor.putString("ThirdRecentReadDate", value);
                 editor.putString("ThirdBookCover", value);
                 editor.commit();
+                System.out.println("shy StatusBarService is MyFilePreference==" + MyFilePreference.exists());
             } catch (NumberFormatException e) {
                 Log.e(TAG,"could not persist screen timeout setting", e);
             }

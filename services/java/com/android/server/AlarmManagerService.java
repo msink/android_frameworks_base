@@ -153,7 +153,9 @@ class AlarmManagerService extends IAlarmManager.Stub {
                         Intent.FLAG_RECEIVER_REGISTERED_ONLY), 0);
 
         Intent AutoShutdownIntent = new Intent(context, ShutdownActivity.class);
+        System.out.println("AutoShutdwonReceivershy  AutoShutdownIntent==" + AutoShutdownIntent);
         mAutoShutdownSender = PendingIntent.getActivity(context, 0, AutoShutdownIntent, 0);
+        System.out.println("AutoShutdwonReceivershy  mAutoShutdownSender==" + mAutoShutdownSender);
         Intent intent = new Intent(Intent.ACTION_DATE_CHANGED);
         intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
         mDateChangeSender = PendingIntent.getBroadcast(context, 0, intent, 0);
@@ -791,6 +793,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
         int mUSBConnectState;
 
         public AutoShutdownReceiver() {
+            System.out.println("AutoShutdwonReceiver shy  init..");
             IntentFilter filter = new IntentFilter();
             filter.addAction(AUTOSHUT_RECEIVE);
             mContext.registerReceiver(this, filter);
@@ -808,6 +811,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
                 }
                 int level = intent.getIntExtra("autoShutdownTime", 0);
                 mUSBConnectState = intent.getIntExtra("batteryState", 0);
+                System.out.println("AutoShutdwonReceiver shy   mUSBConnectState==" + mUSBConnectState);
                 if (value <= 0 || mUSBConnectState == BatteryManager.BATTERY_STATUS_CHARGING) {
                     cancelAlarmStart();
                 } else if (level == GOTOSLEEP && value > 0) {

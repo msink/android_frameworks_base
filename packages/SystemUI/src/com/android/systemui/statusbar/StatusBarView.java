@@ -109,6 +109,7 @@ public class StatusBarView extends RelativeLayout {
 ********/
         mLin_home.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
+                System.out.println("Home on Touch");
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mbut_home.setBackgroundResource(R.drawable.home_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
@@ -135,6 +136,7 @@ public class StatusBarView extends RelativeLayout {
 ********/
         mbut_home.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
+                System.out.println("Home on Touch");
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mbut_home.setBackgroundResource(R.drawable.home_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
@@ -148,6 +150,7 @@ public class StatusBarView extends RelativeLayout {
 
         mbut_bac.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
+                System.out.println("Bck on Touch");
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mbut_bac.setBackgroundResource(R.drawable.back_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
@@ -161,6 +164,7 @@ public class StatusBarView extends RelativeLayout {
 
         mLin_bac.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
+                System.out.println("Bck on Touch");
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mbut_bac.setBackgroundResource(R.drawable.back_normal_fcs);
                     sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);

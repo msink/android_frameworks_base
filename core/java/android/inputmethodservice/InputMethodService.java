@@ -216,7 +216,7 @@ import java.io.PrintWriter;
  */
 public class InputMethodService extends AbstractInputMethodService {
     static final String TAG = "InputMethodService";
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
     
     InputMethodManager mImm;
     
@@ -383,9 +383,13 @@ public class InputMethodService extends AbstractInputMethodService {
          * Handle a request by the system to show the soft input area.
          */
         public void showSoftInput(int flags, ResultReceiver resultReceiver) {
-            if (DEBUG) Log.v(TAG, "showSoftInput()");
+            if (DEBUG) Log.v(TAG, "shy  showSoftInput()  flags==" + flags +
+                                  ",,resultReceiver=" + resultReceiver);
             boolean wasVis = isInputViewShown();
             mShowInputFlags = 0;
+            if (DEBUG) Log.v(TAG, "shy  showSoftInput()  wasVis==" + wasVis +
+                                  ",,onShowInputRequested(flags, false==" +
+                                  onShowInputRequested(flags, false));
             if (onShowInputRequested(flags, false)) {
                 showWindow(true);
             }

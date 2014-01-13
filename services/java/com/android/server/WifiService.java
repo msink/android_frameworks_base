@@ -94,7 +94,7 @@ import com.android.internal.R;
  */
 public class WifiService extends IWifiManager.Stub {
     private static final String TAG = "WifiService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final Pattern scanResultPattern = Pattern.compile("\t+");
     private final WifiStateTracker mWifiStateTracker;
     /* TODO: fetch a configurable interface */
@@ -1652,6 +1652,7 @@ public class WifiService extends IWifiManager.Stub {
             long idleMillis =
                 Settings.Secure.getLong(mContext.getContentResolver(),
                                         Settings.Secure.WIFI_IDLE_MS, DEFAULT_IDLE_MILLIS);
+            Slog.d(TAG, "    DBG   idleMillis = " + idleMillis + " ms..");
             int stayAwakeConditions =
                 Settings.System.getInt(mContext.getContentResolver(),
                                        Settings.System.STAY_ON_WHILE_PLUGGED_IN, 0);
@@ -1704,6 +1705,7 @@ public class WifiService extends IWifiManager.Stub {
                                     + "ms");
                         }
                       if (!NotificationManagerService.usbConnected && PowerManagerService.mUSBConnectState != 2 && mPluggedType != 2) {
+                        System.out.println("WifiService shy setting  wifi connected timer for  " + idleMillis);
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
                       }
                     }

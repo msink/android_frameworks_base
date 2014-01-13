@@ -248,6 +248,7 @@ public class Searchables {
      * more than one global search activity to be installed, this code must be changed.
      */
     private ComponentName findGlobalSearchActivity() {
+        System.out.println("shy Searchables findGlobalSearchActivity");
         Intent intent = new Intent(SearchManager.INTENT_ACTION_GLOBAL_SEARCH);
         PackageManager pm = mContext.getPackageManager();
         List<ResolveInfo> activities =
@@ -276,6 +277,7 @@ public class Searchables {
         if (globalSearchActivity == null) {
             return null;
         }
+        System.out.println("shy Searchables findWebSearchActivity  globalSearchActivity=" + globalSearchActivity);
         Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
         intent.setPackage(globalSearchActivity.getPackageName());
         PackageManager pm = mContext.getPackageManager();

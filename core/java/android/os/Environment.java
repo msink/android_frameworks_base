@@ -287,6 +287,7 @@ public class Environment {
     }
 
     public static File getFlashStoragePublicDirectory(String type) {
+        System.out.println(" Environment shy getFlashStoragePublicDirectory==" + getFlashStorageDirectory());
         return new File(Environment.getFlashStorageDirectory(), type);
     }
 

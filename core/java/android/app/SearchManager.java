@@ -501,6 +501,8 @@ public class SearchManager
             Log.w(TAG, "No global search activity found.");
             return;
         }
+        System.out.println("shy SearchManager startGlobalSearch  initialQuery=" + initialQuery
+                           + ",,selectInitialQuery=" + selectInitialQuery);
         Intent intent = new Intent(INTENT_ACTION_GLOBAL_SEARCH);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setComponent(globalSearchActivity);

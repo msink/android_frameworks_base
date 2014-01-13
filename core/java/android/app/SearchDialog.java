@@ -212,6 +212,7 @@ public class SearchDialog extends Dialog implements OnItemClickListener, OnItemS
 
         mAppIcon.requestEpdMode(View.EPD_FULL);
         mAppIcon.invalidate();
+        System.out.println("shy SearchDialog is Full invalidate...");
 
         // attach listeners
         mSearchAutoComplete.addTextChangedListener(mTextWatcher);

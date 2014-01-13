@@ -96,6 +96,7 @@ public class UsbStorageActivity extends Activity
             if (intent.getAction().equals(Usb.ACTION_USB_STATE)) {
                 handleUsbStateChanged(intent);
             } else if (intent.getAction().equals(Intent.ACTION_CLOSE_STATUSBAR_USB)) {
+                Log.i(TAG, "receive ACTION_CLOSE_STATUSBAR_USB broadcast");
                 if (dialogIsThere) {
                     dismissDialog(DLG_CONFIRM_KILL_STORAGE_USERS);
                     dialogIsThere = false;

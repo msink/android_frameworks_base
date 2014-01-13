@@ -144,12 +144,14 @@ public class StorageNotification extends StorageEventListener {
                                 PowerManager.ACQUIRE_CAUSES_WAKEUP,
                                 "My_Tag");
             wl.acquire();
+            System.out.println("StorageNotification shy  acquireWakeLock...");
         }
     }
 
     private void releaseWakeLock() {
         if (wl != null && wl.isHeld()) {
             wl.release();
+            System.out.println("StorageNotification shy  releaseWakeLock...");
             wl = null;
         }
     }
@@ -175,6 +177,7 @@ public class StorageNotification extends StorageEventListener {
         if     (oldState.equals(Environment.MEDIA_CHECKING) &&
                 newState.equals(Environment.MEDIA_MOUNTED) &&
                 path.equals(Environment.getExternalStorageDirectory().toString())) {
+            System.out.println("StorageNotification shy  updateMemoryStatus  mount++++++++++");
             LayoutInflater inflater = (LayoutInflater)mContext.getSystemService("layout_inflater");
             View layout = inflater.inflate(R.layout.sdcard_inject, null);
             if (sdcardDialog != null && sdcardDialog.isShowing()) {
@@ -218,6 +221,7 @@ public class StorageNotification extends StorageEventListener {
         } else if (oldState.equals(Environment.MEDIA_MOUNTED) &&
                    newState.equals(Environment.MEDIA_UNMOUNTED) &&
                    path.equals(Environment.getExternalStorageDirectory().toString())) {
+            System.out.println("StorageNotification shy  updateMemoryStatus unmount +++++++++++");
             LayoutInflater inflater = (LayoutInflater)mContext.getSystemService("layout_inflater");
             View layout = inflater.inflate(R.layout.sdcard_eject, null);
             if (sdcardDialog != null && sdcardDialog.isShowing()) {
