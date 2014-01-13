@@ -25,8 +25,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -70,6 +72,17 @@ class AlarmManagerService extends IAlarmManager.Stub {
     private static final int ALARM_EVENT = 1;
     private static final String TIMEZONE_PROPERTY = "persist.sys.timezone";
     
+    final private static String AutoShutdownReceiver_TAG = "AutoShutdwonReceiver";
+    final private static String SYS_SETTING_PREFS_NAME = "SysSettingPrefsFile";
+    final private static String AUTOSHUT_RECEIVE = "broadcast.receive.autoshutdown";
+    private static int FALLBACK_AUTOSHUTDOWN_TIMES_VALUE = -1;
+    private static int NEVERTOSHUTDOEN = 0;
+    private static int GOTOSLEEP = 1;
+    private static int SLEEPTOON = 2;
+    private static int mUSBConnectState = 0;
+    final private PendingIntent mAutoShutdownSender;
+    private AutoShutdownReceiver mAutoShutdownReceiver;
+
     private static final Intent mBackgroundIntent
             = new Intent().addFlags(Intent.FLAG_FROM_BACKGROUND);
     
@@ -124,18 +137,30 @@ class AlarmManagerService extends IAlarmManager.Stub {
     public AlarmManagerService(Context context) {
         mContext = context;
         mDescriptor = init();
+
+        // We have to set current TimeZone info to kernel
+        // because kernel doesn't keep this after reboot
+        String tz = SystemProperties.get(TIMEZONE_PROPERTY);
+        if (tz != null) {
+            setTimeZone(tz);
+        }
+
         PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         
         mTimeTickSender = PendingIntent.getBroadcast(context, 0,
                 new Intent(Intent.ACTION_TIME_TICK).addFlags(
                         Intent.FLAG_RECEIVER_REGISTERED_ONLY), 0);
+
+        Intent AutoShutdownIntent = new Intent(context, ShutdownActivity.class);
+        mAutoShutdownSender = PendingIntent.getActivity(context, 0, AutoShutdownIntent, 0);
         Intent intent = new Intent(Intent.ACTION_DATE_CHANGED);
         intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
         mDateChangeSender = PendingIntent.getBroadcast(context, 0, intent, 0);
         
         // now that we have initied the driver schedule the alarm
         mClockReceiver= new ClockReceiver();
+        mAutoShutdownReceiver = new AutoShutdownReceiver();
         mClockReceiver.scheduleTimeTickEvent();
         mClockReceiver.scheduleDateChangedEvent();
         mUninstallReceiver = new UninstallReceiver();
@@ -761,6 +786,86 @@ class AlarmManagerService extends IAlarmManager.Stub {
         }
     }
     
+    class AutoShutdownReceiver extends BroadcastReceiver {
+        int level;
+        int mUSBConnectState;
+
+        public AutoShutdownReceiver() {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(AUTOSHUT_RECEIVE);
+            mContext.registerReceiver(this, filter);
+        }
+
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(AUTOSHUT_RECEIVE)) {
+                int value = FALLBACK_AUTOSHUTDOWN_TIMES_VALUE;
+                try {
+                    Context settingContext = context.createPackageContext("com.android.settings", 2);
+                    SharedPreferences settings = settingContext.getSharedPreferences("SysSettingPrefsFile", 1);
+                    value = settings.getInt("AutoShutdownTime", FALLBACK_AUTOSHUTDOWN_TIMES_VALUE);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                int level = intent.getIntExtra("autoShutdownTime", 0);
+                mUSBConnectState = intent.getIntExtra("batteryState", 0);
+                if (value <= 0 || mUSBConnectState == BatteryManager.BATTERY_STATUS_CHARGING) {
+                    cancelAlarmStart();
+                } else if (level == GOTOSLEEP && value > 0) {
+                    ShutDownAlarmStart(value);
+                } else if (level == SLEEPTOON) {
+                    cancelAlarmStart();
+                }
+                mUSBConnectState = 0;
+            }
+        }
+
+        public void cancelAlarmStart() {
+            if (mAutoShutdownSender != null) {
+                remove(mAutoShutdownSender);
+            }
+        }
+
+        public void ShutDownAlarmStart(int timeout) {
+            int mGetHour = 0;
+            int mGetMinutes = 0;
+            int mGetSecond = 0;
+            Calendar calendar = Calendar.getInstance();
+            int mCurHour = calendar.get(Calendar.HOUR_OF_DAY);
+            int mCurMinute = calendar.get(Calendar.MINUTE);
+            int mCurSecond = calendar.get(Calendar.SECOND);
+            long dd = calendar.getTimeInMillis();
+            mGetSecond = (timeout / 1000);
+            if (mGetSecond >= 60) {
+                mGetMinutes = (mGetSecond / 60);
+                mGetSecond -= (mGetMinutes * 60);
+            } else {
+                mGetMinutes = 0;
+            }
+            if (mGetMinutes >= 60) {
+                mGetHour = (mGetMinutes / 60);
+                mGetMinutes -= (mGetHour * 60);
+            } else {
+                mGetHour = 0;
+            }
+            int mAlarmSecond = (mCurSecond + mGetSecond);
+            int mAlarmMinute = (mCurMinute + mGetMinutes);
+            int mAlarmHour = (mCurHour + mGetHour);
+            if (mAlarmSecond >= 60) {
+                mAlarmSecond = mAlarmSecond - 60;
+                mAlarmMinute++;
+            }
+            if (mAlarmMinute >= 60) {
+                mAlarmMinute = mAlarmMinute - 60;
+                mAlarmHour++;
+            }
+            calendar.set(Calendar.HOUR_OF_DAY, mAlarmHour);
+            calendar.set(Calendar.MINUTE, mAlarmMinute);
+            calendar.set(Calendar.SECOND, mAlarmSecond);
+            long alarmTimeUTC = calendar.getTimeInMillis();
+            set(AlarmManager.RTC_WAKEUP, alarmTimeUTC, mAutoShutdownSender);
+        }
+    }
+
     class ClockReceiver extends BroadcastReceiver {
         public ClockReceiver() {
             IntentFilter filter = new IntentFilter();

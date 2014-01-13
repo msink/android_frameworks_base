@@ -904,4 +904,15 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"Сейчас USB-накопитель используется компьютером."</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"Сейчас SD-карта используется компьютером."</string>
     <string name="media_unknown_state" msgid="729192782197290385">"Неизвестно состояние внешнего носителя."</string>
+
+    <string name="shutdown_message_1">Вы действительно хотите выключить устройство?</string>
+    <string name="shutdown_attention">Вы действительно хотите выключить устройство?</string>
+    <string name="shutdown_device">Выключение устройства</string>
+    <string name="usbnote_confirm">Пожалуйста, отключите USB-кабель перед отключением питания</string>
+    <string name="usb_note">Подождите пожалуйста</string>
+    <string name="shutdowning">Выключение…</string>
+    <string name="choose_between">Выбор</string>
+    <string name="usb_data_transfer">Передача данных</string>
+    <string name="charging_battery">Зарядка аккумулятора</string>
+    <string name="progress_unmounting_nand">Подготовка памяти…</string>
 </resources>

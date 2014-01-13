@@ -114,6 +114,8 @@ class PowerManagerService extends IPowerManager.Stub
     private final int MY_PID;
 
     private int mEpdFullTimeout = -1;
+    private boolean oldScreenOn = false;
+    private boolean newScreenOn = false;
     private Runnable mEpdFullRunnable = new Runnable() {
         public void run() {
             updateEpdFullRunnable();
@@ -189,8 +191,14 @@ class PowerManagerService extends IPowerManager.Stub
     private long mLastTouchDown;
     private int mTouchCycles;
 
+    public static int mUSBConnectState = 0;
+    public static boolean secondStandby = false;
+    private static int GOTOSLEEP = 1;
+    private static int SLEEPTOON = 2;
+    public static boolean isEnterSleep = false;
+
     // could be either static or controllable at runtime
-    private static boolean mSpew;
+    private static boolean mSpew = false;
     
     private native void nativeInit();
     private native void nativeSetPowerState(boolean screenOn, boolean screenBright);
@@ -263,8 +271,11 @@ class PowerManagerService extends IPowerManager.Stub
     final private String TIME_TASK_ACTION = "time_task_action";
     private int mStandbyDelay;
     private int mStandbyTimeoutSetting = 120000;
+    private LightsService mLightsService;
+    private LightsService.Light mLcdLight;
     private long mStandbyTime = 0;
     private long mIdleTime = 0;
+    private boolean isSendSleepBroadcast = false;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
@@ -416,6 +427,10 @@ class PowerManagerService extends IPowerManager.Stub
 
                 boolean wasPowered = mIsPowered;
                 mIsPowered = mBatteryService.isPowered();
+                String action = intent.getAction();
+                if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+                    mUSBConnectState = intent.getIntExtra("status", 3);
+                }
                 if (mSpew) Log.d(TAG, "wasPowered =" + wasPowered + " mIsPowered = " + mIsPowered);
                 if (mIsPowered != wasPowered) {
                     // update mStayOnWhilePluggedIn wake lock
@@ -544,10 +559,12 @@ class PowerManagerService extends IPowerManager.Stub
 
     void init(Context context, LightsService lights, IActivityManager activity,
             BatteryService battery) {
+        mLightsService = lights;
         mContext = context;
         mActivityService = activity;
         mBatteryStats = BatteryStatsService.getService();
         mBatteryService = battery;
+        mLcdLight = lights.getLight(0);
 
         nativeInit();
         synchronized (mLocks) {
@@ -611,8 +628,9 @@ class PowerManagerService extends IPowerManager.Stub
         SettingsObserver settingsObserver = new SettingsObserver();
         mSettings.addObserver(settingsObserver);
 
-        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
+        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 8000);
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
+
         // pretend that the settings changed so we will get their initial state
         settingsObserver.update(mSettings, null);
 
@@ -1182,8 +1200,9 @@ class PowerManagerService extends IPowerManager.Stub
                 }
 
                 mUserState = this.nextState;
+              if (mUSBConnectState != 2 || nextState != 0) {
                 setPowerState(this.nextState | mWakeLockState);
-
+              }
                 long now = SystemClock.uptimeMillis();
 
                 switch (this.nextState)
@@ -1448,8 +1467,10 @@ class PowerManagerService extends IPowerManager.Stub
         int err = 0;
         if (on) {
             err = wake();
+            secondStandby = false;
             nativeStopSurfaceFlingerAnimation();
         } else {
+            secondStandby = true;
             nativeStartSurfaceFlingerAnimation(1);
             err = standby();
         }
@@ -1464,7 +1485,7 @@ class PowerManagerService extends IPowerManager.Stub
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
-    private boolean mIdleWakeUp = true;
+    private boolean mIdleWakeUp = false;
 
     public void enableIdleWakeUp(boolean enable) {
         mIdleWakeUp = enable;
@@ -1495,8 +1516,8 @@ class PowerManagerService extends IPowerManager.Stub
                 return;
             }
 
-            boolean oldScreenOn = (mPowerState & SCREEN_ON_BIT) != 0;
-            boolean newScreenOn = (newState & SCREEN_ON_BIT) != 0;
+            oldScreenOn = (mPowerState & SCREEN_ON_BIT) != 0;
+            newScreenOn = (newState & SCREEN_ON_BIT) != 0;
 
             if (mSpew) {
                 Slog.d(TAG, "setPowerState: mPowerState=" + mPowerState
@@ -1510,6 +1531,7 @@ class PowerManagerService extends IPowerManager.Stub
             if (oldScreenOn != newScreenOn) {
                 Slog.d(TAG, "setPowerState: screen state change, on:" + newScreenOn);
                 if (newScreenOn) {
+                    secondStandby = false;
 
                         err = setScreenStateLocked(true);
                         long identity = Binder.clearCallingIdentity();
@@ -1547,6 +1569,7 @@ class PowerManagerService extends IPowerManager.Stub
                     EventLog.writeEvent(EventLogTags.POWER_SCREEN_STATE, 0, reason,
                             mTotalTouchDownTime, mTouchCycles);
                     mLastTouchDown = 0;
+                    secondStandby = true;
                     err = setScreenStateLocked(false);
                     if (err == 0) {
                         mScreenOffReason = reason;
@@ -1555,7 +1578,18 @@ class PowerManagerService extends IPowerManager.Stub
                 }
             }
             
+            setBacklightBrightness(getPreferredBrightness());
             updateNativePowerStateLocked();
+        }
+
+        if (oldScreenOn != newScreenOn && !newScreenOn) {
+            if (!isSendSleepBroadcast) {
+                Intent intent = new Intent("broadcast.receive.autoshutdown");
+                intent.putExtra("autoShutdownTime", GOTOSLEEP);
+                intent.putExtra("batteryState", mUSBConnectState);
+                mContext.sendBroadcast(intent);
+            }
+            isSendSleepBroadcast = false;
         }
     }
     
@@ -1575,7 +1609,7 @@ class PowerManagerService extends IPowerManager.Stub
             final int brightness = Settings.System.getInt(mContext.getContentResolver(),
                                                           SCREEN_BRIGHTNESS);
              // Don't let applications turn the screen all the way off
-            return Math.max(brightness, Power.BRIGHTNESS_DIM);
+            return !isScreenOn() ? 0 : Math.max(brightness, Power.BRIGHTNESS_DIM);
         } catch (SettingNotFoundException snfe) {
             return Power.BRIGHTNESS_ON;
         }
@@ -1746,9 +1780,20 @@ class PowerManagerService extends IPowerManager.Stub
     {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         synchronized (mLocks) {
+            isSendSleepBroadcast = true;
             goToStandbyLocked(time, reason);
         }
+        mHandler.post(runnableSendGoToBroadcast);
     }
+
+    Runnable runnableSendGoToBroadcast = new Runnable() {
+        public void run() {
+            Intent intent = new Intent("broadcast.receive.autoshutdown");
+            intent.putExtra("autoShutdownTime", GOTOSLEEP);
+            intent.putExtra("batteryState", mUSBConnectState);
+            mContext.sendBroadcast(intent);
+        }
+    };
 
     /**
      * Reboot the device immediately, passing 'reason' (may be null)
@@ -2032,7 +2077,10 @@ class PowerManagerService extends IPowerManager.Stub
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         // Don't let applications turn the screen all the way off
         synchronized (mLocks) {
+          if (isScreenOn()) {
             brightness = Math.max(brightness, Power.BRIGHTNESS_DIM);
+          }
+            mLcdLight.setBrightness(brightness);
             long identity = Binder.clearCallingIdentity();
             try {
                 mBatteryStats.noteScreenBrightness(brightness);

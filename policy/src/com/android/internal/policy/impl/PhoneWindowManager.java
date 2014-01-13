@@ -17,12 +17,14 @@
 package com.android.internal.policy.impl;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
 import android.app.IUiModeManager;
 import android.app.UiModeManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +36,7 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.LocalPowerManager;
@@ -215,6 +218,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final int DEFAULT_ACCELEROMETER_ROTATION = 0;
     int mAccelerometerDefault = DEFAULT_ACCELEROMETER_ROTATION;
     boolean mHasSoftInput = false;
+    private static int mUSBConnectState = 0;
     
     int mPointerLocationMode = 0;
     PointerLocationView mPointerLocationView = null;
@@ -468,9 +472,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         public void run() {
             mShouldTurnOffOnKeyUp = false;
 
+          if (mUSBConnectState != BatteryManager.BATTERY_STATUS_CHARGING) {
             sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
 
             ShutdownThread.shutdown(mContext, true);
+          } else {
+            ShutdownThread.usbconnect_note(mContext, true);
+          }
         }
     };
 
@@ -491,6 +499,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         return Settings.Secure.getInt(
                 mContext.getContentResolver(), Settings.Secure.DEVICE_PROVISIONED, 0) != 0;
     }
+
+    private BroadcastReceiver mUSBIntentReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+                mUSBConnectState = intent.getIntExtra(
+                    BatteryManager.EXTRA_STATUS,
+                    BatteryManager.BATTERY_STATUS_DISCHARGING);
+            }
+        }
+    };
 
     /**
      * When a home-key longpress expires, close other system windows and launch the recent apps
@@ -566,6 +585,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mDockMode = intent.getIntExtra(Intent.EXTRA_DOCK_STATE,
                     Intent.EXTRA_DOCK_STATE_UNDOCKED);
         }
+        IntentFilter USBfilter = new IntentFilter();
+        USBfilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        context.registerReceiver(mUSBIntentReceiver, USBfilter);
     }
 
     public void updateSettings() {
@@ -1767,6 +1789,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
             pm.pokeSystem();
             return 0;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            ActivityManager am = (ActivityManager)mContext.getSystemService("activity");
+            ComponentName cn = am.getRunningTasks(2).get(0).topActivity;
+            if (!cn.toString().endsWith("ComponentInfo{xrz.com.bl/xrz.com.bl.BackLightActivity}")) {
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setClassName("xrz.com.bl", "xrz.com.bl.BackLightActivity");
+                if (intent != null) {
+                    mContext.startActivity(intent);
+                }
+            }
         }
 
         int result = ACTION_PASS_TO_USER;

@@ -552,6 +552,15 @@ public class PowerManager
         }
     }
 
+    public void setBacklight(int brightness) {
+        try {
+            if (mService != null) {
+                mService.setBacklightBrightness(brightness);
+            }
+        } catch (RemoteException e) {
+        }
+    }
+
     private PowerManager()
     {
     }

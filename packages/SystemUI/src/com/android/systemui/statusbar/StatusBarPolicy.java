@@ -18,6 +18,7 @@ package com.android.systemui.statusbar.policy;
 
 import android.app.StatusBarManager;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothHeadset;
@@ -58,6 +59,8 @@ import android.text.style.StyleSpan;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.util.Slog;
+import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -106,12 +109,13 @@ public class StatusBarPolicy {
     private boolean mBatteryFirst = true;
     private boolean mBatteryPlugged;
     private int mBatteryLevel;
-    private AlertDialog mLowBatteryDialog;
+    private Dialog mLowBatteryDialog;
     private TextView mBatteryLevelTextView;
     private View mBatteryView;
     private int mBatteryViewSequence;
     private static final boolean SHOW_LOW_BATTERY_WARNING = true;
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
+    public static int currentLowBatteryNum = 0;
 
     // ringer volume
     private boolean mVolumeVisible;
@@ -342,40 +346,20 @@ public class StatusBarPolicy {
         if (mBatteryLevelTextView != null) {
             mBatteryLevelTextView.setText(levelText);
         } else {
-            View v = View.inflate(mContext, R.layout.battery_low, null);
-            mBatteryLevelTextView=(TextView)v.findViewById(R.id.level_percent);
-
-            mBatteryLevelTextView.setText(levelText);
-
-            AlertDialog.Builder b = new AlertDialog.Builder(mContext);
-                b.setCancelable(true);
-                b.setTitle(R.string.battery_low_title);
-                b.setView(v);
-                b.setIcon(android.R.drawable.ic_dialog_alert);
-                b.setPositiveButton(android.R.string.ok, null);
-
-                final Intent intent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                        | Intent.FLAG_ACTIVITY_NO_HISTORY);
-                if (intent.resolveActivity(mContext.getPackageManager()) != null) {
-                    b.setNegativeButton(R.string.battery_low_why,
-                            new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            mContext.startActivity(intent);
-                            if (mLowBatteryDialog != null) {
-                                mLowBatteryDialog.dismiss();
-                            }
-                        }
-                    });
-                }
-
-            AlertDialog d = b.create();
-            d.setOnDismissListener(mLowBatteryListener);
-            d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-            d.show();
-            mLowBatteryDialog = d;
+            LayoutInflater inflater = (LayoutInflater)mContext.getSystemService("layout_inflater");
+            View layout = inflater.inflate(R.layout.battery_low, null);
+            AlertDialog dialog = new AlertDialog.Builder(mContext).create();
+            dialog.setCancelable(true);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.show();
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.setOnDismissListener(mLowBatteryListener);
+            dialog.getWindow().setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                         ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setContentView(layout);
+            currentLowBatteryNum += 1;
+            mLowBatteryDialog = dialog;
         }
 
         final ContentResolver cr = mContext.getContentResolver();

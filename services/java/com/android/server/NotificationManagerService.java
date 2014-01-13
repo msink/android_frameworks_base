@@ -20,6 +20,7 @@ import com.android.internal.statusbar.StatusBarNotification;
 import com.android.server.StatusBarManagerService;
 
 import android.app.ActivityManagerNative;
+import android.app.AlarmManager;
 import android.app.IActivityManager;
 import android.app.INotificationManager;
 import android.app.ITransientNotification;
@@ -137,6 +138,9 @@ public class NotificationManagerService extends INotificationManager.Stub
     private static final int BATTERY_FULL_ARGB = 0xFF00FF00; // Charging Full - green solid on
     private static final int BATTERY_BLINK_ON = 125;
     private static final int BATTERY_BLINK_OFF = 2875;
+
+    private static boolean isEnterScreenOff = false;
+    public static boolean usbConnected = false;
 
     private static String idDebugString(Context baseContext, String packageName, int id) {
         Context c = null;
@@ -335,7 +339,7 @@ public class NotificationManagerService extends INotificationManager.Stub
                 }
             } else if (action.equals(Usb.ACTION_USB_STATE)) {
                 Bundle extras = intent.getExtras();
-                boolean usbConnected = extras.getBoolean(Usb.USB_CONNECTED);
+                usbConnected = extras.getBoolean(Usb.USB_CONNECTED);
                 boolean adbEnabled = (Usb.USB_FUNCTION_ENABLED.equals(
                                     extras.getString(Usb.USB_FUNCTION_ADB)));
                 updateAdbNotification(usbConnected && adbEnabled);
@@ -367,8 +371,15 @@ public class NotificationManagerService extends INotificationManager.Stub
                     }
                 }
             } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                mScreenOn = true;
                 updateNotificationPulse();
+                if (!mScreenOn) {
+                    AlarmManager alarmManager = (AlarmManager)
+                        mContext.getSystemService("alarm");
+                    Intent intent_2 = new Intent("broadcast.receive.autoshutdown");
+                    intent_2.putExtra("autoShutdownTime", 2);
+                    context.sendBroadcast(intent_2);
+                }
+                mScreenOn = true;
             } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                 mScreenOn = false;
                 updateNotificationPulse();

@@ -19,6 +19,7 @@ package com.android.internal.app;
 
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
+import android.app.Instrumentation;
 import android.app.ProgressDialog;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -27,6 +28,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Power;
 import android.os.PowerManager;
@@ -38,9 +42,17 @@ import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
 
-import com.android.internal.telephony.ITelephony;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -48,8 +60,8 @@ public final class ShutdownThread extends Thread {
     private static final int MAX_NUM_PHONE_STATE_READS = 16;
     private static final int PHONE_STATE_POLL_SLEEP_MSEC = 500;
     // maximum time we wait for the shutdown broadcast before going on.
-    private static final int MAX_BROADCAST_TIME = 10*1000;
-    private static final int MAX_SHUTDOWN_WAIT_TIME = 20*1000;
+    private static final int MAX_BROADCAST_TIME = 6*1000;
+    private static final int MAX_SHUTDOWN_WAIT_TIME = 8*1000;
 
     // state tracking
     private static Object sIsStartedGuard = new Object();
@@ -71,11 +83,19 @@ public final class ShutdownThread extends Thread {
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private Handler mHandler;
-    
+
     AlertDialog mShutdownDialog;
     private static String mShutdownReason;
 
-    private ShutdownThread() {
+    static String defaultImgName = "power_off";
+    static AlertDialog dialog_2;
+    static View layout;
+    static ProgressBar progeBar;
+    static RelativeLayout relate_Shutdown;
+    static int resourceID;
+    static TextView txtProgressMessage;
+
+    public ShutdownThread() {
     }
  
     /**
@@ -99,23 +119,26 @@ public final class ShutdownThread extends Thread {
         Log.d(TAG, "Notifying thread to start radio shutdown");
 
         if (confirm) {
-            final AlertDialog dialog = new AlertDialog.Builder(context)
+            sInstance.mShutdownDialog = new AlertDialog.Builder(context)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(com.android.internal.R.string.power_off)
                     .setMessage(com.android.internal.R.string.shutdown_confirm)
                     .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            SystemProperties.set("sys.shutting.down", "1");
                             beginShutdownSequence(context);
                         }
                     })
                     .setNegativeButton(com.android.internal.R.string.no, null)
                     .create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+            sInstance.mShutdownDialog.getWindow()
+                    .setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
             if (!context.getResources().getBoolean(
                     com.android.internal.R.bool.config_sf_slowBlur)) {
-                dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+                sInstance.mShutdownDialog.getWindow()
+                                  .addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
             }
-            dialog.show();
+            sInstance.mShutdownDialog.show();
         } else {
             beginShutdownSequence(context);
         }
@@ -125,6 +148,28 @@ public final class ShutdownThread extends Thread {
         mShutdownReason = reason;
         shutdown(context, confirm);
     }
+
+    public static void usbconnect_note(Context context, boolean confirm) {
+        if (confirm) {
+            AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(com.android.internal.R.string.usb_note)
+                    .setMessage(com.android.internal.R.string.usbnote_confirm)
+                    .setPositiveButton(android.R.string.yes, null)
+                    .create();
+            dialog.getWindow()
+                    .setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+            if (!context.getResources().getBoolean(
+                    com.android.internal.R.bool.config_sf_slowBlur)) {
+                dialog.getWindow()
+                    .addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+            }
+            if (!dialog.isShowing()) {
+                dialog.show();
+            }
+        }
+    }
+
 
     /**
      * Request a clean shutdown, waiting for subsystems to clean up their
@@ -141,7 +186,7 @@ public final class ShutdownThread extends Thread {
         shutdown(context, confirm);
     }
 
-    private static void beginShutdownSequence(Context context) {
+    public static void beginShutdownSequence(Context context) {
         synchronized (sIsStartedGuard) {
             if (sIsStarted) {
                 Log.d(TAG, "Request to shutdown already running, returning.");
@@ -152,18 +197,20 @@ public final class ShutdownThread extends Thread {
 
         // throw up an indeterminate system dialog to indicate radio is
         // shutting down.
-        ProgressDialog pd = new ProgressDialog(context);
-        pd.setTitle(context.getText(com.android.internal.R.string.power_off));
-        pd.setMessage(context.getText(com.android.internal.R.string.shutdown_progress));
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
-        pd.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService("layout_inflater");
+        layout = inflater.inflate(com.android.internal.R.layout.power_off_layout_2, null);
+        dialog_2 = new AlertDialog.Builder(context).create();
+        dialog_2.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
         if (!context.getResources().getBoolean(
                 com.android.internal.R.bool.config_sf_slowBlur)) {
-            pd.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+            dialog_2.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
         }
-
-        pd.show();
+        dialog_2.show();
+        dialog_2.getWindow().setGravity(Gravity.CENTER);
+        dialog_2.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+                                       WindowManager.LayoutParams.MATCH_PARENT);
+        dialog_2.getWindow().setContentView(layout);
+        dialog_2.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
 
         // start the thread that initiates shutdown
         sInstance.mContext = context;
@@ -257,38 +304,8 @@ public final class ShutdownThread extends Thread {
                 IMountService.Stub.asInterface(
                         ServiceManager.checkService("mount"));
         
-        try {
-            bluetoothOff = bluetooth == null ||
-                           bluetooth.getBluetoothState() == BluetoothAdapter.STATE_OFF;
-            if (!bluetoothOff) {
-                Log.w(TAG, "Disabling Bluetooth...");
-                bluetooth.disable(false);  // disable but don't persist new state
-            }
-        } catch (RemoteException ex) {
-            Log.e(TAG, "RemoteException during bluetooth shutdown", ex);
-            bluetoothOff = true;
-        }
-
         Log.i(TAG, "Waiting for Bluetooth...");
         
-        // Wait a max of 32 seconds for clean shutdown
-        for (int i = 0; i < MAX_NUM_PHONE_STATE_READS; i++) {
-            if (!bluetoothOff) {
-                try {
-                    bluetoothOff =
-                            bluetooth.getBluetoothState() == BluetoothAdapter.STATE_OFF;
-                } catch (RemoteException ex) {
-                    Log.e(TAG, "RemoteException during bluetooth shutdown", ex);
-                    bluetoothOff = true;
-                }
-            }
-            if (bluetoothOff) {
-                Log.i(TAG, "Radio and Bluetooth shutdown complete.");
-                break;
-            }
-            SystemClock.sleep(PHONE_STATE_POLL_SLEEP_MSEC);
-        }
-
         // Shutdown MountService to ensure media is in a safe state
         IMountShutdownObserver observer = new IMountShutdownObserver.Stub() {
             public void onShutDownComplete(int statusCode) throws RemoteException {

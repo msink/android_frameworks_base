@@ -135,6 +135,11 @@
     <string name="power_off" msgid="4266614107412865048">"Apagar"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Apagando..."</string>
     <string name="shutdown_confirm" msgid="649792175242821353">"Tu dispositivo se apagará"</string>
+    <string name="usb_note">Aviso</string>
+    <string name="shutdowning">Apagando…</string>
+    <string name="usbnote_confirm">Por favor, desconecte el USB antes de pagar.</string>
+    <string name="shutdown_attention">¿Seguro que desea apagar el equipo?</string>
+    <string name="shutdown_device">Apagar dispositivo</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Reciente"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"No hay aplicaciones recientes"</string>
     <string name="global_actions" msgid="2406416831541615258">"Opciones del teléfono"</string>
@@ -904,4 +909,7 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"Un equipo está utilizando actualmente el almacenamiento USB."</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"Un equipo está utilizando actualmente la tarjeta SD."</string>
     <string name="media_unknown_state" msgid="729192782197290385">"Estado de medio externo desconocido"</string>
+    <string name="choose_between">Elija entre</string>
+    <string name="usb_data_transfer">Transferencia de datos por USB</string>
+    <string name="charging_battery">Cargando batería</string>
 </resources>

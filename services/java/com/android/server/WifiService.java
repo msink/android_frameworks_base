@@ -1695,17 +1695,17 @@ public class WifiService extends IWifiManager.Stub {
                         if (DBG) {
                             Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for 120,000 ms");
                         }
-                        mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
-                        //  // do not keep Wifi awake when screen is off if Wifi is not associated
-                        //  mDeviceIdle = true;
-                        //  updateWifiState();
+                        mDeviceIdle = true;
+                        updateWifiState();
                     } else {
                         long triggerTime = System.currentTimeMillis() + idleMillis;
                         if (DBG) {
                             Slog.d(TAG, "setting ACTION_DEVICE_IDLE timer for " + idleMillis
                                     + "ms");
                         }
+                      if (!NotificationManagerService.usbConnected && PowerManagerService.mUSBConnectState != 2 && mPluggedType != 2) {
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, mIdleIntent);
+                      }
                     }
                 }
                 /* we can return now -- there's nothing to do until we get the idle intent back */

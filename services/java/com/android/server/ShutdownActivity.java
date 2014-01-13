@@ -43,6 +43,7 @@ public class ShutdownActivity extends Activity {
         h.post(new Runnable() {
             public void run() {
                 ShutdownThread.shutdown(ShutdownActivity.this, mConfirm, mShutdownReason);
+                finish();
             }
         });
     }

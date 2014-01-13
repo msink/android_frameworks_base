@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="600px"
+    android:layout_height="800px"
+    android:orientation="vertical"
+    android:background="#ffffffff">
+    <ImageView android:id="@+id/power_off_imageview_2"
+        android:layout_width="600px"
+        android:layout_height="800px"
+        android:background="@drawable/shutdowning"
+        />
+</RelativeLayout>

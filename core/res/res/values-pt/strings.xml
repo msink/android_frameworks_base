@@ -135,6 +135,11 @@
     <string name="power_off" msgid="4266614107412865048">"Desligar"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Encerrando…"</string>
     <string name="shutdown_confirm" msgid="649792175242821353">"O seu telefone será desligado."</string>
+    <string name="usb_note">Nota</string>
+    <string name="shutdowning">Desligando…</string>
+    <string name="usbnote_confirm">Se faz favor, desligue o cabo USB antes de desligar o aparelho</string>
+    <string name="shutdown_attention">¿Tem certeza de que deseja desligar o aparelho?</string>
+    <string name="shutdown_device">Desliga o aparelho</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Recente"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"Nenhum aplicativo recente."</string>
     <string name="global_actions" msgid="2406416831541615258">"Opções do telefone"</string>
@@ -904,4 +909,7 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"O armazenamento USB está em uso por um computador no momento."</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"O cartão SD está em uso por um computador no momento."</string>
     <string name="media_unknown_state" msgid="729192782197290385">"Mídia externa em estado desconhecido."</string>
+    <string name="choose_between">Escolher entre</string>
+    <string name="usb_data_transfer">Transferência de dados USB</string>
+    <string name="charging_battery">Carregando bateria</string>
 </resources>
