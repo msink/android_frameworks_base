@@ -16,6 +16,7 @@
 
 package com.android.server;
 
+import com.android.internal.app.ShutdownThread;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -29,10 +30,10 @@ import android.os.FileUtils;
 import android.os.RecoverySystem;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.util.Log;
 import android.util.Slog;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Performs a number of miscellaneous, non-system-critical actions
@@ -172,5 +173,74 @@ public class BootReceiver extends BroadcastReceiver {
 
         Slog.i(TAG, "Copying " + filename + " to DropBox (" + tag + ")");
         db.addText(tag, headers + FileUtils.readTextFile(file, maxSize, "[[TRUNCATED]]\n"));
+    }
+
+    public void onReboot() {
+        ShutdownThread.rebootOrShutdown(true, null);
+    }
+
+    public void SetSerialNum() {
+        String num = getSimSerial().trim().toString();
+        String preNum = Build.SERIAL;
+        if (!num.equals(preNum)) {
+            Build.SetValue("persist.sys.serialno", num);
+            onReboot();
+        }
+    }
+
+    private static String getSimSerial() {
+        String serName = null;
+        try {
+            serName = ConvertCodeAndGetFileContent("/sys/class/power_supply/battery/device_serial_number");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return serName;
+    }
+
+    public static String ConvertCodeAndGetFileContent(String filePath) {
+        File file = new File(filePath);
+        BufferedReader bufferReader;
+        String text = "";
+        if (file.isFile() && file.exists()) {
+            try {
+                FileInputStream fis = new FileInputStream(file);
+                BufferedInputStream in = new BufferedInputStream(fis);
+                in.mark(4);
+                byte[] first3bytes = new byte[3];
+                in.read(first3bytes);
+                in.reset();
+                if        (first3bytes[0] == (byte) 0xEF
+                        && first3bytes[1] == (byte) 0xBB
+                        && first3bytes[2] == (byte) 0xBF) {
+                    bufferReader = new BufferedReader(new InputStreamReader(in, "utf-8"));
+                } else if (first3bytes[0] == (byte) 0xFF
+                        && first3bytes[1] == (byte) 0xFE) {
+                    bufferReader = new BufferedReader(new InputStreamReader(in, "unicode"));
+                } else if (first3bytes[0] == (byte) 0xFE
+                        && first3bytes[1] == (byte) 0xFF) {
+                    bufferReader = new BufferedReader(new InputStreamReader(in, "utf-16be"));
+                } else if (first3bytes[0] == (byte) 0xFF
+                        && first3bytes[1] == (byte) 0xFF) {
+                    bufferReader = new BufferedReader(new InputStreamReader(in, "utf-16le"));
+                } else {
+                    bufferReader = new BufferedReader(new InputStreamReader(in, "GBK"));
+                }
+                String str = bufferReader.readLine();
+                while (str != null) {
+                    text = text + str + "\n";
+                    str = bufferReader.readLine();
+                }
+                bufferReader.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            text = null;
+        }
+        Log.d(TAG, "wen : text=" + text);
+        return text;
     }
 }

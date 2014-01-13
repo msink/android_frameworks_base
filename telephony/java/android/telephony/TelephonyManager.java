@@ -33,6 +33,7 @@ import com.android.internal.telephony.RILConstants;
 import com.android.internal.telephony.TelephonyProperties;
 
 import java.util.List;
+import java.io.*;
 
 /**
  * Provides access to information about the telephony services on
@@ -496,7 +497,40 @@ public class TelephonyManager {
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
      */
     public String getSimSerialNumber() {
-        return null;
+        String serName = "";
+        try {
+            String uuid = getFileContent(
+                "/sys/class/power_supply/battery/device_serial_number");
+            serName = uuid;
+        } catch (Exception e) {
+            System.out.println("shy TelephonyManager ex ==" + e);
+        }
+        return serName;
+    }
+
+    public String getFileContent(String filePath) {
+        String sFile = "";
+        File file = new File(filePath);
+        String encoding = null;
+        try {
+            encoding = "utf8";
+            if (file.isFile() && file.exists()) {
+                InputStreamReader read = new InputStreamReader(
+                                         new FileInputStream(file), encoding);
+                BufferedReader bufferedReader = new BufferedReader(read);
+                String lineTXT = null;
+                while ((lineTXT = bufferedReader.readLine()) != null) {
+                    sFile += lineTXT;
+                }
+                read.close();
+            } else {
+                System.out.println("cat't find the file\ufffd\ufffd");
+            }
+        } catch (Exception e) {
+            System.out.println("read the file error");
+            e.printStackTrace();
+        }
+        return sFile;
     }
 
     //

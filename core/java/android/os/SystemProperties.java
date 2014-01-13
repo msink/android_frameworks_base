@@ -25,6 +25,8 @@ package android.os;
  */
 public class SystemProperties
 {
+    final private static String TAG = SystemProperties.class.getSimpleName();
+
     public static final int PROP_NAME_MAX = 31;
     public static final int PROP_VALUE_MAX = 91;
 

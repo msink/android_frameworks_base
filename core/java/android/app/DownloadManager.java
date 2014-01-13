@@ -396,6 +396,11 @@ public class DownloadManager {
             return this;
         }
 
+        public Request setDestinationInFlashPublicDir(String dirType, String subPath) {
+            setDestinationFromBase(Environment.getFlashStoragePublicDirectory(dirType), subPath);
+            return this;
+        }
+
         private void setDestinationFromBase(File base, String subPath) {
             if (subPath == null) {
                 throw new NullPointerException("subPath cannot be null");

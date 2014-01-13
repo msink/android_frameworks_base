@@ -134,7 +134,7 @@
     <string name="screen_lock" msgid="799094655496098153">"Bloqueo de pantalla"</string>
     <string name="power_off" msgid="4266614107412865048">"Apagar"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Apagando..."</string>
-    <string name="shutdown_confirm" msgid="649792175242821353">"El teléfono se apagará."</string>
+    <string name="shutdown_confirm" msgid="649792175242821353">"Tu dispositivo se apagará"</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Reciente"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"No hay aplicaciones recientes"</string>
     <string name="global_actions" msgid="2406416831541615258">"Opciones del teléfono"</string>

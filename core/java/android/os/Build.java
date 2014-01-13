@@ -20,6 +20,8 @@ package android.os;
  * Information about the current build, extracted from system properties.
  */
 public class Build {
+    private static final String TAG = Build.class.getSimpleName();
+
     /** Value used for when a build property is unknown. */
     public static final String UNKNOWN = "unknown";
 
@@ -209,6 +211,15 @@ public class Build {
 
     private static String getString(String property) {
         return SystemProperties.get(property, UNKNOWN);
+    }
+
+    private static String getKeyString(String property) {
+        return SystemProperties.get(property);
+    }
+
+    public static void SetValue(String key, String val) {
+        SystemProperties.set(key, val);
+        return;
     }
 
     private static long getLong(String property) {

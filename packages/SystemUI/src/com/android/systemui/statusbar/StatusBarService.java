@@ -33,6 +33,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
@@ -40,6 +41,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.IBinder;
+import android.os.IPowerManager;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.Binder;
@@ -47,6 +49,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.provider.Settings;
+import android.text.format.DateFormat;
 import android.text.TextUtils;
 import android.util.Slog;
 import android.util.Log;
@@ -70,9 +74,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.FrameLayout;
 
+import java.io.*;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -158,6 +164,18 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
             super(context, com.android.internal.R.style.Theme_Light_NoTitleBar);
+            int mOldBrightness = 0;
+            try {
+                mOldBrightness = Settings.System.getInt(getContentResolver(), "screen_brightness");
+                try {
+                    IPowerManager power = IPowerManager.Stub.asInterface(ServiceManager.getService("power"));
+                    if (power != null) {
+                        power.setBacklightBrightness(mOldBrightness);
+                    }
+                } catch (RemoteException e) {
+                }
+            } catch (Settings.SettingNotFoundException e) {
+            }
         }
 
         @Override
@@ -192,6 +210,46 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mBarService.registerStatusBar(mCommandQueue, iconList, notificationKeys, notifications);
         } catch (RemoteException ex) {
             // If the system process isn't there we're doomed anyway.
+        }
+
+        try {
+            Runtime.getRuntime().exec("busybox  chmod 0777 /data/data/com.android.systemui");
+            Runtime.getRuntime().exec("busybox chmod 0777 /data/data/com.android.systemui/shared_prefs/");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("shy ---------" + e.getMessage());
+        }
+        File MyFilePreference = new File("/data/data/com.android.systemui/shared_prefs/MyPrefsFile.xml");
+        if (!MyFilePreference.exists()) {
+            String value = "";
+            try {
+                SharedPreferences settings = getSharedPreferences("MyPrefsFile", 1);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("FirstRecentPath", value);
+                editor.putString("FirstRecentTitle", value);
+                editor.putString("FirstRecentAuthor", value);
+                editor.putString("FirstRecentPage", value);
+                editor.putString("FirstRecentTotalPage", value);
+                editor.putString("FirstRecentReadDate", value);
+                editor.putString("FirstBookCover", value);
+                editor.putString("SecondRecentPath", value);
+                editor.putString("SecondRecentTitle", value);
+                editor.putString("SecondRecentAuthor", value);
+                editor.putString("SecondRecentPage", value);
+                editor.putString("SecondRecentTotalPage", value);
+                editor.putString("SecondRecentReadDate", value);
+                editor.putString("SecondBookCover", value);
+                editor.putString("ThirdRecentPath", value);
+                editor.putString("ThirdRecentTitle", value);
+                editor.putString("ThirdRecentAuthor", value);
+                editor.putString("ThirdRecentPage", value);
+                editor.putString("ThirdRecentTotalPage", value);
+                editor.putString("ThirdRecentReadDate", value);
+                editor.putString("ThirdBookCover", value);
+                editor.commit();
+            } catch (NumberFormatException e) {
+                Log.e(TAG,"could not persist screen timeout setting", e);
+            }
         }
 
         // Set up the initial icon state
