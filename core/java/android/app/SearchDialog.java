@@ -210,6 +210,9 @@ public class SearchDialog extends Dialog implements OnItemClickListener, OnItemS
                 null, null, mWorkingSpinner, null);
         setWorking(false);
 
+        mAppIcon.requestEpdMode(View.EPD_FULL);
+        mAppIcon.invalidate();
+
         // attach listeners
         mSearchAutoComplete.addTextChangedListener(mTextWatcher);
         mSearchAutoComplete.setOnKeyListener(mTextKeyListener);

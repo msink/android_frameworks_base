@@ -65,6 +65,7 @@ public class TimePickerDialog extends AlertDialog implements OnClickListener,
     int mInitialHourOfDay;
     int mInitialMinute;
     boolean mIs24HourView;
+    Context mContext;
 
     /**
      * @param context Parent.
@@ -78,6 +79,7 @@ public class TimePickerDialog extends AlertDialog implements OnClickListener,
             int hourOfDay, int minute, boolean is24HourView) {
         this(context, com.android.internal.R.style.Theme_Dialog_Alert,
                 callBack, hourOfDay, minute, is24HourView);
+        mContext = context;
     }
 
     /**
@@ -97,6 +99,7 @@ public class TimePickerDialog extends AlertDialog implements OnClickListener,
         mInitialHourOfDay = hourOfDay;
         mInitialMinute = minute;
         mIs24HourView = is24HourView;
+        mContext = context;
 
         mDateFormat = DateFormat.getTimeFormat(context);
         mCalendar = Calendar.getInstance();

@@ -100,6 +100,15 @@ public abstract class PreferenceActivity extends ListActivity implements
         }
     };
 
+    Handler handlerDecoder = new Handler();
+    Runnable decoderThread = new Runnable() {
+        @Override
+        public void run() {
+            getListView().requestEpdMode(View.EPD_A2);
+            handlerDecoder.removeCallbacks(decoderThread);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

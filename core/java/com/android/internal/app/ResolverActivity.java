@@ -83,6 +83,7 @@ public class ResolverActivity extends AlertActivity implements
             ap.mView = inflater.inflate(R.layout.always_use_checkbox, null);
             mAlwaysCheck = (CheckBox)ap.mView.findViewById(com.android.internal.R.id.alwaysUse);
             mAlwaysCheck.setText(R.string.alwaysUse);
+            mAlwaysCheck.setTextColor(0xff000000);
             mAlwaysCheck.setOnCheckedChangeListener(this);
             mClearDefaultHint = (TextView)ap.mView.findViewById(
                                                         com.android.internal.R.id.clearDefaultHint);

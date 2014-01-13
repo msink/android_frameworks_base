@@ -119,23 +119,6 @@ public class AlertController {
 
     private Handler mHandler;
 
-    Message mButtonMessage = null;
-
-    private final class SendButtonClickMessage implements Runnable {
-        public void run() {
-            if (mButtonMessage != null) {
-                mButtonMessage.sendToTarget();
-                mButtonMessage = null;
-            }
-        }
-    }
-
-    public void dialogDismissed() {
-        if (mButtonMessage != null) {
-            mHandler.post(new SendButtonClickMessage());
-        }
-    }
-
     View.OnClickListener mButtonHandler = new View.OnClickListener() {
         public void onClick(View v) {
             v.mIgnoreRefreshDrawableStateTemporarilyForOnce = true;

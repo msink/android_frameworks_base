@@ -330,7 +330,7 @@ public class VolumePanel extends Handler
      */
     private void setSmallIcon(int index) {
         mLargeStreamIcon.setVisibility(View.GONE);
-        mSmallStreamIcon.setVisibility(View.VISIBLE);
+        mSmallStreamIcon.setVisibility(View.GONE);
 
         mSmallStreamIcon.setImageResource(index == 0
                 ? com.android.internal.R.drawable.ic_volume_off_small
@@ -344,7 +344,7 @@ public class VolumePanel extends Handler
      */
     private void setLargeIcon(int resId) {
         mSmallStreamIcon.setVisibility(View.GONE);
-        mLargeStreamIcon.setVisibility(View.VISIBLE);
+        mLargeStreamIcon.setVisibility(View.GONE);
         mLargeStreamIcon.setImageResource(resId);
     }
 
@@ -354,7 +354,7 @@ public class VolumePanel extends Handler
      */
     private void setRingerIcon() {
         mSmallStreamIcon.setVisibility(View.GONE);
-        mLargeStreamIcon.setVisibility(View.VISIBLE);
+        mLargeStreamIcon.setVisibility(View.GONE);
 
         int ringerMode = mAudioService.getRingerMode();
         int icon;

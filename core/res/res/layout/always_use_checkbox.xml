@@ -28,6 +28,7 @@
         android:id="@+id/alwaysUse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#ffffffff"
         android:focusable="true"
         android:clickable="true" />
     
@@ -38,5 +39,6 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:paddingLeft="36dip"
         android:visibility="gone"
-        android:text="@string/clearDefaultHintMsg" />
+        android:textColor="#ffffffff"
+        android:text="@string/alwaysUse" />
 </LinearLayout>

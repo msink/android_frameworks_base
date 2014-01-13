@@ -536,4 +536,14 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
     
+    <style name="Transparent_Dialog">
+        <item name="windowBackground">@color/transparent</item>
+        <item name="windowFrame">@null</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowIsFloating">true</item>
+        <item name="windowIsTranslucent">false</item>
+        <item name="windowContentOverlay">@null</item>
+        <item name="background">@color/transparent</item>
+        <item name="backgroundDimEnabled">false</item>
+    </style>
 </resources>

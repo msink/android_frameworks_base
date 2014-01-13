@@ -34,6 +34,7 @@
             android:layout_marginRight="10dip"
             android:layout_alignParentLeft="true"
             android:layout_below="@id/progress"
+            android:textColor="#ffffffff"
         />
         <TextView
             android:id="@+id/progress_number"
@@ -44,5 +45,6 @@
             android:layout_marginRight="15dip"
             android:layout_alignParentLeft="true"
             android:layout_below="@id/progress"
+            android:textColor="#ffffffff"
         />
 </RelativeLayout>
