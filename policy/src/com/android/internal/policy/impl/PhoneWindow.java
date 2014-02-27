@@ -54,6 +54,7 @@ import android.util.Config;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.BrightnessPanel;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.InputQueue;
@@ -1154,6 +1155,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     }
                 } catch (Exception e) { }
                 return true;
+            case KeyEvent.KEYCODE_BRIGHTNESS_CONTROL:
+                BrightnessPanel bp = new BrightnessPanel(getContext());
+                bp.postBrightnessChanged();
+                break;
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN: {
                 AudioManager audioManager = (AudioManager) getContext().getSystemService(

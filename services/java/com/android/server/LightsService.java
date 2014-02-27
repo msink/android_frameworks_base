@@ -137,7 +137,7 @@ public class LightsService {
      */
     private final IHardwareService.Stub mLegacyFlashlightHack = new IHardwareService.Stub() {
 
-        private static final String FLASHLIGHT_FILE = "/sys/class/leds/spotlight/brightness";
+        private static final String FLASHLIGHT_FILE = "/sys/class/backlight/rk28_bl/brightness";
 
         public boolean getFlashlightEnabled() {
             try {
