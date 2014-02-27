@@ -306,7 +306,7 @@ public class WebView extends AbsoluteLayout
         ViewGroup.OnHierarchyChangeListener {
 
     // enable debug output for drag trackers
-    private static final boolean DEBUG_DRAG_TRACKER = true;
+    private static final boolean DEBUG_DRAG_TRACKER = false;
     // if AUTO_REDRAW_HACK is true, then the CALL key will toggle redrawing
     // the screen all-the-time. Good for profiling our drawing code
     static private final boolean AUTO_REDRAW_HACK = false;
@@ -3987,10 +3987,6 @@ public class WebView extends AbsoluteLayout
      * multiline, and what text it contains.  It also removes it if necessary.
      */
     /* package */ void rebuildWebTextView() {
-        // If the WebView does not have focus, do nothing until it gains focus.
-        if (!hasFocus() && (null == mWebTextView || !mWebTextView.hasFocus())) {
-            return;
-        }
         boolean alreadyThere = inEditingMode();
         // inEditingMode can only return true if mWebTextView is non-null,
         // so we can safely call remove() if (alreadyThere)

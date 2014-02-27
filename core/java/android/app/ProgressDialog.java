@@ -136,8 +136,10 @@ public class ProgressDialog extends AlertDialog {
             View view = inflater.inflate(R.layout.alert_dialog_progress, null);
             mProgress = (ProgressBar) view.findViewById(R.id.progress);
             mProgressNumber = (TextView) view.findViewById(R.id.progress_number);
+            mProgressNumber.setTextColor(0xffffffff);
             mProgressNumberFormat = "%d/%d";
             mProgressPercent = (TextView) view.findViewById(R.id.progress_percent);
+            mProgressPercent.setTextColor(0xffffffff);
             mProgressPercentFormat = NumberFormat.getPercentInstance();
             mProgressPercentFormat.setMaximumFractionDigits(0);
             setView(view);
@@ -145,6 +147,7 @@ public class ProgressDialog extends AlertDialog {
             View view = inflater.inflate(R.layout.progress_dialog, null);
             mProgress = (ProgressBar) view.findViewById(R.id.progress);
             mMessageView = (TextView) view.findViewById(R.id.message);
+            mMessageView.setTextColor(0xffffffff);
             setView(view);
         }
         if (mMax > 0) {

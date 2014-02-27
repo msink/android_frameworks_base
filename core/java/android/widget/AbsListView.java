@@ -29,6 +29,7 @@ import android.os.Debug;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.SystemProperties;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -2683,7 +2684,11 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
     private final class ExitA2ModeAndInvalidate implements Runnable {
         public void run() {
             if (mIsInA2Mode) {
-                requestEpdMode(View.EPD_FULL);
+                if (!SystemProperties.getBoolean("ro.caration.isA2", true)) {
+                    requestEpdMode(View.EPD_FULL);
+                } else {
+                    requestEpdMode(View.EPD_FULL);
+                }
                 mIsInA2Mode = false;
                 setScrollingCacheEnabled(false);
                 invalidate();
