@@ -25,7 +25,9 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -60,6 +62,12 @@ public class StatusBarView extends RelativeLayout {
     TextView mbut_left;
     TextView mbut_right;
 
+    TextView mbut_wifi;
+    private int mLastWifiSignalLevel = -1;
+    private boolean mIsWifiConnected = false;
+
+    private Context mcontext;
+
     boolean is_down = false;
     final private int ADJUST_VOLUME_DELAY = 250;
 
@@ -68,6 +76,7 @@ public class StatusBarView extends RelativeLayout {
 
     public StatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mcontext = context;
     }
 
     Intent mHomeIntent = new Intent(Intent.ACTION_MAIN, null);
@@ -79,10 +88,12 @@ public class StatusBarView extends RelativeLayout {
         mStatusIcons = (ViewGroup)findViewById(R.id.statusIcons);
 
         mbut_home = (TextView) findViewById(R.id.status_bar_home);
+        mbut_wifi = (TextView) findViewById(R.id.status_bar_wifi);
         mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
         mbut_bac = (TextView) findViewById(R.id.status_bar_back);
         mbut_add = (TextView) findViewById(R.id.status_bar_add);
         mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
+/*******
         mbut_left = (TextView) findViewById(R.id.status_bar_left);
         mbut_right = (TextView) findViewById(R.id.status_bar_right);
 
@@ -101,6 +112,23 @@ public class StatusBarView extends RelativeLayout {
                     windowManager.setRotation(-2, false, 0);
                 } catch (Exception e) {
                 }
+            }
+        });
+********/
+
+        if (!SystemProperties.getBoolean("ro.caration.sound.enabled", false)) {
+            mbut_add.setVisibility(View.GONE);
+            mbut_sub.setVisibility(View.GONE);
+        }
+
+        mbut_wifi.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mcontext.startActivity(intent);
+                }
+                return true;
             }
         });
 
@@ -197,6 +225,8 @@ public class StatusBarView extends RelativeLayout {
                     AudioManager.FLAG_SHOW_UI |
                     AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             }
+            Intent intent = new Intent("CARATION.ACTION.VOLUME.CHANGE");
+            mcontext.sendBroadcast(intent);
         }
     }
 
@@ -206,6 +236,8 @@ public class StatusBarView extends RelativeLayout {
            maddHandler.removeCallbacks(maddRun);
            if (is_down) {
                Adjust_Volume(true);
+               Intent intent = new Intent("CARATION.ACTION.VOLUME.CHANGE");
+               mcontext.sendBroadcast(intent);
                maddHandler.postDelayed(maddRun, ADJUST_VOLUME_DELAY);
            }
        }
@@ -217,6 +249,8 @@ public class StatusBarView extends RelativeLayout {
             msubHandler.removeCallbacks (msubRun);
             if (is_down) {
                 Adjust_Volume(false);
+                Intent intent = new Intent("CARATION.ACTION.VOLUME.CHANGE");
+                mcontext.sendBroadcast(intent);
                 msubHandler.postDelayed(msubRun, ADJUST_VOLUME_DELAY);
             }
         }
@@ -227,9 +261,9 @@ public class StatusBarView extends RelativeLayout {
         public void handleMessage(Message msg) {
             is_down = false;
             msubHandler.removeCallbacks(msubRun);
-            mbut_sub.setBackgroundResource(R.drawable.sub_normal);
+            mbut_sub.setBackgroundResource(R.drawable.status_subtract);
             maddHandler.removeCallbacks (maddRun);
-            mbut_add.setBackgroundResource(R.drawable.add_normal);
+            mbut_add.setBackgroundResource(R.drawable.status_add);
         }
     };
 
@@ -247,51 +281,6 @@ public class StatusBarView extends RelativeLayout {
         mService.performCollapse();
     }
 
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        b = 40;
-        super.onLayout(changed, l, t, r, b);
-    }
-
-    /**
-     * Gets the left position of v in this view.  Throws if v is not
-     * a child of this.
-     */
-    private int getViewOffset(View v) {
-        int offset = 0;
-        while (v != this) {
-            offset += v.getLeft();
-            ViewParent p = v.getParent();
-            if (v instanceof View) {
-                v = (View)p;
-            } else {
-                throw new RuntimeException(v + " is not a child of " + this);
-            }
-        }
-        return offset;
-    }
-
-    private int getDateSize(ViewGroup g, int w, int offset) {
-        final int N = g.getChildCount();
-        for (int i=0; i<N; i++) {
-            View v = g.getChildAt(i);
-            int l = v.getLeft() + offset;
-            int r = v.getRight() + offset;
-            if (w >= l && w <= r) {
-                return r;
-            }
-        }
-        return -1;
-    }
-
-    private boolean inTouchButtonArea(android.view.MotionEvent event) {
-         int left = findViewById(R.id.button_layout_Home).getRight();
-         int right = findViewById(R.id.button_layout).getLeft();
-         float x = event.getX();
-         int EXTRA = 5;
-         return (x < (left + 5)) || (x > (right - 5));
-    }
-
     /**
      * Ensure that, if there is no target under us to receive the touch,
      * that we process it ourself.  This makes sure that onInterceptTouchEvent()
@@ -300,7 +289,6 @@ public class StatusBarView extends RelativeLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!is_touch_button) {
-            mService.interceptTouchEvent(event);
         }
         return true;
     }
@@ -309,9 +297,6 @@ public class StatusBarView extends RelativeLayout {
     public boolean onInterceptTouchEvent(MotionEvent event) {
         removerButtonHandler.removeMessages(0);
         removerButtonHandler.sendEmptyMessageDelayed(0, 500);
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            is_touch_button = inTouchButtonArea(event);
-        }
         return super.onInterceptTouchEvent(event);
     }
 

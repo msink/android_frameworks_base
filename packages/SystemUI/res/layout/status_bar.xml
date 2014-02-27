@@ -21,120 +21,177 @@
 <!--    android:background="@drawable/status_bar_closed_default_background" -->
 <com.android.systemui.statusbar.StatusBarView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@drawable/statusbar_background"
+    android:background="#ffffffff"
     android:orientation="vertical"
     android:focusable="false"
     android:descendantFocusability="afterDescendants"
     >
-
-    <LinearLayout android:id="@+id/icons"
-        android:layout_width="270dip"
+    <LinearLayout android:id="@+id/top"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="left"
-        android:orientation="horizontal">
-            
-        <LinearLayout android:id="@+id/button_layout_Home"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+        >
+        <LinearLayout android:id="@+id/icons"
+            android:layout_gravity="center"
             android:orientation="horizontal"
-            android:gravity="center"
+            android:background="@drawable/statusbar_background"
+            android:paddingLeft="10dip"
+            android:paddingRight="10dip"
+            android:layout_width="match_parent"
+            android:layout_height="34dip"
             >
-            <TextView android:id="@+id/status_bar_home"
-                android:layout_width="65dip"
-                android:layout_height="40dip"
-                android:textColor="#000"
-                android:gravity="center"
-                android:background="@drawable/home_btu"
+        <LinearLayout android:id="@+id/button_icons_1"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.37"
+            android:gravity="left|center"
+            android:orientation="horizontal"
+            android:paddingTop="4dip"
+            >
+            <TextView android:id="@+id/date_s"
+                android:textSize="22.0sp"
+                android:textStyle="bold"
+                android:textColor="#ffffffff"
+                android:gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                />
+            <com.android.systemui.statusbar.Clock
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22.0sp"
+                android:textStyle="bold"
+                android:singleLine="true"
                 />
         </LinearLayout>
 
-        <LinearLayout android:id="@+id/statusIcons"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:paddingRight="6dip"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"/>    
+            <LinearLayout android:id="@+id/button_icons_2"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.63"
+                android:gravity="right|center"
+                android:orientation="horizontal"
+                >
+                <com.android.systemui.statusbar.IconMerger
+                    android:gravity="right|center"
+                    android:orientation="horizontal"
+                    android:id="@+id/notificationIcons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+                <LinearLayout android:id="@+id/statusIcons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    />
+            </LinearLayout>
+        </LinearLayout>
 
-        <com.android.systemui.statusbar.IconMerger android:id="@+id/notificationIcons"
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:layout_weight="1.0"
-            />
-    </LinearLayout>
-
-        <com.android.systemui.statusbar.Clock
-            android:textAppearance="@*android:style/TextAppearance.StatusBar.Icon"
+        <LinearLayout android:id="@+id/button_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="28sp"
-            android:paddingTop="3dip"
-            android:paddingBottom="3dip"
-            android:singleLine="true"
-            android:layout_toLeftOf="@+id/button_layout"
-            android:layout_toRightOf="@id/icons"
-            />
+            android:layout_height="56dip"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:background="@drawable/status_back_buttom"
+            >
+            <LinearLayout android:id="@+id/button_a"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_home"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff000000"
+                    android:gravity="center"
+                    android:background="@drawable/status_home"
+                    />
+            </LinearLayout>
 
-    <LinearLayout android:id="@+id/button_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:layout_gravity="right"
-        android:orientation="horizontal"
-        android:paddingRight="6dip"
-        android:layout_alignParentRight="true"
-        >
-        <TextView android:id="@+id/status_bar_left"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/left_btn"
-            />
-        <TextView android:id="@+id/status_bar_right"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/right_btn"
-            />
-        <TextView android:id="@+id/status_bar_sub"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/sub_btu"
-            />
-        <TextView android:id="@+id/status_bar_add"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/add_btu"
-            />
-        <TextView android:id="@+id/status_bar_back"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/back_btu"
-            />
-        <TextView android:id="@+id/status_bar_menu"
-            android:layout_width="60dip"
-            android:layout_height="match_parent"
-            android:textColor="#ff000000"
-            android:gravity="center"
-            android:background="@drawable/menu_btu"
-            />
+            <LinearLayout android:id="@+id/button_b"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_wifi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff000000"
+                    android:gravity="center"
+                    android:background="@drawable/status_wifi"
+                    />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/button_c"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_sub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff000000"
+                    android:gravity="center"
+                    android:background="@drawable/status_subtract"
+                    />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/button_d"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_add"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff000000"
+                    android:gravity="center"
+                    android:background="@drawable/status_add"
+                    />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/button_e"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff000000"
+                    android:gravity="center"
+                    android:background="@drawable/status_back"
+                    />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/button_f"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                >
+                <TextView android:id="@+id/status_bar_menu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:background="@drawable/status_menu"
+                    />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
         
     <LinearLayout android:id="@+id/ticker"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="60dip"
+        android:paddingLeft="65dip"
         android:layout_gravity="center_vertical"
         android:animationCache="false"
         android:orientation="horizontal" >

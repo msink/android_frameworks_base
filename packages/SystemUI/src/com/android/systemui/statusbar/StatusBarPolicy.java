@@ -41,6 +41,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
@@ -107,6 +108,7 @@ public class StatusBarPolicy {
     private boolean mBatteryPlugged;
     private int mBatteryLevel;
     private AlertDialog mLowBatteryDialog;
+    private TextView mBatterySubTitleTextView;
     private TextView mBatteryLevelTextView;
     private View mBatteryView;
     private int mBatteryViewSequence;
@@ -123,7 +125,7 @@ public class StatusBarPolicy {
     private boolean mBluetoothEnabled;
 
     // wifi
-    private static final int[][] sWifiSignalImages = {
+    public static final int[][] sWifiSignalImages = {
             { R.drawable.stat_sys_wifi_signal_1,
               R.drawable.stat_sys_wifi_signal_2,
               R.drawable.stat_sys_wifi_signal_3,
@@ -152,6 +154,9 @@ public class StatusBarPolicy {
             String action = intent.getAction();
             if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
                 updateBattery(intent);
+                if (Build.PRODUCT.equals("Imcosys")) {
+                    updateLowBatteryString(intent);
+                }
             }
             else if (action.equals(Intent.ACTION_ALARM_CHANGED)) {
                 updateAlarm(intent);
@@ -188,6 +193,23 @@ public class StatusBarPolicy {
             }
         }
     };
+
+    private void updateLowBatteryString(Intent mIntent) {
+        int status = mIntent.getIntExtra("status", 1);
+        int plugType = mIntent.getIntExtra("plugged", 0);
+        if (status == 2) {
+            if (mBatteryLevelTextView != null) {
+                mBatterySubTitleTextView.setText(R.string.battery_low_charging_subtitle_imcosys);
+                mLowBatteryDialog.setTitle(R.string.battery_low_charging_title_imcosys);
+            }
+        } else if (status == 4) {
+            if (mBatteryLevelTextView != null) {
+                mBatterySubTitleTextView.setText(R.string.battery_low_subtitle_imcosys);
+                mLowBatteryDialog.setTitle(R.string.battery_low_title_imcosys);
+            }
+        }
+        return;
+    }
 
     public StatusBarPolicy(Context context) {
         mContext = context;
@@ -335,24 +357,72 @@ public class StatusBarPolicy {
     private void showLowBatteryWarning() {
         closeLastBatteryView();
 
+        int mLowBatterySecondWarningLevel = mContext.getResources().getInteger(
+                    com.android.internal.R.integer.config_lowBatterySecondWarningLevelImcosy);
         // Show exact battery level.
         CharSequence levelText = mContext.getString(
                     R.string.battery_low_percent_format, mBatteryLevel);
 
         if (mBatteryLevelTextView != null) {
             mBatteryLevelTextView.setText(levelText);
+            if (mBatteryLevel <= mLowBatterySecondWarningLevel && Build.PRODUCT.equals("Imcosys")) {
+                mLowBatteryDialog.dismiss();
+
+                View v = View.inflate(mContext, R.layout.battery_low, null);
+                mBatterySubTitleTextView = (TextView)v.findViewById(R.id.subtitle);
+                mBatteryLevelTextView = (TextView)v.findViewById(R.id.level_percent);
+                if (Build.PRODUCT.equals("Imcosys")) {
+                    mBatterySubTitleTextView.setText(R.string.battery_low_subtitle_imcosys);
+                    mBatteryLevelTextView.setVisibility(View.GONE);
+                }
+
+                AlertDialog.Builder b = new AlertDialog.Builder(mContext);
+                b.setCancelable(true);
+                if (Build.PRODUCT.equals("Imcosys")) {
+                    b.setTitle(R.string.battery_low_title_imcosys);
+                } else {
+                    b.setTitle(R.string.battery_low_title);
+                }
+                b.setView(v);
+                b.setIcon(android.R.drawable.ic_dialog_alert);
+                Intent intent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                        | Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+                AlertDialog d = b.create();
+                d.setOnDismissListener(mLowBatteryListener);
+                d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                d.show();
+                mLowBatteryDialog = d;
+            }
+
         } else {
             View v = View.inflate(mContext, R.layout.battery_low, null);
+            mBatterySubTitleTextView = (TextView)v.findViewById(R.id.subtitle);
             mBatteryLevelTextView=(TextView)v.findViewById(R.id.level_percent);
 
             mBatteryLevelTextView.setText(levelText);
+            if (Build.PRODUCT.equals("Imcosys")) {
+                mBatterySubTitleTextView.setText(R.string.battery_low_subtitle_imcosys);
+                mBatteryLevelTextView.setVisibility(View.GONE);
+            }
 
             AlertDialog.Builder b = new AlertDialog.Builder(mContext);
                 b.setCancelable(true);
+              if (Build.PRODUCT.equals("Imcosys")) {
+                b.setTitle(R.string.battery_low_title_imcosys);
+              } else {
                 b.setTitle(R.string.battery_low_title);
+              }
                 b.setView(v);
                 b.setIcon(android.R.drawable.ic_dialog_alert);
+              if (!Build.PRODUCT.equals("Imcosys")) {
                 b.setPositiveButton(android.R.string.ok, null);
+              } else if (mBatteryLevel > mLowBatterySecondWarningLevel) {
+                b.setPositiveButton(android.R.string.ok, null);
+              }
 
                 final Intent intent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -360,6 +430,7 @@ public class StatusBarPolicy {
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                         | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 if (intent.resolveActivity(mContext.getPackageManager()) != null) {
+                  if (!Build.PRODUCT.equals("Imcosys")) {
                     b.setNegativeButton(R.string.battery_low_why,
                             new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -369,6 +440,17 @@ public class StatusBarPolicy {
                             }
                         }
                     });
+                  } else if (mBatteryLevel > mLowBatterySecondWarningLevel) {
+                    b.setNegativeButton(R.string.battery_low_why,
+                            new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            mContext.startActivity(intent);
+                            if (mLowBatteryDialog != null) {
+                                mLowBatteryDialog.dismiss();
+                            }
+                        }
+                    });
+                  }
                 }
 
             AlertDialog d = b.create();
