@@ -1281,6 +1281,7 @@ public final class Settings {
         public static final String AUTO_SHUTDOWN_TIMEOUT = "auto_shutdown_timeout";
         public static final String EPD_FULL_TIMEOUT = "epd_full_timeout";
         public static final String EPD_REFRESH_MODE = "epd_refresh_mode";
+        public static final String CARATION_SHOW_CURSOR = "caration_show_cursor";
 
         /**
          * If 0, the compatibility mode is off for all applications.

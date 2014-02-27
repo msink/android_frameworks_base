@@ -111,6 +111,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.media.IAudioService;
 import android.media.AudioManager;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 
@@ -177,6 +178,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final int POWER_DELAY = 300;
     static final int MAX_POWER_DELAY_COUNT = 3;
 
+    private static final int STEP_DISTANCE = 10;
+
     final Object mLock = new Object();
     
     Context mContext;
@@ -220,6 +223,30 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     PointerLocationView mPointerLocationView = null;
     InputChannel mPointerLocationInputChannel;
     
+    private ImageView addCursorView = null;
+    private ImageView removeCursorView = null;
+    private int screenHeight;
+    private int screenWidth;
+    private int x = 0;
+    private int y = 0;
+    private WindowManager.LayoutParams mParams;
+
+    Runnable mCursorUpdate = new Runnable() {
+        public void run() {
+            x = mParams.x;
+            y = mParams.y;
+            WindowManagerImpl wm = (WindowManagerImpl)
+                    mContext.getSystemService(Context.WINDOW_SERVICE);
+            wm.updateViewLayout(addCursorView, mParams);
+        }
+    };
+
+    Runnable mCursorCommit = new Runnable() {
+        public void run() {
+            sendTap(4098, mParams.x + 300, mParams.y + 400);
+        }
+    };
+
     private final InputHandler mPointerLocationInputHandler = new BaseInputHandler() {
         @Override
         public void handleMotion(MotionEvent event, Runnable finishedCallback) {
@@ -232,6 +259,34 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
     };
+
+    private void sendTap(int inputSource, float x, float y) {
+        long now = SystemClock.uptimeMillis();
+        injectMotionEvent(inputSource, 0, now, x, y, 1);
+        injectMotionEvent(inputSource, 1, now, x, y, 0);
+    }
+
+    private void injectMotionEvent(int inputSource, int action, long when,
+                                   float x, float y, float pressure) {
+        final float DEFAULT_SIZE = 1.0f;
+        final int DEFAULT_META_STATE = 0;
+        final float DEFAULT_PRECISION_X = 1.0f;
+        final float DEFAULT_PRECISION_Y = 1.0f;
+        final int DEFAULT_DEVICE_ID = 0;
+        final int DEFAULT_EDGE_FLAGS = 0;
+        MotionEvent event = MotionEvent.obtain(when, when, action, x, y,
+                pressure, DEFAULT_SIZE, DEFAULT_META_STATE,
+                DEFAULT_PRECISION_X, DEFAULT_PRECISION_Y,
+                DEFAULT_DEVICE_ID, DEFAULT_EDGE_FLAGS);
+        event.setSource(inputSource);
+        try {
+            IWindowManager.Stub.asInterface(ServiceManager
+                .getService(Context.WINDOW_SERVICE))
+                .injectPointerEvent(event, false);
+        } catch (SecurityException e) {
+        } catch (RemoteException e) {
+        }
+    }
     
     // The current size of the screen.
     int mW, mH;
@@ -606,6 +661,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         mPointerLocationView = null;
                     }
                 }
+                int showCursor = Settings.System.getInt(resolver,
+                        Settings.System.CARATION_SHOW_CURSOR, 0);
+                if (mPowerManager.isScreenOn()) {
+                    if (showCursor > 0) {
+                        if (addCursorView == null) {
+                            addCursorView = new ImageView(mContext);
+                            addCursorView.setImageResource(com.android.internal.R.drawable.cursor);
+                        }
+                    } else {
+                        if (removeCursorView == null) {
+                            removeCursorView = addCursorView;
+                            addCursorView = null;
+                        }
+                    }
+                }
             }
             // use screen off timeout setting as the timeout for the lockscreen
             mLockScreenTimeout = Settings.System.getInt(resolver,
@@ -658,6 +728,30 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             WindowManagerImpl wm = (WindowManagerImpl)
                     mContext.getSystemService(Context.WINDOW_SERVICE);
             wm.removeView(removeView);
+        }
+
+        if (addCursorView != null) {
+            mParams = new WindowManager.LayoutParams();
+            mParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            mParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            mParams.flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE|
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+            mParams.format = PixelFormat.TRANSLUCENT;
+            mParams.type = WindowManager.LayoutParams.TYPE_SECURE_SYSTEM_OVERLAY;
+            mParams.x = x;
+            mParams.y = y;
+            WindowManagerImpl wm = (WindowManagerImpl)
+                    mContext.getSystemService(Context.WINDOW_SERVICE);
+            wm.addView(addCursorView, mParams);
+        }
+
+        if (removeCursorView != null) {
+            WindowManagerImpl wm = (WindowManagerImpl)
+                    mContext.getSystemService(Context.WINDOW_SERVICE);
+            wm.removeView(removeCursorView);
+            removeCursorView = null;
         }
     }
     
@@ -1203,6 +1297,54 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     mConsumeSearchKeyUp = true;
                     return true;
                 }
+            }
+        }
+
+        switch (keyCode) {
+        case KeyEvent.KEYCODE_DPAD_UP:
+            if (down && addCursorView != null) {
+                if (mParams.y - STEP_DISTANCE > -(screenHeight/2)) {
+                    mParams.y -= STEP_DISTANCE;
+                } else {
+                    mParams.y = -(screenHeight/2);
+                }
+                mHandler.post(mCursorUpdate);
+                return true;
+            }
+        case KeyEvent.KEYCODE_DPAD_DOWN:
+            if (down && addCursorView != null) {
+                if (mParams.y + STEP_DISTANCE < (screenHeight/2)) {
+                    mParams.y += STEP_DISTANCE;
+                } else {
+                    mParams.y = (screenHeight/2);
+                }
+                mHandler.post(mCursorUpdate);
+                return true;
+            }
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+            if (down && addCursorView != null) {
+                if (mParams.x - STEP_DISTANCE > -(screenWidth/2)) {
+                    mParams.x -= STEP_DISTANCE;
+                } else {
+                    mParams.x = -(screenWidth/2);
+                }
+                mHandler.post(mCursorUpdate);
+                return true;
+            }
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+            if (down && addCursorView != null) {
+                if (mParams.x + STEP_DISTANCE < (screenWidth/2)) {
+                    mParams.x += STEP_DISTANCE;
+                } else {
+                    mParams.x = (screenWidth/2);
+                }
+                mHandler.post(mCursorUpdate);
+                return true;
+            }
+        case KeyEvent.KEYCODE_DPAD_CENTER:
+            if (down && addCursorView != null) {
+                mHandler.post(mCursorCommit);
+                return true;
             }
         }
 
