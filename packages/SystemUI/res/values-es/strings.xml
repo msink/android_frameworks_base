@@ -21,12 +21,24 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- no translation found for app_label (4489004083283879149) -->
     <skip />
+    <string name="app_label">Barra de estado</string>
     <string name="status_bar_clear_all_button" msgid="7774721344716731603">"Borrar"</string>
-    <string name="status_bar_no_notifications_title" msgid="4755261167193833213">"No tienes notificaciones"</string>
-    <string name="status_bar_ongoing_events_title" msgid="1682504513316879202">"Entrante"</string>
+    <string name="status_bar_no_notifications_title">No tiene notificaciones</string>
+    <string name="status_bar_ongoing_events_title">En curso</string>
     <string name="status_bar_latest_events_title" msgid="6594767438577593172">"Notificaciones"</string>
-    <string name="battery_low_title" msgid="7923774589611311406">"Conecta el cargador"</string>
-    <string name="battery_low_subtitle" msgid="7388781709819722764">"Se está agotando la batería:"</string>
-    <string name="battery_low_percent_format" msgid="696154104579022959">"<xliff:g id="NUMBER">%d%%</xliff:g> o menos disponible"</string>
+    <string name="battery_low_title">Conecte el cargador, por favor</string>
+    <string name="battery_low_subtitle">Se está agotando la batería</string>
+    <string name="battery_low_percent_format">" %d%% o menos disponible"</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Uso de la batería"</string>
+    <string name="usb_storage_notification_title">USB conectado</string>
+    <string name="usb_choose_title">Elija entre:</string>
+    <string name="usb_choose_usb">Transferencia de datos por USB</string>
+    <string name="usb_choose_charging">Cargando batería</string>
+    <string name="connected_computer">USB conectado</string>
+    <string name="connected_retry">Aviso USB</string>
+    <string name="connecting">Espere, por favor…</string>
+    <string name="battery_low_subtitle_imcosys">Bateria baja, por favor cargar el eReader ! Gracias :-)</string>
+    <string name="battery_low_title_imcosys">BATERIA BAJA !</string>
+    <string name="battery_low_charging_subtitle_imcosys">quedan el eReader connectado por el cargo !</string>
+    <string name="battery_low_charging_title_imcosys">CARGANDO</string>
 </resources>

@@ -29,4 +29,8 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Akku ist fast leer."</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"<xliff:g id="NUMBER">%d%%</xliff:g> oder weniger verbleiben."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Akkuverbrauch"</string>
+    <string name="battery_low_subtitle_imcosys">Batterie zu schwach. Bitte laden sie den imcoV6L auf, Ihr eReader wird sich bei genügend Batteriespannung wieder einschalten lassen. Vielen Dank :-)</string>
+    <string name="battery_low_title_imcosys">NIEDRIGER BATTERIESTAND !</string>
+    <string name="battery_low_charging_subtitle_imcosys">Bitte eReader angeschlossen lassen um aufzuladen !</string>
+    <string name="battery_low_charging_title_imcosys">AUFLADEN</string>
 </resources>

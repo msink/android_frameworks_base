@@ -29,4 +29,8 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Batteria quasi scarica:"</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"<xliff:g id="NUMBER">%d%%</xliff:g> rimanente o meno."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Utilizzo batteria"</string>
+    <string name="battery_low_subtitle_imcosys">Batteria scarica, si prega di caricare il eReader ! Grazie :-)</string>
+    <string name="battery_low_title_imcosys">BATTERIA SCARICA !</string>
+    <string name="battery_low_charging_subtitle_imcosys">Si prega di tener collegato il eReader per ricaricare !</string>
+    <string name="battery_low_charging_title_imcosys">CARICANDO</string>
 </resources>

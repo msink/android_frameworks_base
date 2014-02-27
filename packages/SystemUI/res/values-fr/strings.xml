@@ -29,4 +29,8 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Le niveau de la batterie est bas :"</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"Maximum <xliff:g id="NUMBER">%d%%</xliff:g> restants."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Utilisation de la batterie"</string>
+    <string name="battery_low_subtitle_imcosys">La battery est trop faible pour la mise sous tension. Charger le imcoV6L sìl vous plait et votre eReader se met en marche quand il a assez de puissance. Mercy :-)</string>
+    <string name="battery_low_title_imcosys">FAIBLE PUISANCE !</string>
+    <string name="battery_low_charging_subtitle_imcosys">Laisser le eReader brancher pour le chargement !</string>
+    <string name="battery_low_charging_title_imcosys">CHARGEMENT</string>
 </resources>

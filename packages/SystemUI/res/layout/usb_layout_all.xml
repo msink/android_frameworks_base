@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <LinearLayout android:id="@+id/usb_dis_full_screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/dis_usb_connected"
+        android:visibility="gone"
+        />
+    <LinearLayout android:id="@+id/usb_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:padding="10dip"
+        android:gravity="center_vertical"
+        android:background="@drawable/util_header_bg"
+        android:visibility="invisible"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dip"
+            android:textSize="26sp"
+            android:textColor="#ffffffff"
+            android:text="@string/usb_storage_notification_title"
+            />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/usb_pre_connect"
+        android:layout_width="558dip"
+        android:layout_height="440dip"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:background="@drawable/choose_dialog_bg"
+        android:visibility="visible"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="30dip"
+            android:paddingBottom="20dip"
+            android:gravity="center"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#ff000000"
+            android:text="@string/usb_choose_title"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="2dip"
+            android:background="#ff000000"
+            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dip"
+            >
+            <TextView android:id="@+id/usb_choose_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:paddingLeft="50dip"
+                android:paddingTop="20dip"
+                android:background="@drawable/choose_icon_def"
+                />
+            <TextView android:id="@+id/usb_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/usb_choose_icon"
+                />
+            <TextView android:id="@+id/usb_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/usb_icon"
+                android:layout_centerHorizontal="true"
+                android:padding="20dip"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#ff000000"
+                android:text="@string/usb_choose_usb"
+                />
+            <ImageView android:id="@+id/usb_click"
+                android:layout_width="match_parent"
+                android:layout_height="5dip"
+                android:layout_marginBottom="2dip"
+                android:layout_below="@id/usb_text"
+                android:src="@drawable/ums_choose_bottom"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                />
+        </RelativeLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="2dip"
+            android:paddingTop="20dip"
+            android:background="#ff000000"
+            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dip"
+            >
+            <TextView android:id="@+id/btr_choose_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:paddingLeft="50dip"
+                android:paddingTop="20dip"
+                android:background="@drawable/choose_icon_def"
+                />
+            <TextView android:id="@+id/btr_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/charging_battery"
+                />
+            <TextView android:id="@+id/btr_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btr_icon"
+                android:layout_centerHorizontal="true"
+                android:padding="20dip"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#ff000000"
+                android:text="@string/usb_choose_charging"
+                />
+            <ImageView android:id="@+id/btr_click"
+                android:layout_width="match_parent"
+                android:layout_height="5dip"
+                android:layout_marginBottom="2dip"
+                android:layout_below="@id/btr_text"
+                android:src="@drawable/ums_choose_bottom"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                />
+        </RelativeLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/usb_connected"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <TextView android:id="@+id/usb_icon_larger"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/usbconnected"
+            />
+        <TextView android:id="@+id/usb_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="150dip"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#ff000000"
+            android:text="@string/connected_computer"
+            />
+    </LinearLayout>
+</RelativeLayout>

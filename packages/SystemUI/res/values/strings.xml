@@ -51,4 +51,15 @@
          power usage activity to find out what drained the battery. -->
     <string name="battery_low_why">Battery use</string>
 
+    <string name="usb_storage_notification_title">USB connected</string>
+    <string name="usb_choose_title">Choose between:</string>
+    <string name="usb_choose_usb">USB data transfer</string>
+    <string name="usb_choose_charging">Charging battery</string>
+    <string name="connected_computer">USB connected</string>
+    <string name="connected_retry">USB warring</string>
+    <string name="connecting">Please wait...</string>
+    <string name="battery_low_subtitle_imcosys">Battery too low to power on. Please charge your imcoV6L and your eReader will turn on when it has enogh power. Thank You :-)</string>
+    <string name="battery_low_title_imcosys">LOW POWER</string>
+    <string name="battery_low_charging_subtitle_imcosys">Please keep your eReader plugged in to charge !</string>
+    <string name="battery_low_charging_title_imcosys">CHARGING</string>
 </resources>
