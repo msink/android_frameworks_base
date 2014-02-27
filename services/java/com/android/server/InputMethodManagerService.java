@@ -67,6 +67,7 @@ import android.util.Slog;
 import android.util.PrintWriterPrinter;
 import android.util.Printer;
 import android.view.IWindowManager;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputBinding;
 import android.view.inputmethod.InputMethod;
@@ -1031,6 +1032,8 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                 }
 
                 if (DEBUG) Slog.v(TAG, "Client requesting input be shown");
+                Intent intent = new Intent("CARATION.INPUTMETHOD.SHOW");
+                mContext.sendBroadcast(intent);
                 return showCurrentInputLocked(flags, resultReceiver);
             }
         } finally {
@@ -1101,6 +1104,9 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
             }
         } finally {
             Binder.restoreCallingIdentity(ident);
+            new View(mContext).requestFullWhenHidden();
+            Intent intent = new Intent("CARATION.INPUTMETHOD.DISMISS");
+            mContext.sendBroadcast(intent);
         }
     }
 
@@ -1261,11 +1267,15 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
             if (token == null || mCurToken != token) {
                 if (DEBUG) Slog.w(TAG, "Ignoring hideInputMethod of uid "
                         + Binder.getCallingUid() + " token: " + token);
+                Intent intent = new Intent("CARATION.INPUTMETHOD.DISMISS");
+                mContext.sendBroadcast(intent);
                 return;
             }
             long ident = Binder.clearCallingIdentity();
             try {
                 hideCurrentInputLocked(flags, null);
+                Intent intent = new Intent("CARATION.INPUTMETHOD.DISMISS");
+                mContext.sendBroadcast(intent);
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
@@ -1277,11 +1287,15 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
             if (token == null || mCurToken != token) {
                 Slog.w(TAG, "Ignoring showMySoftInput of uid "
                         + Binder.getCallingUid() + " token: " + token);
+                Intent intent = new Intent("CARATION.INPUTMETHOD.SHOW");
+                mContext.sendBroadcast(intent);
                 return;
             }
             long ident = Binder.clearCallingIdentity();
             try {
                 showCurrentInputLocked(flags, null);
+                Intent intent = new Intent("CARATION.INPUTMETHOD.SHOW");
+                mContext.sendBroadcast(intent);
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
