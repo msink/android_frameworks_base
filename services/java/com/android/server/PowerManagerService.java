@@ -43,6 +43,7 @@ import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.BatteryStats;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -253,7 +254,7 @@ class PowerManagerService extends IPowerManager.Stub
             cancel();
             mWakeTime = wakeTime;
             if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
-                mWakeTime = mWakeTime - mWakeTime % 60000;
+                mWakeTime = mWakeTime;
             }
             mHandler.removeCallbacks(mSetRunnable);
             mHandler.post(mSetRunnable);
@@ -269,9 +270,12 @@ class PowerManagerService extends IPowerManager.Stub
     private LightsService.Light mLcdLight;
     private long mStandbyTime = 0;
     private long mIdleTime = 0;
+    private StorageManager mStorageManager = null;
     private Boolean mNeedNativeWake = Boolean.valueOf(true);
     private Runnable mIdleTimer = new Runnable() {
         public void run() {
+            if (mIdleTime == 0)
+                return;
             if (!isScreenOn()) {
                 standby();
                 return;
@@ -330,6 +334,13 @@ class PowerManagerService extends IPowerManager.Stub
             mIdleTime = System.currentTimeMillis() + mIdleDelay;
             mHandler.postDelayed(mIdleTimer, mIdleDelay);
         }
+    }
+
+    public void cancelGoToAutoShutdown() {
+        Log.w("", "cancelGoToAutoShutdown!");
+        Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+        intent.putExtra("IS_SHUTDOWN", false);
+        mContext.startService(intent);
     }
 
     private void cancelAlarms() {
@@ -619,8 +630,13 @@ class PowerManagerService extends IPowerManager.Stub
         SettingsObserver settingsObserver = new SettingsObserver();
         mSettings.addObserver(settingsObserver);
 
-        mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 2000);
+        if (Build.PRODUCT.equals("BK6021A")) {
+            mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 300000);
+        } else {
+            mIdleDelay = SystemProperties.getInt("persist.sys.idle-delay", 7000);
+        }
         mSpew = SystemProperties.getBoolean("debug.pm.print", false);
+
         // pretend that the settings changed so we will get their initial state
         settingsObserver.update(mSettings, null);
 
@@ -1165,7 +1181,6 @@ class PowerManagerService extends IPowerManager.Stub
                 } else {
                     mStandbyTime = System.currentTimeMillis() - SystemClock.uptimeMillis() + when;
                     if (SystemProperties.getBoolean("sys.hw.alarm.align", true)) {
-                        mStandbyTime += 60000;
                     }
                     mTimeoutTaskAlarmHelper.setAlarm(mStandbyTime);
                 }
@@ -1199,6 +1214,28 @@ class PowerManagerService extends IPowerManager.Stub
                     case SCREEN_ON:
                         setTimeoutLocked(now, remainingTimeoutOverride, SCREEN_OFF);
                         break;
+                }
+
+                int shutdownTime = -1;
+                try {
+                    shutdownTime = Settings.System.getInt(mContext.getContentResolver(),
+                        "auto_shutdown_timeout");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (shutdownTime > -1) {
+                    new Thread(new Runnable() {
+                        public void run() {
+                            try {
+                                Thread.sleep(500);
+                            } catch (Exception e) {
+                            }
+                            Log.w("", "send shutdown broadcast!");
+                            Intent intent = new Intent("COM.CARATION.AUTO_SHUTDOWN");
+                            intent.putExtra("IS_SHUTDOWN", true);
+                            mContext.startService(intent);
+                        }
+                    }).start();
                 }
             }
         }
@@ -1445,12 +1482,6 @@ class PowerManagerService extends IPowerManager.Stub
 
     public void setScreenBrightnessOverride(int brightness) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
-        if (mSpew) Slog.d(TAG, "setScreenBrightnessOverride " + brightness);
-        synchronized (mLocks) {
-            if (isScreenOn()) {
-                updateLightsLocked();
-            }
-        }
     }
 
     public void setButtonBrightnessOverride(int brightness) {
@@ -1491,7 +1522,7 @@ class PowerManagerService extends IPowerManager.Stub
         nativeStartSurfaceFlingerAnimation(mode);
     }
 
-    private boolean mIdleWakeUp = true;
+    private boolean mIdleWakeUp = false;
 
     public void enableIdleWakeUp(boolean enable) {
         mIdleWakeUp = enable;
@@ -1499,6 +1530,8 @@ class PowerManagerService extends IPowerManager.Stub
 
     private void setPowerState(int state)
     {
+        if (state == 0 && Environment.getFlashStorageState().equals("shared"))
+            return;
         setPowerState(state, WindowManagerPolicy.OFF_BECAUSE_OF_TIMEOUT);
     }
 
@@ -1537,9 +1570,15 @@ class PowerManagerService extends IPowerManager.Stub
             if (oldScreenOn != newScreenOn) {
                 Slog.d(TAG, "setPowerState: screen state change, on:" + newScreenOn);
                 if (newScreenOn) {
-
                     err = setScreenStateLocked(true);
-                    updateLightsLocked();
+                    try {
+                        mScreenBrightnessSetting = Settings.System.getInt(
+                            mContext.getContentResolver(), "screen_brightness");
+                        Slog.e(TAG, "mScreenBrightnessSetting: " + mScreenBrightnessSetting);
+                    } catch (Settings.SettingNotFoundException e) {
+                        Slog.e(TAG, "SettingNotFoundException calling noteScreenOn on BatteryStatsService");
+                    }
+                    setBacklightBrightness(mScreenBrightnessSetting);
 
                     mLastTouchDown = 0;
                     mTotalTouchDownTime = 0;
@@ -1551,6 +1590,7 @@ class PowerManagerService extends IPowerManager.Stub
                         sendNotificationLocked(true, -1);
                     }
                 } else {
+                    setBacklightBrightness(0);
                     // cancel light sensor task
                     mScreenOffTime = SystemClock.elapsedRealtime();
                     long identity = Binder.clearCallingIdentity();
@@ -1816,6 +1856,8 @@ class PowerManagerService extends IPowerManager.Stub
 
         if (mLastEventTime <= time) {
             mLastEventTime = time;
+            resetIdle(false);
+            cancelAlarms();
             // cancel all of the wake locks
             mWakeLockState = SCREEN_OFF;
             int N = mLocks.size();
@@ -1831,8 +1873,6 @@ class PowerManagerService extends IPowerManager.Stub
             mStillNeedSleepNotification = true;
             mUserState = SCREEN_OFF;
             setPowerState(SCREEN_OFF, reason);
-            resetIdle(false);
-            cancelAlarms();
         }
     }
 
@@ -1982,7 +2022,11 @@ class PowerManagerService extends IPowerManager.Stub
                     }
                 } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
                     cancelAlarms();
-                    userActivity(SystemClock.uptimeMillis(), false);
+                    if (isScreenOn()) {
+                        userActivity(SystemClock.uptimeMillis(), false);
+                    } else {
+                        resetIdle(true);
+                    }
                 }
             }
         };
@@ -2001,7 +2045,15 @@ class PowerManagerService extends IPowerManager.Stub
         synchronized (mLocks) {
             Slog.d(TAG, "system ready!");
             mDoneBooting = true;
-            updateLightsLocked();
+
+            try {
+                mScreenBrightnessSetting = Settings.System.getInt(
+                    mContext.getContentResolver(), "screen_brightness");
+                Slog.e(TAG, "mScreenBrightnessSetting: " + mScreenBrightnessSetting);
+            } catch (Settings.SettingNotFoundException e) {
+                Slog.e(TAG, "SettingNotFoundException calling noteScreenOn on BatteryStatsService");
+            }
+            setBacklightBrightness(mScreenBrightnessSetting);
         }
     }
 
@@ -2031,7 +2083,6 @@ class PowerManagerService extends IPowerManager.Stub
         if (mSpew) {
             Slog.d(TAG, "setBacklightBrightness: brightness = " + brightness);
         }
-        mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         synchronized (mLocks) {
             mLcdLight.setBrightness(brightness);
             updateLightsLocked();

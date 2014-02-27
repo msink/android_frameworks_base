@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.FileUtils;
 import android.os.IBinder;
 import android.os.DropBoxManager;
@@ -111,6 +112,7 @@ class BatteryService extends Binder {
 
     private int mLowBatteryWarningLevel;
     private int mLowBatteryCloseWarningLevel;
+    private int mLowBatterySecondWarningLevel;
 
     private int mPlugType;
     private int mLastPlugType = -1; // Extra state so we can detect first run
@@ -124,8 +126,15 @@ class BatteryService extends Binder {
         mContext = context;
         mBatteryStats = BatteryStatsService.getService();
 
-        mLowBatteryWarningLevel = mContext.getResources().getInteger(
+        if (!Build.PRODUCT.equals("Imcosys")) {
+            mLowBatteryWarningLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_lowBatteryWarningLevel);
+        } else {
+            mLowBatteryWarningLevel = mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_lowBatteryWarningLevelImcosy);
+        }
+        mLowBatterySecondWarningLevel = mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_lowBatterySecondWarningLevelImcosy);
         mLowBatteryCloseWarningLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_lowBatteryCloseWarningLevel);
 
@@ -204,6 +213,7 @@ class BatteryService extends Binder {
         }
     }
 
+    private boolean isSecondLowBatteryWarning = false;
     private native void native_update();
 
     private synchronized final void update() {
@@ -296,6 +306,10 @@ class BatteryService extends Binder {
                 && mBatteryStatus != BatteryManager.BATTERY_STATUS_UNKNOWN
                 && mBatteryLevel <= mLowBatteryWarningLevel
                 && (oldPlugged || mLastBatteryLevel > mLowBatteryWarningLevel);
+            final boolean sendBatteryLowSecond = isSecondLowBatteryWarning
+                && mBatteryLevel <= mLowBatterySecondWarningLevel
+                && !plugged
+                && mBatteryStatus != BatteryManager.BATTERY_STATUS_UNKNOWN;
 
             sendIntent();
 
@@ -317,10 +331,26 @@ class BatteryService extends Binder {
                 mSentLowBatteryBroadcast = true;
                 statusIntent.setAction(Intent.ACTION_BATTERY_LOW);
                 mContext.sendBroadcast(statusIntent);
+                if (!isSecondLowBatteryWarning) {
+                    isSecondLowBatteryWarning = true;
+                }
             } else if (mSentLowBatteryBroadcast && mLastBatteryLevel >= mLowBatteryCloseWarningLevel) {
                 mSentLowBatteryBroadcast = false;
                 statusIntent.setAction(Intent.ACTION_BATTERY_OKAY);
                 mContext.sendBroadcast(statusIntent);
+            }
+
+            if (Build.PRODUCT.equals("Imcosys")) {
+                if (sendBatteryLowSecond) {
+                    mSentLowBatteryBroadcast = true;
+                    statusIntent.setAction(Intent.ACTION_BATTERY_LOW);
+                    mContext.sendBroadcast(statusIntent);
+                    isSecondLowBatteryWarning = false;
+                } else if (mSentLowBatteryBroadcast && mLastBatteryLevel >= mLowBatteryCloseWarningLevel) {
+                    mSentLowBatteryBroadcast = false;
+                    statusIntent.setAction(Intent.ACTION_BATTERY_OKAY);
+                    mContext.sendBroadcast(statusIntent);
+                }
             }
 
             // This needs to be done after sendIntent() so that we get the lastest battery stats.
