@@ -86,6 +86,8 @@ public class Dialog implements DialogInterface, Window.Callback,
     private Message mDismissMessage;
     private Message mShowMessage;
 
+    private boolean mRequestFullWhenHidden = true;
+
     /**
      * Whether to cancel the dialog when a touch is received outside of the
      * window's bounds.
@@ -252,12 +254,18 @@ public class Dialog implements DialogInterface, Window.Callback,
         }
     }
     
+    public void requestFullWhenHidden(boolean full) {
+        mRequestFullWhenHidden = full;
+    }
+
     /**
      * Hide the dialog, but do not dismiss it.
      */
     public void hide() {
         if (mDecor != null) {
-            mDecor.requestFullWhenHidden();
+            if (mRequestFullWhenHidden) {
+                mDecor.requestFullWhenHidden();
+            }
             mDecor.setVisibility(View.GONE);
         }
     }
@@ -281,7 +289,9 @@ public class Dialog implements DialogInterface, Window.Callback,
             return;
         }
 
-        mDecor.requestFullWhenHidden();
+        if (mRequestFullWhenHidden) {
+            mDecor.requestFullWhenHidden();
+        }
         try {
             mWindowManager.removeView(mDecor);
         } finally {
