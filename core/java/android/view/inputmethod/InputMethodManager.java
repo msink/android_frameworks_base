@@ -291,6 +291,11 @@ public final class InputMethodManager {
     static final int MSG_BIND = 2;
     static final int MSG_UNBIND = 3;
     static final int MSG_SET_ACTIVE = 4;
+
+    public static final int HAND_MODE1 = 5;
+    public static final int HAND_MODE2 = 6;
+    public static final int HAND_MODE3 = 7;
+    public static final int HAND_MODE4 = 8;
     
     class H extends Handler {
         H(Looper looper) {

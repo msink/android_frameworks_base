@@ -35,6 +35,7 @@ import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.hardware.DeviceController;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.LocalPowerManager;
@@ -288,6 +289,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mLockOnKeyDown = true;
     boolean mLockOnKeyUp = true;
     boolean mMenuPressed = false;
+    boolean mPageDownPressed = false;
+    boolean mPageUpPressed = false;
     boolean mBackPressed;
     boolean mDpadCenterPressed;
 
@@ -296,6 +299,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     ShortcutManager mShortcutManager;
     PowerManager.WakeLock mBroadcastWakeLock;
+
+    DeviceController mDev;
 
     class SettingsObserver extends ContentObserver {
         SettingsObserver(Handler handler) {
@@ -511,6 +516,28 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     Runnable mBackLongPress = new Runnable() {
         public void run() {
             mBackPressed = false;
+            if (mDev.has5WayButton()) {
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        if (Build.DEVICE.contentEquals("C63SM") ||
+                                Build.DEVICE.contentEquals("C65S")) {
+                            if (getKeyOption() == 1) {
+                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                            } else if (getKeyOption() == 2) {
+                            } else if (getKeyOption() == 3) {
+                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                            } else if (getKeyOption() == 4) {
+                            }
+                        } else {
+                            sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                            sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                        }
+                    }
+                });
+                return;
+            }
             Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
             mContext.sendOrderedBroadcast(intent, null);
         }
@@ -523,6 +550,57 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mContext.sendOrderedBroadcast(intent, null);
         }
     };
+
+    Runnable mPageUpPress = new Runnable() {
+        public void run() {
+            mPageUpPressed = false;
+            if (Build.DEVICE.contentEquals("C63SM") ||
+                    Build.DEVICE.contentEquals("C65S")) {
+                if (getKeyOption() == 1) {
+                } else if (getKeyOption() == 2) {
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                } else if (getKeyOption() == 3) {
+                } else if (getKeyOption() == 4) {
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                }
+            } else {
+                sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+            }
+        }
+    };
+
+    Runnable mPageDownPress = new Runnable() {
+        public void run() {
+            mPageDownPressed = false;
+            if (Build.DEVICE.contentEquals("C63SM") ||
+                    Build.DEVICE.contentEquals("C65S")) {
+                if (getKeyOption() == 1) {
+                    sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+                } else if (getKeyOption() == 2) {
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                } else if (getKeyOption() == 3) {
+                    sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+                } else if (getKeyOption() == 4) {
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                }
+            } else {
+                sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+            }
+        }
+    };
+
+    int getKeyOption() {
+        int keyOption = Settings.System.getInt(mContext.getContentResolver(), "key_map_mode", 1);
+        return keyOption;
+    }
 
     /**
      * Create (if necessary) and launch the recent apps dialog
@@ -590,6 +668,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mDockMode = intent.getIntExtra(Intent.EXTRA_DOCK_STATE,
                     Intent.EXTRA_DOCK_STATE_UNDOCKED);
         }
+        mDev = new DeviceController(mContext);
     }
 
     public void updateSettings() {
@@ -1137,6 +1216,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && !down) {
             mHandler.removeCallbacks(mBackLongPress);
         }
+        if ((keyCode == KeyEvent.KEYCODE_PAGE_DOWN) && !down) {
+            mHandler.removeCallbacks(mPageDownPress);
+        }
+        if ((keyCode == KeyEvent.KEYCODE_PAGE_UP) && !down) {
+            mHandler.removeCallbacks(mPageUpPress);
+        }
         if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) && !down) {
             mHandler.removeCallbacks(mDpadCenterLongPress);
         }
@@ -1198,6 +1283,46 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     }
                 } else {
                     Log.i(TAG, "Ignoring back; event canceled.");
+                }
+            }
+        }
+
+        if (mPageUpPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_PAGE_UP) && !down) {
+                mPageUpPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return false;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 104, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 104, false);
+                        return true;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring pagedown; event canceled.");
+                }
+            }
+        }
+
+        if (mPageDownPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_PAGE_DOWN) && !down) {
+                mPageDownPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return false;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, false);
+                        return true;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring pagedown; event canceled.");
                 }
             }
         }
@@ -1290,6 +1415,39 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             } else {
                 return true;
             }
+
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mPageDownPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mPageDownPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mPageUpPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mPageUpPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+
         }
         
         // Shortcuts are invoked through Search+key, so intercept those here
@@ -1310,7 +1468,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
 
-        DeviceController mDev = new DeviceController(mContext);
         if ((mDev.hasIR() || mDev.hasTP()) && (keyCode == KeyEvent.KEYCODE_CAMERA)) {
             if (!mMenuPressed) {
                 sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
