@@ -1,0 +1,22 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="83sp"
+    android:orientation="vertical"
+    >
+
+    <com.android.systemui.statusbar.LatestItemView android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="82sp"
+        android:paddingRight="6sp"
+        android:background="@drawable/notification_button_background"
+        android:focusable="true"
+        android:clickable="true"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/divider_horizontal_dark_opaque"
+        />
+
+</LinearLayout>

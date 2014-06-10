@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TextAppearance.StatusBar.Title" parent="@android:style/TextAppearance.StatusBar">
+        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@drawable/notification_header_text_color</item>
+    </style>
+
+    <style name="TextAppearance.StatusBar.IntruderAlert"
+        parent="@android:style/TextAppearance.StatusBar">
+    </style>
+
+    <style name="LightSettingsRatingBarStyle" parent="@android:style/Widget.RatingBar">
+        <item name="android:maxHeight">64px</item>
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:indeterminateDrawable">@drawable/ratingbar_drawable</item>
+        <item name="android:progressDrawable">@drawable/ratingbar_drawable</item>
+        <item name="android:minHeight">64px</item>
+    </style>
+</resources>
