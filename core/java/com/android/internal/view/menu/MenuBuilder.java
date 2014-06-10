@@ -311,19 +311,7 @@ public class MenuBuilder implements Menu {
      * @return A View for the menu of type <var>menuType</var>
      */
     public View getMenuView(int menuType, ViewGroup parent) {
-        // The expanded menu depends on the number if items shown in the icon menu (which
-        // is adjustable as setters/XML attributes on IconMenuView [imagine a larger LCD
-        // wanting to show more icons]). If, for example, the activity goes through
-        // an orientation change while the expanded menu is open, the icon menu's view
-        // won't have an instance anymore; so here we make sure we have an icon menu view (matching
-        // the same parent so the layout parameters from the XML are used). This
-        // will create the icon menu view and cache it (if it doesn't already exist). 
-        if (menuType == TYPE_EXPANDED
-                && (mMenuTypes[TYPE_ICON] == null || !mMenuTypes[TYPE_ICON].hasMenuView())) {
-            getMenuType(TYPE_ICON).getMenuView(parent);
-        }
-        
-        return (View) getMenuType(menuType).getMenuView(parent);
+        return (View) getMenuType(TYPE_EXPANDED).getMenuView(parent);
     }
     
     private int getNumIconMenuItemsShown() {
@@ -1136,11 +1124,7 @@ public class MenuBuilder implements Menu {
         }
 
         public int getOffset() {
-            if (mMenuType == TYPE_EXPANDED) {
-                return getNumIconMenuItemsShown(); 
-            } else {
-                return 0;
-            }
+            return 0;
         }
         
         public int getCount() {
@@ -1158,14 +1142,16 @@ public class MenuBuilder implements Menu {
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
-            View item = getItem(position).getItemView(mMenuType, parent);
+            View item = getItem(position).getItemView(TYPE_EXPANDED, parent);
             DisplayMetrics metrics = new DisplayMetrics();
             WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
             wm.getDefaultDisplay().getMetrics(metrics);
             int width = metrics.widthPixels;
             int height = metrics.heightPixels;
             if ((width == 758 && height == 1024) || (width == 1024 && height == 758)) {
-                AbsListView.LayoutParams params = new AbsListView.LayoutParams(-1, 80);
+                AbsListView.LayoutParams params = new AbsListView.LayoutParams(
+                         AbsListView.LayoutParams.MATCH_PARENT,
+                         AbsListView.LayoutParams.WRAP_CONTENT);
                 item.setLayoutParams(params);
             }
             return item;

@@ -32,13 +32,9 @@
     <dimen name="password_keyboard_key_height">56dip</dimen>
     <dimen name="password_keyboard_spacebar_vertical_correction">4dip</dimen>
 
-    <add-resource type="dimen" name="alert_dialog_title"/>
-    <dimen name="alert_dialog_title">23.0sp</dimen>
-    <add-resource type="dimen" name="alert_dialog_mini_height"/>
+    <dimen name="alert_dialog_title">23sp</dimen>
     <dimen name="alert_dialog_mini_height">42dip</dimen>
-    <add-resource type="dimen" name="alert_dialog_content"/>
     <dimen name="alert_dialog_content">18sp</dimen>
-    <add-resource type="dimen" name="alert_dialog_button_text_size"/>
     <dimen name="alert_dialog_button_text_size">18sp</dimen>
     <dimen name="border_stroke_width">2dip</dimen>
     <dimen name="gridview_border_radius_size">3dip</dimen>

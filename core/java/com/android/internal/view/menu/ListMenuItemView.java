@@ -18,10 +18,13 @@ package com.android.internal.view.menu;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -86,6 +89,23 @@ public class ListMenuItemView extends LinearLayout implements MenuView.ItemView 
         mMenuType = menuType;
 
         setVisibility(itemData.isVisible() ? View.VISIBLE : View.GONE);
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(metrics);
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+        if ((width==758 && height==1024) || (width==1024 && height==758)) {
+            mTitleView.setTextSize(26);
+            mTitleView.setTypeface(Typeface.SANS_SERIF);
+            mTitleView.setTypeface(mTitleView.getTypeface(), Typeface.BOLD);
+            mTitleView.setPadding(15, 0, 0, 0);
+        } else if ((width==600 && height==800) || (width==800 && height==600)) {
+            mTitleView.setTextSize(20);
+            mTitleView.setTypeface(Typeface.SANS_SERIF);
+            mTitleView.setTypeface(mTitleView.getTypeface(), Typeface.BOLD);
+            mTitleView.setPadding(15, 0, 0, 0);
+        }
         
         setTitle(itemData.getTitleForItemView(this));
         setCheckable(itemData.isCheckable());

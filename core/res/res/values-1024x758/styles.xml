@@ -80,11 +80,11 @@
         <item name="buttonStyleInset">@style/Widget.Button.Inset</item>
         <item name="buttonStyleToggle">@style/Widget.Button.Toggle</item>
         <item name="galleryItemBackground">@drawable/gallery_item_background</item>
-        <item name="listPreferredItemHeight">64.0dip</item>
-        <item name="expandableListPreferredItemPaddingLeft">40.0dip</item>
+        <item name="listPreferredItemHeight">53dip</item>
+        <item name="expandableListPreferredItemPaddingLeft">40dip</item>
         <item name="expandableListPreferredChildPaddingLeft">?expandableListPreferredItemPaddingLeft</item>
-        <item name="expandableListPreferredItemIndicatorLeft">3.0dip</item>
-        <item name="expandableListPreferredItemIndicatorRight">33.0dip</item>
+        <item name="expandableListPreferredItemIndicatorLeft">3dip</item>
+        <item name="expandableListPreferredItemIndicatorRight">33dip</item>
         <item name="expandableListPreferredChildIndicatorLeft">?expandableListPreferredItemIndicatorLeft</item>
         <item name="expandableListPreferredChildIndicatorRight">?expandableListPreferredItemIndicatorRight</item>
         <item name="windowBackground">@drawable/screen_background_light</item>
@@ -92,16 +92,16 @@
         <item name="windowNoTitle">false</item>
         <item name="windowIsFloating">false</item>
         <item name="windowContentOverlay">@null</item>
-        <item name="windowTitleSize">50.0dip</item>
+        <item name="windowTitleSize">53dip</item>
         <item name="windowTitleStyle">@style/WindowTitle</item>
         <item name="windowTitleBackgroundStyle">@style/WindowTitleBackground</item>
         <item name="alertDialogStyle">@style/AlertDialog</item>
-        <item name="panelBackground">@drawable/menu_background</item>
-        <item name="panelFullBackground">@drawable/menu_background_fill_parent_width</item>
+        <item name="panelBackground">@drawable/dialog_background</item>
+        <item name="panelFullBackground">@drawable/dialog_background</item>
         <item name="panelColorForeground">?textColorPrimary</item>
         <item name="panelColorBackground">#ff000000</item>
         <item name="panelTextAppearance">?textAppearance</item>
-        <item name="scrollbarSize">10.0dip</item>
+        <item name="scrollbarSize">10dip</item>
         <item name="scrollbarThumbHorizontal">@drawable/scrollbar_handle_horizontal</item>
         <item name="scrollbarThumbVertical">@drawable/scrollbar_handle_vertical</item>
         <item name="scrollbarTrackHorizontal">@null</item>
@@ -186,7 +186,7 @@
         <item name="textSelectHandle">@drawable/text_select_handle_middle</item>
         <item name="textSelectHandleWindowStyle">@style/Widget.TextSelectHandle</item>
         <item name="searchWidgetCorpusItemBackground">@color/search_widget_corpus_item_background</item>
-        <item name="searchResultListItemHeight">58.0dip</item>
+        <item name="searchResultListItemHeight">58dip</item>
         <item name="gestureOverlayViewStyle">@style/Widget.GestureOverlayView</item>
         <item name="horizontalScrollViewStyle">@style/Widget.HorizontalScrollView</item>
         <item name="keyboardViewStyle">@style/Widget.KeyboardView</item>
@@ -228,7 +228,7 @@
         <item name="textAppearanceLargeInverse">@style/TextAppearance.Large.Inverse</item>
         <item name="textAppearanceMediumInverse">@style/TextAppearance.Medium.Inverse</item>
         <item name="textAppearanceSmallInverse">@style/TextAppearance.Small.Inverse</item>
-        <item name="windowBackground">@drawable/panel_background</item>
+        <item name="windowBackground">@drawable/dialog_background</item>
         <item name="windowFrame">@null</item>
         <item name="windowIsFloating">true</item>
         <item name="windowContentOverlay">@null</item>
@@ -343,52 +343,52 @@
         <item name="button">@drawable/btn_star</item>
     </style>
     <style name="Widget.ProgressBar" parent="@style/Widget">
-        <item name="maxWidth">48.0dip</item>
-        <item name="maxHeight">48.0dip</item>
+        <item name="maxWidth">48dip</item>
+        <item name="maxHeight">48dip</item>
         <item name="indeterminateOnly">true</item>
         <item name="indeterminateDrawable">@drawable/progress_medium_white</item>
         <item name="indeterminateDuration">3500</item>
         <item name="indeterminateBehavior">repeat</item>
-        <item name="minWidth">48.0dip</item>
-        <item name="minHeight">48.0dip</item>
+        <item name="minWidth">48dip</item>
+        <item name="minHeight">48dip</item>
     </style>
     <style name="Widget.ProgressBar.Large" parent="@style/Widget.ProgressBar">
-        <item name="maxWidth">76.0dip</item>
-        <item name="maxHeight">76.0dip</item>
+        <item name="maxWidth">76dip</item>
+        <item name="maxHeight">76dip</item>
         <item name="indeterminateDrawable">@drawable/progress_large_white</item>
-        <item name="minWidth">76.0dip</item>
-        <item name="minHeight">76.0dip</item>
+        <item name="minWidth">76dip</item>
+        <item name="minHeight">76dip</item>
     </style>
     <style name="Widget.ProgressBar.Small" parent="@style/Widget.ProgressBar">
-        <item name="maxWidth">16.0dip</item>
-        <item name="maxHeight">16.0dip</item>
+        <item name="maxWidth">16dip</item>
+        <item name="maxHeight">16dip</item>
         <item name="indeterminateDrawable">@drawable/progress_small_white</item>
-        <item name="minWidth">16.0dip</item>
-        <item name="minHeight">16.0dip</item>
+        <item name="minWidth">16dip</item>
+        <item name="minHeight">16dip</item>
     </style>
     <style name="Widget.ProgressBar.Horizontal" parent="@style/Widget.ProgressBar">
-        <item name="maxHeight">20.0dip</item>
+        <item name="maxHeight">20dip</item>
         <item name="indeterminateOnly">false</item>
         <item name="indeterminateDrawable">@drawable/progress_indeterminate_horizontal</item>
         <item name="progressDrawable">@drawable/progress_horizontal</item>
-        <item name="minHeight">20.0dip</item>
+        <item name="minHeight">20dip</item>
     </style>
     <style name="Widget.SeekBar" parent="@style/Widget">
         <item name="focusable">true</item>
-        <item name="maxHeight">20.0dip</item>
+        <item name="maxHeight">20dip</item>
         <item name="indeterminateOnly">false</item>
         <item name="indeterminateDrawable">@drawable/progress_horizontal</item>
         <item name="progressDrawable">@drawable/progress_horizontal</item>
-        <item name="minHeight">20.0dip</item>
+        <item name="minHeight">20dip</item>
         <item name="thumb">@drawable/seek_thumb</item>
-        <item name="thumbOffset">8.0dip</item>
+        <item name="thumbOffset">8dip</item>
     </style>
     <style name="Widget.RatingBar" parent="@style/Widget">
-        <item name="maxHeight">57.0dip</item>
+        <item name="maxHeight">57dip</item>
         <item name="indeterminateOnly">false</item>
         <item name="indeterminateDrawable">@drawable/ratingbar_full</item>
         <item name="progressDrawable">@drawable/ratingbar_full</item>
-        <item name="minHeight">57.0dip</item>
+        <item name="minHeight">57dip</item>
         <item name="thumb">@null</item>
     </style>
     <style name="Widget.TextView" parent="@style/Widget">
@@ -434,8 +434,8 @@
         <item name="dropDownSelector">@drawable/list_selector_background</item>
         <item name="popupBackground">@drawable/spinner_dropdown_background</item>
         <item name="dropDownWidth">wrap_content</item>
-        <item name="dropDownHorizontalOffset">0.0dip</item>
-        <item name="dropDownVerticalOffset">-6.0dip</item>
+        <item name="dropDownHorizontalOffset">0dip</item>
+        <item name="dropDownVerticalOffset">-6dip</item>
     </style>
     <style name="Widget.Spinner" parent="@style/Widget">
         <item name="background">@drawable/btn_dropdown</item>
@@ -451,8 +451,8 @@
     <style name="Widget.DropDownItem" parent="@style/Widget">
         <item name="textAppearance">@style/TextAppearance.Widget.DropDownItem</item>
         <item name="gravity">center_vertical</item>
-        <item name="paddingLeft">6.0dip</item>
-        <item name="paddingRight">6.0dip</item>
+        <item name="paddingLeft">6dip</item>
+        <item name="paddingRight">6dip</item>
     </style>
     <style name="Widget.DropDownItem.Spinner" parent="@style/Widget.DropDownItem">
         <item name="checkMark">@drawable/btn_radio</item>
@@ -464,23 +464,23 @@
     <style name="Widget.ListView" parent="@style/Widget.AbsListView">
         <item name="listSelector">@drawable/list_selector_background</item>
         <item name="cacheColorHint">#ffffffff</item>
-        <item name="divider">@drawable/divider_horizontal_dark_opaque</item>
+        <item name="divider">@drawable/list_divider</item>
     </style>
     <style name="Widget.ListView.White" parent="@style/Widget.AbsListView">
         <item name="listSelector">@drawable/list_selector_background</item>
         <item name="cacheColorHint">?colorBackgroundCacheHint</item>
-        <item name="divider">@drawable/divider_horizontal_bright_opaque</item>
+        <item name="divider">@drawable/list_divider</item>
     </style>
     <style name="Widget.ListView.DropDown" parent="@style/Widget.ListView">
         <item name="cacheColorHint">@null</item>
-        <item name="divider">@drawable/divider_horizontal_bright_opaque</item>
+        <item name="divider">@drawable/list_divider</item>
     </style>
     <style name="Widget.ListView.Menu" parent="@style/Widget.ListView">
         <item name="scrollbars">vertical</item>
         <item name="fadingEdge">vertical</item>
         <item name="listSelector">@drawable/menu_selector</item>
         <item name="cacheColorHint">@null</item>
-        <item name="divider">@drawable/divider_horizontal_dark</item>
+        <item name="divider">@drawable/list_divider</item>
     </style>
     <style name="Widget.GridView" parent="@style/Widget.AbsListView">
         <item name="listSelector">@drawable/grid_selector_background</item>
@@ -498,7 +498,7 @@
     <style name="Widget.Gallery" parent="@style/Widget">
         <item name="gravity">center_vertical</item>
         <item name="fadingEdge">horizontal</item>
-        <item name="spacing">-20.0dip</item>
+        <item name="spacing">-20dip</item>
         <item name="unselectedAlpha">0.85</item>
     </style>
     <style name="Widget.PopupWindow" parent="@style/Widget">
@@ -507,8 +507,8 @@
     </style>
     <style name="MediaButton">
         <item name="background">@drawable/media_button_background</item>
-        <item name="layout_width">71.0dip</item>
-        <item name="layout_height">52.0dip</item>
+        <item name="layout_width">71dip</item>
+        <item name="layout_height">52dip</item>
     </style>
     <style name="MediaButton.Previous" parent="@style/MediaButton">
         <item name="src">@drawable/ic_media_previous</item>
@@ -529,7 +529,7 @@
         <item name="src">@drawable/ic_media_pause</item>
     </style>
     <style name="TextAppearance">
-        <item name="textSize">16.0sp</item>
+        <item name="textSize">16sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorPrimary</item>
         <item name="textColorHighlight">#ffff9200</item>
@@ -543,12 +543,12 @@
     </style>
     <style name="TextAppearance.Theme" parent="@style/TextAppearance" />
     <style name="TextAppearance.DialogWindowTitle" parent="@style/TextAppearance">
-        <item name="textSize">18.0sp</item>
+        <item name="textSize">22sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorPrimary</item>
     </style>
     <style name="TextAppearance.Large" parent="@style/TextAppearance">
-        <item name="textSize">22.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorPrimary</item>
     </style>
@@ -557,7 +557,7 @@
         <item name="textColorHint">?textColorHintInverse</item>
     </style>
     <style name="TextAppearance.Medium" parent="@style/TextAppearance">
-        <item name="textSize">18.0sp</item>
+        <item name="textSize">18sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorPrimary</item>
     </style>
@@ -566,7 +566,7 @@
         <item name="textColorHint">?textColorHintInverse</item>
     </style>
     <style name="TextAppearance.Small" parent="@style/TextAppearance">
-        <item name="textSize">14.0sp</item>
+        <item name="textSize">14sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorSecondary</item>
     </style>
@@ -587,7 +587,7 @@
         <item name="textColorHint">@color/hint_foreground_light</item>
     </style>
     <style name="TextAppearance.Widget.TabWidget" parent="@style/TextAppearance.Widget">
-        <item name="textSize">14.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">@color/tab_indicator_text</item>
     </style>
@@ -596,12 +596,12 @@
         <item name="textColorHint">?textColorHint</item>
     </style>
     <style name="TextAppearance.Widget.TextView.PopupMenu" parent="@style/TextAppearance.Widget.TextView">
-        <item name="textSize">18.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textColor">?textColorPrimaryDisableOnly</item>
         <item name="textColorHint">?textColorHint</item>
     </style>
     <style name="TextAppearance.Widget.DropDownHint" parent="@style/TextAppearance.Widget">
-        <item name="textSize">14.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textColor">?textColorPrimaryInverse</item>
     </style>
     <style name="TextAppearance.Widget.DropDownItem" parent="@style/TextAppearance.Widget">
@@ -611,7 +611,7 @@
         <item name="textColor">@color/primary_text_light_disable_only</item>
     </style>
     <style name="TextAppearance.WindowTitle" parent="@style/TextAppearance">
-        <item name="textSize">27.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textStyle">bold</item>
         <item name="textColor">#ffffffff</item>
     </style>
@@ -638,21 +638,21 @@
         <item name="shadowColor">#bb000000</item>
         <item name="shadowRadius">2.75</item>
         <item name="keyBackground">@drawable/btn_keyboard_key</item>
-        <item name="keyTextSize">22.0sp</item>
-        <item name="labelTextSize">14.0sp</item>
+        <item name="keyTextSize">22sp</item>
+        <item name="labelTextSize">14sp</item>
         <item name="keyTextColor">#ffffffff</item>
         <item name="keyPreviewLayout">@layout/keyboard_key_preview</item>
-        <item name="keyPreviewOffset">-12.0dip</item>
-        <item name="keyPreviewHeight">80.0dip</item>
-        <item name="verticalCorrection">-10.0dip</item>
+        <item name="keyPreviewOffset">-12dip</item>
+        <item name="keyPreviewHeight">80dip</item>
+        <item name="verticalCorrection">-10dip</item>
         <item name="popupLayout">@layout/keyboard_popup_keyboard</item>
     </style>
     <style name="ButtonBar">
         <item name="background">@drawable/bottom_bar</item>
-        <item name="paddingLeft">4.0dip</item>
-        <item name="paddingTop">5.0dip</item>
-        <item name="paddingRight">4.0dip</item>
-        <item name="paddingBottom">1.0dip</item>
+        <item name="paddingLeft">4dip</item>
+        <item name="paddingTop">5dip</item>
+        <item name="paddingRight">4dip</item>
+        <item name="paddingBottom">1dip</item>
     </style>
     <style name="Theme.Panel" parent="@style/Theme">
         <item name="windowBackground">@color/transparent</item>
@@ -708,10 +708,10 @@
         <item name="colorBackgroundCacheHint">@null</item>
     </style>
     <style name="TextAppearance.SearchResult.Title" parent="@style/TextAppearance.SearchResult">
-        <item name="textSize">16.0sp</item>
+        <item name="textSize">16sp</item>
     </style>
     <style name="TextAppearance.SearchResult.Subtitle" parent="@style/TextAppearance.SearchResult">
-        <item name="textSize">13.0sp</item>
+        <item name="textSize">16sp</item>
         <item name="textColor">?textColorSecondaryInverse</item>
     </style>
     <style name="TextAppearance.StatusBar.Title" parent="@style/TextAppearance.StatusBar">
@@ -721,22 +721,22 @@
         <item name="textStyle">bold</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent" parent="@style/TextAppearance.StatusBar">
-        <item name="textSize">18.0sp</item>
+        <item name="textSize">18sp</item>
         <item name="textColor">#ff6b6b6b</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Title" parent="@style/TextAppearance.StatusBar.EventContent">
-        <item name="textSize">20.0sp</item>
+        <item name="textSize">20sp</item>
         <item name="textStyle">bold</item>
         <item name="textColor">?textColorPrimaryInverse</item>
     </style>
     <style name="WindowTitleBackground">
-        <item name="background">@drawable/title_bar</item>
+        <item name="background">#ffc0c0c0</item>
+        <item name="paddingLeft">2dip</item>
     </style>
     <style name="WindowTitle">
         <item name="textAppearance">@style/TextAppearance.WindowTitle</item>
+        <item name="background">#ffc0c0c0</item>
         <item name="singleLine">true</item>
-        <item name="shadowColor">#bb000000</item>
-        <item name="shadowRadius">2.75</item>
     </style>
     <style name="DialogWindowTitle">
         <item name="textAppearance">@style/TextAppearance.DialogWindowTitle</item>
@@ -745,15 +745,15 @@
     </style>
     <style name="AlertDialog">
         <item name="fullDark">@drawable/popup_full_bright</item>
-        <item name="topDark">@drawable/popup_top_bright</item>
-        <item name="centerDark">@drawable/popup_center_bright</item>
-        <item name="bottomDark">@drawable/popup_bottom_bright</item>
+        <item name="topDark">@drawable/dialog_top_light</item>
+        <item name="centerDark">@drawable/dialog_middle_light</item>
+        <item name="bottomDark">@drawable/dialog_bottom_light</item>
         <item name="fullBright">@drawable/popup_full_bright</item>
-        <item name="topBright">@drawable/popup_top_bright</item>
-        <item name="centerBright">@drawable/popup_center_bright</item>
-        <item name="bottomBright">@drawable/popup_bottom_bright</item>
-        <item name="bottomMedium">@drawable/popup_bottom_bright</item>
-        <item name="centerMedium">@drawable/popup_center_bright</item>
+        <item name="topBright">@drawable/dialog_top_light</item>
+        <item name="centerBright">@drawable/dialog_middle_light</item>
+        <item name="bottomBright">@drawable/dialog_bottom_light</item>
+        <item name="bottomMedium">@drawable/dialog_bottom_light</item>
+        <item name="centerMedium">@drawable/dialog_middle_light</item>
     </style>
     <style name="Animation.StatusBar" parent="@style/Animation">
         <item name="windowEnterAnimation">@anim/status_bar_enter</item>
@@ -813,7 +813,7 @@
     </style>
     <style name="Animation.PopupWindow" parent="@style/Animation" />
     <style name="TextAppearance.StatusBar" parent="@style/TextAppearance">
-        <item name="textSize">14.0sp</item>
+        <item name="textSize">14sp</item>
         <item name="textStyle">normal</item>
         <item name="textColor">?textColorPrimary</item>
     </style>
@@ -842,36 +842,36 @@
         <item name="indeterminateDrawable">@drawable/progress_small_titlebar</item>
     </style>
     <style name="Widget.RatingBar.Indicator" parent="@style/Widget.RatingBar">
-        <item name="maxHeight">38.0dip</item>
+        <item name="maxHeight">38dip</item>
         <item name="indeterminateOnly">false</item>
         <item name="indeterminateDrawable">@drawable/ratingbar</item>
         <item name="progressDrawable">@drawable/ratingbar</item>
-        <item name="minHeight">38.0dip</item>
+        <item name="minHeight">38dip</item>
         <item name="thumb">@null</item>
         <item name="isIndicator">true</item>
     </style>
     <style name="Widget.RatingBar.Small" parent="@style/Widget.RatingBar">
-        <item name="maxHeight">14.0dip</item>
+        <item name="maxHeight">14dip</item>
         <item name="indeterminateOnly">false</item>
         <item name="indeterminateDrawable">@drawable/ratingbar_small</item>
         <item name="progressDrawable">@drawable/ratingbar_small</item>
-        <item name="minHeight">14.0dip</item>
+        <item name="minHeight">14dip</item>
         <item name="thumb">@null</item>
         <item name="isIndicator">true</item>
     </style>
     <style name="Widget.TextView.ListSeparator" parent="@style/Widget.TextView">
-        <item name="textSize">14.0sp</item>
+        <item name="textSize">18sp</item>
         <item name="textStyle">bold</item>
-        <item name="textColor">?textColorSecondary</item>
+        <item name="textColor">#ffffffff</item>
         <item name="gravity">center_vertical</item>
-        <item name="background">@drawable/dark_header_dither</item>
-        <item name="paddingLeft">5.0sp</item>
+        <item name="background">#ff000000</item>
+        <item name="paddingLeft">7sp</item>
+        <item name="paddingTop">2dip</item>
+        <item name="paddingBottom">2dip</item>
         <item name="layout_width">match_parent</item>
-        <item name="layout_height">25.0dip</item>
+        <item name="layout_height">wrap_content</item>
     </style>
     <style name="Widget.TextView.ListSeparator.White" parent="@style/Widget.TextView.ListSeparator">
-        <item name="textColor">?textColorPrimaryInverse</item>
-        <item name="background">@drawable/light_header_dither</item>
     </style>
     <style name="Widget.ExpandableListView.White" parent="@style/Widget.ExpandableListView">
         <item name="childDivider">@drawable/divider_horizontal_bright_opaque</item>
@@ -894,14 +894,14 @@
         <item name="background">@drawable/quickcontact_badge</item>
         <item name="clickable">true</item>
         <item name="layout_width">47.333313dip</item>
-        <item name="layout_height">56.0dip</item>
+        <item name="layout_height">56dip</item>
         <item name="scaleType">fitCenter</item>
     </style>
     <style name="Widget.QuickContactBadgeSmall" parent="@style/Widget">
         <item name="background">@drawable/quickcontact_badge_small</item>
         <item name="clickable">true</item>
-        <item name="layout_width">39.0dip</item>
-        <item name="layout_height">42.0dip</item>
+        <item name="layout_width">39dip</item>
+        <item name="layout_height">42dip</item>
         <item name="scaleType">fitCenter</item>
     </style>
     <style name="Widget.QuickContactBadge.WindowSmall" parent="@style/Widget.QuickContactBadge">
@@ -926,7 +926,7 @@
         <item name="textColor">#ffffc0c0</item>
     </style>
     <style name="TextAppearance.SlidingTabNormal" parent="@attr/textAppearanceMedium">
-        <item name="textSize">28.0sp</item>
+        <item name="textSize">28sp</item>
         <item name="textColor">?textColorTertiary</item>
         <item name="shadowColor">@color/sliding_tab_text_color_shadow</item>
         <item name="shadowDx">0.0</item>
@@ -934,7 +934,7 @@
         <item name="shadowRadius">5.0</item>
     </style>
     <style name="TextAppearance.SlidingTabActive" parent="@attr/textAppearanceMedium">
-        <item name="textSize">28.0sp</item>
+        <item name="textSize">28sp</item>
         <item name="textColor">@color/sliding_tab_text_color_active</item>
     </style>
     <style name="TextAppearance.SearchResult" parent="@style/TextAppearance">
@@ -979,8 +979,8 @@
     </style>
     <style name="ZoomControls">
         <item name="gravity">bottom</item>
-        <item name="paddingLeft">15.0dip</item>
-        <item name="paddingRight">15.0dip</item>
+        <item name="paddingLeft">15dip</item>
+        <item name="paddingRight">15dip</item>
     </style>
     <style name="Widget.TextSelectHandle" parent="@style/Widget">
         <item name="popupAnimationStyle">@style/Animation.TextSelectHandle</item>
