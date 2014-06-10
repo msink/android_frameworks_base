@@ -29,4 +29,13 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"电量所剩不多："</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"电量剩余 <xliff:g id="NUMBER">%d%%</xliff:g> 或更少。"</string>
     <string name="battery_low_why" msgid="7279169609518386372">"电量使用情况"</string>
+    <string name="datatransfer_button_ok">确定</string>
+    <string name="datatransfer_button_cancel">取消</string>
+    <string name="datatransfer_info">是否将USB存储设备连接到计算机？</string>
+    <string name="datatransfer_button_disable">关闭USB存储设备</string>
+    <string name="menu_dialog_menu">菜单</string>
+    <string name="menu_dialog_home">主界面</string>
+    <string name="menu_dialog_settings">系统设置</string>
+    <string name="menu_dialog_status_bar">展开状态条</string>
+    <string name="menu_dialog_moonlight">萤光</string>
 </resources>

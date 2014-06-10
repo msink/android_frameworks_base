@@ -20,12 +20,12 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="byteShort" msgid="8340973892742019101">"Б"</string>
-    <string name="kilobyteShort" msgid="5973789783504771878">"КБ"</string>
-    <string name="megabyteShort" msgid="6355851576770428922">"МБ"</string>
-    <string name="gigabyteShort" msgid="3259882455212193214">"ГБ"</string>
-    <string name="terabyteShort" msgid="231613018159186962">"TБ"</string>
-    <string name="petabyteShort" msgid="5637816680144990219">"ПБ"</string>
+    <string name="byteShort" msgid="8340973892742019101">"  Б"</string>
+    <string name="kilobyteShort" msgid="5973789783504771878">"  КБ"</string>
+    <string name="megabyteShort" msgid="6355851576770428922">"  МБ"</string>
+    <string name="gigabyteShort" msgid="3259882455212193214">"  ГБ"</string>
+    <string name="terabyteShort" msgid="231613018159186962">"  TБ"</string>
+    <string name="petabyteShort" msgid="5637816680144990219">"  ПБ"</string>
     <string name="fileSizeSuffix" msgid="7670819340156489359">"<xliff:g id="NUMBER">%1$s</xliff:g><xliff:g id="UNIT">%2$s</xliff:g>"</string>
     <string name="untitled" msgid="6071602020171759109">"&lt;без названия&gt;"</string>
     <string name="ellipsis" msgid="7899829516048813237">"…"</string>
