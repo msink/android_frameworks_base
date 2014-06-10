@@ -46,6 +46,7 @@ import android.provider.Settings;
 
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -115,6 +116,7 @@ public final class ShutdownThread extends Thread {
                     .setMessage(com.android.internal.R.string.shutdown_confirm)
                     .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            sInstance.mShutdownDialog.getWindow().getDecorView().requestEpdMode(View.EPD_NULL, true);
                             SystemProperties.set(ShutdownThread.SHUTDOWN_INDICATOR_PROPERTY, "1");
                             beginShutdownSequence(context);
                         }
