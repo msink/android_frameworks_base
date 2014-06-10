@@ -1,6 +1,7 @@
 package android.hardware;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.IOnyxWifiLockManagerService;
@@ -23,6 +24,10 @@ public class DeviceController {
     public static final int TOUCH_TYPE_UNKNOWN = 0;
     public static final int TOUCH_TYPE_IR = 1;
     public static final int TOUCH_TYPE_CAPACITIVE = 2;
+
+    public static final String ACTION_CLOSE_FRONT_LIGHT = "CLOSE_FRONT_LIGHT";
+    public static final String ACTION_OPEN_FRONT_LIGHT = "OPEN_FRONT_LIGHT";
+    public static final String INTENT_FRONT_LIGHT_VALUE = "FRONT_LIGHT_VALUE";
 
     private static final int FRONT_LIGHT_OFF = 0;
     private static final String[] mDev = {
@@ -169,6 +174,7 @@ public class DeviceController {
 
         if (readFrontLightFile() == 0) {
             writeFrontLightFile(value);
+            sendOpenAndCloseFrontLightBroadcast(ACTION_OPEN_FRONT_LIGHT, value);
             return true;
         }
 
@@ -210,6 +216,7 @@ public class DeviceController {
 
     public boolean closeFrontLight()  {
         writeFrontLightFile(0);
+        sendOpenAndCloseFrontLightBroadcast(ACTION_CLOSE_FRONT_LIGHT, 0);
         return true;
     }
 
@@ -220,4 +227,11 @@ public class DeviceController {
     public void setFrontLightValue(int value) {
         writeFrontLightFile(value);
     }
+
+    private void sendOpenAndCloseFrontLightBroadcast(String action, int frontLightValue) {
+        Intent intent = new Intent();
+        intent.setAction(action);
+        intent.putExtra(INTENT_FRONT_LIGHT_VALUE, frontLightValue);
+        mContext.sendBroadcast(intent);
+   }
 }
