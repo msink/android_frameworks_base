@@ -518,7 +518,9 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         if (!mDev.hasWifi()) {
             linearLayout_wifi_switch.setVisibility(View.GONE);
             mWifiSettings.setVisibility(View.GONE);
-            carrierlabelView.setVisibility(View.INVISIBLE);
+            if (carrierlabelView != null) {
+                carrierlabelView.setVisibility(View.INVISIBLE);
+            }
         }
         if (!mDev.hasAudio()) {
             volume_add.setVisibility(View.GONE);

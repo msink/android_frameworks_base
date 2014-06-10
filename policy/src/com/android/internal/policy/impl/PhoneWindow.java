@@ -78,6 +78,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -166,9 +167,12 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     private TelephonyManager mTelephonyManager = null;
     
+    private Context mContext;
+
     public PhoneWindow(Context context) {
         super(context);
         mLayoutInflater = LayoutInflater.from(context);
+        mContext = context;
     }
 
     @Override
@@ -197,6 +201,14 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
         return super.requestFeature(featureId);
     }
+
+    private final View.OnClickListener mBackLayoutClickListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mContext instanceof Activity) {
+                ((Activity)mContext).finish();
+            }
+        }
+    };
 
     @Override
     public void setContentView(int layoutResID) {
@@ -830,7 +842,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
      */
     protected boolean initializePanelDecor(PanelFeatureState st) {
         st.decorView = new DecorView(getContext(), st.featureId);
-        st.gravity = Gravity.CENTER | Gravity.BOTTOM;
+        st.gravity = Gravity.TOP | Gravity.RIGHT;
         st.setStyle(getContext());
 
         return true;
@@ -2216,6 +2228,12 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
         View in = mLayoutInflater.inflate(layoutResource, null);
         decor.addView(in, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+        RelativeLayout mBackLayout = (RelativeLayout)
+            in.findViewById(com.android.internal.R.id.title_layout);
+        if (mBackLayout != null) {
+            mBackLayout.setOnClickListener(mBackLayoutClickListener);
+        }
 
         ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
         if (contentParent == null) {

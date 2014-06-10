@@ -47,4 +47,12 @@
     <dimen name="alert_dialog_mini_height">54dip</dimen>
     <dimen name="alert_dialog_content">22sp</dimen>
     <dimen name="alert_dialog_button_text_size">22sp</dimen>
+
+    <dimen name="preference_title_text_size">20sp</dimen>
+    <dimen name="preference_summary_text_size">15sp</dimen>
+    <dimen name="screen_title_text_size">22sp</dimen>
+    <dimen name="list_content_text_size">18sp</dimen>
+    <dimen name="list_sub_content_text_size">16sp</dimen>
+    <dimen name="border_stroke_width">2dip</dimen>
+    <dimen name="gridview_border_radius_size">3dip</dimen>
 </resources>

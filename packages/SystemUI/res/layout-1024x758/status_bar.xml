@@ -28,7 +28,7 @@
     >
 
     <LinearLayout android:id="@+id/icons"
-        android:layout_width="300dip"
+        android:layout_width="230dip"
         android:layout_height="match_parent"
         android:layout_gravity="left"
         android:orientation="horizontal"
@@ -43,8 +43,8 @@
             >
 
             <Button android:id="@+id/status_bar_home"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="104px"
+                android:layout_height="64px"
                 android:layout_marginLeft="6dip"
                 android:gravity="center"
                 android:background="@drawable/home_btu"
@@ -54,7 +54,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_marginLeft="-12dip"
+                android:layout_marginLeft="-11dip"
                 android:src="@drawable/line_status_bar"
                 />
 
@@ -63,15 +63,13 @@
         <LinearLayout android:id="@+id/statusIcons"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginLeft="5dip"
             android:layout_alignParentRight="true"
-            android:paddingRight="6dip"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             />
 
         <com.android.systemui.statusbar.IconMerger android:id="@+id/notificationIcons"
-            android:layout_width="0dip"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -90,11 +88,11 @@
         android:gravity="center"
         android:singleLine="true"
         android:textAppearance="@*android:style/TextAppearance.StatusBar.Icon"
-        android:textSize="35sp"
+        android:textSize="27sp"
         />
 
     <LinearLayout android:id="@+id/button_layout"
-        android:layout_width="300dip"
+        android:layout_width="210dip"
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:layout_gravity="right"
@@ -103,7 +101,7 @@
         >
 
         <TextView android:id="@+id/status_bar_left"
-            android:layout_width="60dip"
+            android:layout_width="50dip"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/left_btn"
@@ -112,7 +110,7 @@
             />
 
         <TextView android:id="@+id/status_bar_right"
-            android:layout_width="60dip"
+            android:layout_width="50dip"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/right_btn"
@@ -121,7 +119,7 @@
             />
 
         <TextView android:id="@+id/status_bar_sub"
-            android:layout_width="55dip"
+            android:layout_width="40dip"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/sub_btu"
@@ -130,7 +128,7 @@
             />
 
         <TextView android:id="@+id/status_bar_add"
-            android:layout_width="55dip"
+            android:layout_width="40dip"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/add_btu"
@@ -177,8 +175,8 @@
             />
 
         <Button android:id="@+id/status_bar_a2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="70px"
+            android:layout_height="58px"
             android:gravity="center"
             android:background="@drawable/refresh"
             android:textColor="#ff000000"
@@ -193,8 +191,8 @@
             />
 
         <Button android:id="@+id/status_bar_menu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="104px"
+            android:layout_height="64px"
             android:gravity="center"
             android:background="@drawable/menu_btu"
             android:textColor="#ff000000"
@@ -209,7 +207,7 @@
             android:layout_gravity="right"
             android:gravity="center"
             android:singleLine="true"
-            android:textSize="28sp"
+            android:textSize="22sp"
             android:textColor="#ffffffff"
             />
 

@@ -40,5 +40,6 @@
     <dimen name="alert_dialog_content">18sp</dimen>
     <add-resource type="dimen" name="alert_dialog_button_text_size"/>
     <dimen name="alert_dialog_button_text_size">18sp</dimen>
-
+    <dimen name="border_stroke_width">2dip</dimen>
+    <dimen name="gridview_border_radius_size">3dip</dimen>
 </resources>

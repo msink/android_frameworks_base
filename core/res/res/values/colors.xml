@@ -97,5 +97,6 @@
     <color name="keyguard_text_color_soundon">#e69310</color>
     <color name="keyguard_text_color_decline">#fe0a5a</color>
 
+    <color name="title_background_color">#c0c0c0</color>
 </resources>
 
