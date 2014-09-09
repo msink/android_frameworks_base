@@ -266,6 +266,9 @@
     <!-- Display low battery warning when battery level dips to this value -->
     <integer name="config_lowBatteryWarningLevel">15</integer>
 
+    <integer name="config_lowBatteryWarningLevelImcosy">10</integer>
+    <integer name="config_lowBatterySecondWarningLevelImcosy">5</integer>
+
     <!-- Close low battery warning when battery level reaches this value -->
     <integer name="config_lowBatteryCloseWarningLevel">20</integer>
 

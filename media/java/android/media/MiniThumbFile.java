@@ -82,7 +82,7 @@ public class MiniThumbFile {
     private String randomAccessFilePath(int version) {
         String directoryName =
                 Environment.getFlashStorageDirectory().toString()
-                + "/DCIM/.thumbnails";
+                + "/.Cache/.thumbnails";
         return directoryName + "/.thumbdata" + version + "-" + mUri.hashCode();
     }
 

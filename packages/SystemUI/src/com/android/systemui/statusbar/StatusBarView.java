@@ -187,13 +187,13 @@ public class StatusBarView extends RelativeLayout {
             if (opition) {
                 audioManager.adjustSuggestedStreamVolume(
                     AudioManager.ADJUST_RAISE,
-                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.STREAM_MUSIC,
                     AudioManager.FLAG_SHOW_UI |
                     AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             } else {
                 audioManager.adjustSuggestedStreamVolume (
                     AudioManager.ADJUST_LOWER,
-                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.STREAM_MUSIC,
                     AudioManager.FLAG_SHOW_UI |
                     AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             }

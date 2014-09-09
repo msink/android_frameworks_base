@@ -53,6 +53,8 @@ public class Build {
     /** The end-user-visible name for the end product. */
     public static final String MODEL = getString("ro.product.model");
 
+    public static final String CARATIONMODEL = getString("ro.caration.product.model");
+
     /** The system bootloader version number. */
     public static final String BOOTLOADER = getString("ro.bootloader");
 
@@ -63,7 +65,7 @@ public class Build {
     public static final String HARDWARE = getString("ro.hardware");
 
     /** A hardware serial number, if available.  Alphanumeric only, case-insensitive. */ 
-    public static final String SERIAL = getString("ro.serialno");
+    public static final String SERIAL = getString("sys.serial.number");
   
     /** Various version strings. */
     public static class VERSION {

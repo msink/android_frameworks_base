@@ -306,6 +306,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.SCREEN_OFF_TIMEOUT), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.POINTER_LOCATION), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.CARATION_SHOW_CURSOR), false, this);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.DEFAULT_INPUT_METHOD), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -2178,6 +2180,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         // tell the keyguard
         mKeyguardMediator.onSystemReady();
         android.os.SystemProperties.set("dev.bootcomplete", "1"); 
+        WindowManager wm = (WindowManager)
+                    mContext.getSystemService(Context.WINDOW_SERVICE);
+        screenWidth = wm.getDefaultDisplay().getWidth();
+        screenHeight = wm.getDefaultDisplay().getHeight();
         synchronized (mLock) {
             updateOrientationListenerLp();
             mSystemReady = true;
