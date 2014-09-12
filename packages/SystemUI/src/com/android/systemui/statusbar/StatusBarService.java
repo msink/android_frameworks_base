@@ -89,8 +89,8 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     public static final String ACTION_STATUSBAR_START
             = "com.android.internal.policy.statusbar.START";
 
-    static final int EXPANDED_LEAVE_ALONE = -10000;
-    static final int EXPANDED_FULL_OPEN = -10001;
+    static int EXPANDED_LEAVE_ALONE = -10000;
+    static int EXPANDED_FULL_OPEN = -10001;
 
     StatusBarPolicy mIconPolicy;
 
@@ -155,6 +155,9 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // for disabling the status bar
     int mDisabled = StatusBarManager.DISABLE_NOTIFICATION_ICONS;
 
+    // weather or not to show status bar on bottom
+    boolean mBottomBar = true;
+
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
             super(context, com.android.internal.R.style.Theme_Light_NoTitleBar);
@@ -180,6 +183,12 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         // First set up our views and stuff.
         mDisplay = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         makeStatusBarView(this);
+
+        // reset vars for bottom bar
+        if (mBottomBar) {
+            EXPANDED_LEAVE_ALONE *= -1;
+            EXPANDED_FULL_OPEN *= -1;
+        }
 
         // Connect in to the status bar manager service
         StatusBarIconList iconList = new StatusBarIconList();

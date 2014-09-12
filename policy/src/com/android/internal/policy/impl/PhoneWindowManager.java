@@ -192,7 +192,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     WindowState mStatusBar = null;
     final ArrayList<WindowState> mStatusBarPanels = new ArrayList<WindowState>();
     WindowState mKeyguard = null;
-    KeyguardViewMediator mKeyguardMediator;
+    KeyguardViewMediator mKeyguardMediator = null;
     GlobalActions mGlobalActions;
     boolean mShouldTurnOffOnKeyUp;
     RecentApplicationsDialog mRecentAppsDialog;
@@ -220,6 +220,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     PointerLocationView mPointerLocationView = null;
     InputChannel mPointerLocationInputChannel;
     
+    private boolean mBottomBar = true;
+
     private final InputHandler mPointerLocationInputHandler = new BaseInputHandler() {
         @Override
         public void handleMotion(MotionEvent event, Runnable finishedCallback) {
@@ -1270,6 +1272,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             final Rect vf = mTmpVisibleFrame;
             pf.left = df.left = vf.left = 0;
             pf.top = df.top = vf.top = 0;
+
+            if (mBottomBar) {
+                //get status bar height from dimen.xml
+                final int statusbar_height =
+                    mContext.getResources().getDimensionPixelSize
+                    (com.android.internal.R.dimen.status_bar_height);
+                //setting status bar's top, to bottom of the screen, minus status bar height
+                pf.top = df.top = vf.top = (displayHeight-statusbar_height);
+            }
+
             pf.right = df.right = vf.right = displayWidth;
             pf.bottom = df.bottom = vf.bottom = displayHeight;
             
@@ -1277,7 +1289,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mStatusBar.isVisibleLw()) {
                 // If the status bar is hidden, we don't want to cause
                 // windows behind it to scroll.
+              if (mBottomBar) {
+                //setting activites bottoms, to top of status bar
+                mDockBottom = mContentBottom = mCurBottom = mStatusBar.getFrameLw().top;
+              } else {
                 mDockTop = mContentTop = mCurTop = mStatusBar.getFrameLw().bottom;
+              }
                 if (DEBUG_LAYOUT) Log.v(TAG, "Status bar: mDockBottom="
                         + mDockBottom + " mContentBottom="
                         + mContentBottom + " mCurBottom=" + mCurBottom);
