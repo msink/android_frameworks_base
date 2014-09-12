@@ -48,21 +48,6 @@ public class StatusBarView extends RelativeLayout {
     int mStartX, mStartY;
     ViewGroup mNotificationIcons;
     ViewGroup mStatusIcons;
-    View mDate;
-    FixedSizeDrawable mBackground;
-    
-    private boolean is_touch_button = false;
-    TextView mbut_bac;
-    TextView mbut_home;
-    TextView mbut_menu;
-    TextView mbut_add;
-    TextView mbut_sub;
-    TextView mbut_left;
-    TextView mbut_right;
-
-    boolean is_down = false;
-    final private int ADJUST_VOLUME_DELAY = 250;
-
     final IWindowManager windowManager = IWindowManager.Stub
                .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
 
@@ -77,161 +62,7 @@ public class StatusBarView extends RelativeLayout {
         super.onFinishInflate();
         mNotificationIcons = (ViewGroup)findViewById(R.id.notificationIcons);
         mStatusIcons = (ViewGroup)findViewById(R.id.statusIcons);
-
-        mbut_home = (TextView) findViewById(R.id.status_bar_home);
-        mbut_menu = (TextView) findViewById(R.id.status_bar_menu);
-        mbut_bac = (TextView) findViewById(R.id.status_bar_back);
-        mbut_add = (TextView) findViewById(R.id.status_bar_add);
-        mbut_sub = (TextView) findViewById(R.id.status_bar_sub);
-        mbut_left = (TextView) findViewById(R.id.status_bar_left);
-        mbut_right = (TextView) findViewById(R.id.status_bar_right);
-
-        mbut_left.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    windowManager.setRotation(-1, false, 0);
-                } catch (Exception e) {
-                }
-            }
-        });
-
-        mbut_right.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    windowManager.setRotation(-2, false, 0);
-                } catch (Exception e) {
-                }
-            }
-        });
-
-        mbut_home.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
-                }
-                return true;
-            }
-        });
-
-        mbut_menu.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
-                }
-                return true;
-            }
-        });
-
-        mbut_bac.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
-                }
-                return true;
-            }
-        });
-
-        mbut_add.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    is_down = true;
-                    Adjust_Volume(true);
-                    maddHandler.postDelayed(maddRun, 500);
-                } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    is_down = false;
-                    maddHandler.removeCallbacks(maddRun);
-                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    if (event.getX() < 0 || event.getY() < 0 ||
-                                            event.getX() > v.getWidth() ||
-                                            event.getY() > v.getHeight()) {
-                        is_down = false;
-                        maddHandler.removeCallbacks(maddRun);
-                    }
-                }
-                return true;
-            }
-        });
-
-        mbut_sub.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    is_down = true;
-                    Adjust_Volume(false);
-                    msubHandler.postDelayed(msubRun, 500);
-                } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    is_down = false;
-                    msubHandler.removeCallbacks(msubRun);
-                }
-                else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    if (event.getX() < 0 || event.getY() < 0 ||
-                                            event.getX() > v.getWidth() ||
-                                            event.getY() > v.getHeight()) {
-                        is_down = false;
-                        msubHandler.removeCallbacks(msubRun);
-                    }
-                }
-                return true;
-            }
-        });
     }
-
-    public void Adjust_Volume(boolean opition) {
-        AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
-        if (audioManager != null) {
-            if (opition) {
-                audioManager.adjustSuggestedStreamVolume(
-                    AudioManager.ADJUST_RAISE,
-                    AudioManager.USE_DEFAULT_STREAM_TYPE,
-                    AudioManager.FLAG_SHOW_UI |
-                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            } else {
-                audioManager.adjustSuggestedStreamVolume (
-                    AudioManager.ADJUST_LOWER,
-                    AudioManager.USE_DEFAULT_STREAM_TYPE,
-                    AudioManager.FLAG_SHOW_UI |
-                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            }
-        }
-    }
-
-    private Handler maddHandler = new Handler();
-    private Runnable maddRun = new Runnable() {
-       public void run() {
-           maddHandler.removeCallbacks(maddRun);
-           if (is_down) {
-               Adjust_Volume(true);
-               maddHandler.postDelayed(maddRun, ADJUST_VOLUME_DELAY);
-           }
-       }
-    };
-
-    private Handler msubHandler = new Handler();
-    private Runnable msubRun = new Runnable () {
-        public void run () {
-            msubHandler.removeCallbacks (msubRun);
-            if (is_down) {
-                Adjust_Volume(false);
-                msubHandler.postDelayed(msubRun, ADJUST_VOLUME_DELAY);
-            }
-        }
-    };
-
-    private Handler removerButtonHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            is_down = false;
-            msubHandler.removeCallbacks(msubRun);
-            mbut_sub.setBackgroundResource(R.drawable.sub_normal);
-            maddHandler.removeCallbacks (maddRun);
-            mbut_add.setBackgroundResource(R.drawable.add_normal);
-        }
-    };
 
     @Override
     protected void onAttachedToWindow() {
@@ -249,47 +80,7 @@ public class StatusBarView extends RelativeLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        b = 40;
         super.onLayout(changed, l, t, r, b);
-    }
-
-    /**
-     * Gets the left position of v in this view.  Throws if v is not
-     * a child of this.
-     */
-    private int getViewOffset(View v) {
-        int offset = 0;
-        while (v != this) {
-            offset += v.getLeft();
-            ViewParent p = v.getParent();
-            if (v instanceof View) {
-                v = (View)p;
-            } else {
-                throw new RuntimeException(v + " is not a child of " + this);
-            }
-        }
-        return offset;
-    }
-
-    private int getDateSize(ViewGroup g, int w, int offset) {
-        final int N = g.getChildCount();
-        for (int i=0; i<N; i++) {
-            View v = g.getChildAt(i);
-            int l = v.getLeft() + offset;
-            int r = v.getRight() + offset;
-            if (w >= l && w <= r) {
-                return r;
-            }
-        }
-        return -1;
-    }
-
-    private boolean inTouchButtonArea(android.view.MotionEvent event) {
-         int left = findViewById(R.id.button_layout_Home).getRight();
-         int right = findViewById(R.id.button_layout).getLeft();
-         float x = event.getX();
-         int EXTRA = 5;
-         return (x < (left + 5)) || (x > (right - 5));
     }
 
     /**
@@ -299,32 +90,7 @@ public class StatusBarView extends RelativeLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!is_touch_button) {
-            mService.interceptTouchEvent(event);
-        }
         return true;
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent event) {
-        removerButtonHandler.removeMessages(0);
-        removerButtonHandler.sendEmptyMessageDelayed(0, 500);
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            is_touch_button = inTouchButtonArea(event);
-        }
-        return super.onInterceptTouchEvent(event);
-    }
-
-    private void sendKeyEvent(int code, int event, boolean down) {
-        try {
-            KeyEvent ev = new KeyEvent(0, 0,
-                down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
-                code, 0, 0, 0, event, KeyEvent.FLAG_FROM_SYSTEM);
-            IWindowManager.Stub
-                .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
-                .injectKeyEvent_status_bar(ev, true);
-        } catch (RemoteException e) {
-        }
     }
 }
 
