@@ -267,9 +267,6 @@ final class ActivityStack {
     boolean mSystemAppFreqLimited = false;
     boolean mUseLcdcComposer = Build.USE_LCDC_COMPOSER;
 
-    boolean retTag;
-    Timer timer;
-
     /**
      * Set when we know we are going to be calling updateConfiguration()
      * soon, so want to skip intermediate config checks.

@@ -3918,9 +3918,13 @@ public final class ActivityManagerService extends ActivityManagerNative
                     r.app = null;
                 }
                 lastTask = r.task;
+                int lastHistorySize = mMainStack.mHistory.size();
                 if (r.stack.finishActivityLocked(r, i, Activity.RESULT_CANCELED,
                         null, "force-stop", true)) {
+                  int historySize = mMainStack.mHistory.size();
+                  if (lastHistorySize != historySize || i != historySize-1) {
                     i--;
+                  }
                 }
             }
         }

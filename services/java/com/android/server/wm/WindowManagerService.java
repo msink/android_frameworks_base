@@ -11157,4 +11157,28 @@ public class WindowManagerService extends IWindowManager.Stub
             displayContent.updateDisplayInfo();
         }
     }
+
+    public boolean injectKeyEvent_status_bar(KeyEvent ev, boolean sync) {
+        long downTime = ev.getDownTime();
+        long eventTime = ev.getEventTime();
+
+        int action = ev.getAction();
+        int code = ev.getKeyCode();
+        int repeatCount = ev.getRepeatCount();
+        int metaState = ev.getMetaState();
+        int deviceId = ev.getDeviceId();
+        int scancode = ev.getScanCode();
+
+        if (eventTime == 0) eventTime = SystemClock.uptimeMillis();
+        if (downTime == 0) downTime = eventTime;
+
+        KeyEvent newEvent = new KeyEvent(downTime, eventTime, action, code, repeatCount, metaState,
+                deviceId, scancode, KeyEvent.FLAG_FROM_SYSTEM);
+
+        final long ident = android.os.Binder.clearCallingIdentity();
+        final boolean result = mInputManager.injectInputEvent(newEvent, 0);
+
+        Binder.restoreCallingIdentity(ident);
+        return result;
+    }
 }

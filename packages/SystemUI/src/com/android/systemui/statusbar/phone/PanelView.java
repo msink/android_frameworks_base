@@ -27,9 +27,11 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.util.Slog;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.android.systemui.R;
@@ -78,6 +80,8 @@ public class PanelView extends FrameLayout {
     private TimeAnimator mTimeAnimator;
     private ObjectAnimator mPeekAnimator;
     private FlingTracker mVelocityTracker;
+
+    private Context mContext;
 
     /**
      * A very simple low-pass velocity filter for motion events; not nearly as sophisticated as
@@ -235,7 +239,7 @@ public class PanelView extends FrameLayout {
             if (DEBUG) LOG("tick: v=%.2fpx/s dt=%.4fs", mVel, dt);
             if (DEBUG) LOG("tick: before: h=%d", (int) mExpandedHeight);
 
-            final float fh = getFullHeight();
+            final float fh = getScreenHeight();
             boolean braking = false;
             if (BRAKES) {
                 if (mClosing) {
@@ -293,6 +297,7 @@ public class PanelView extends FrameLayout {
     public PanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        mContext = context;
         mTimeAnimator = new TimeAnimator();
         mTimeAnimator.setTimeListener(mAnimationCallback);
     }
@@ -368,20 +373,10 @@ public class PanelView extends FrameLayout {
                             mTimeAnimator.cancel(); // end any outstanding animations
                             mBar.onTrackingStarted(PanelView.this);
                             mTouchOffset = (rawY - mAbsPos[1]) - PanelView.this.getExpandedHeight();
-                            if (mExpandedHeight == 0) {
-                                mJustPeeked = true;
-                                runPeekAnimation();
-                            }
                             break;
 
                         case MotionEvent.ACTION_MOVE:
                             final float h = rawY - mAbsPos[1] - mTouchOffset;
-                            if (h > mPeekHeight) {
-                                if (mPeekAnimator != null && mPeekAnimator.isRunning()) {
-                                    mPeekAnimator.cancel();
-                                }
-                                mJustPeeked = false;
-                            }
 
                             trackMovement(event);
                             break;
@@ -518,7 +513,7 @@ public class PanelView extends FrameLayout {
     }
 
     public void setExpandedHeightInternal(float h) {
-        float fh = getFullHeight();
+        float fh = getScreenHeight();
         if (fh == 0) {
             // Hmm, full height hasn't been computed yet
         }
@@ -594,5 +589,19 @@ public class PanelView extends FrameLayout {
         } else if (DEBUG) {
             if (DEBUG) LOG("skipping expansion: is expanded");
         }
+    }
+
+    private float getScreenHeight() {
+        float screenWidth = 0;
+        float screenHeight = 0;
+        WindowManager window = (WindowManager)
+            mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (window == null) {
+        } else {
+            Display displayw = window.getDefaultDisplay();
+            screenWidth = displayw.getWidth();
+            screenHeight = displayw.getHeight();
+        }
+        return screenHeight;
     }
 }

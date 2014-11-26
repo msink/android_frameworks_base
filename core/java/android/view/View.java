@@ -46,6 +46,7 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.text.TextUtils;
@@ -18501,5 +18502,12 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             Log.e("jeffy", "exitA2");
         }
         return requestEpdMode(EINK_MODE.EPD_NULL);
+    }
+
+    public boolean requestFullWhenHidden() {
+        if (mParent != null) {
+            return mParent.requestFullWhenHidden();
+        }
+        return false;
     }
 }

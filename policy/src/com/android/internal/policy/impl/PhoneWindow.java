@@ -54,6 +54,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -612,7 +613,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 st.shownPanelView.requestFocus();
             }
         } else if (!st.isInListMode()) {
-            width = MATCH_PARENT;
+            width = WRAP_CONTENT;
         } else if (st.createdPanelView != null) {
             // If we already had a panel view, carry width=MATCH_PARENT through
             // as we did above when it was created.
@@ -1070,7 +1071,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
      */
     protected boolean initializePanelDecor(PanelFeatureState st) {
         st.decorView = new DecorView(getContext(), st.featureId);
-        st.gravity = Gravity.CENTER | Gravity.BOTTOM;
+        st.gravity = Gravity.TOP | Gravity.RIGHT;
         st.setStyle(getContext());
 
         return true;
@@ -1083,12 +1084,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
      * @return gravity value to use for the panel window
      */
     private int getOptionsPanelGravity() {
-        try {
-            return WindowManagerHolder.sWindowManager.getPreferredOptionsPanelGravity();
-        } catch (RemoteException ex) {
-            Log.e(TAG, "Couldn't getOptionsPanelGravity; using default", ex);
-            return Gravity.CENTER | Gravity.BOTTOM;
-        }
+            return Gravity.TOP | Gravity.RIGHT;
     }
 
     void onOptionsPanelRotationChanged() {

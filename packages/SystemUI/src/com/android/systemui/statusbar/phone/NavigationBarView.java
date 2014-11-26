@@ -108,14 +108,6 @@ public class NavigationBarView extends LinearLayout {
         }
     }
 
-    public void setDelegateView(View view) {
-        mDelegateHelper.setDelegateView(view);
-    }
-
-    public void setBar(BaseStatusBar phoneStatusBar) {
-        mDelegateHelper.setBar(phoneStatusBar);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mDeadZone != null && event.getAction() == MotionEvent.ACTION_OUTSIDE) {

@@ -574,12 +574,7 @@ public final class BatteryService extends Binder {
             return com.android.internal.R.drawable.stat_sys_battery;
         } else if (mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING
                 || mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
-            if (isPoweredLocked(BatteryManager.BATTERY_PLUGGED_ANY)
-                    && mBatteryLevel >= 100) {
-                return com.android.internal.R.drawable.stat_sys_battery_charge;
-            } else {
                 return com.android.internal.R.drawable.stat_sys_battery;
-            }
         } else {
             return com.android.internal.R.drawable.stat_sys_battery_unknown;
         }

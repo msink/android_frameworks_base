@@ -2937,7 +2937,6 @@ public class ConnectivityService extends IConnectivityManager.Stub {
             mNetTransitionWakeLockSerialNumber++;
             mNetTransitionWakeLock.acquire();
             mNetTransitionWakeLockCausedBy = forWhom;
-            mNetTransitionWakeLock.release();
         }
         mHandler.sendMessageDelayed(mHandler.obtainMessage(
                 EVENT_CLEAR_NET_TRANSITION_WAKELOCK,

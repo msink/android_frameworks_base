@@ -887,6 +887,17 @@ public class WifiManager {
     }
 
     /**
+     * @hide
+     */
+    public boolean setWifiEnabledWithoutChangingSetting(boolean enabled) {
+        try {
+            return mService.setWifiEnabledWithoutChangingSetting(enabled);
+        } catch (RemoteException e) {
+            return false;
+        }
+    }
+
+    /**
      * Gets the Wi-Fi enabled state.
      * @return One of {@link #WIFI_STATE_DISABLED},
      *         {@link #WIFI_STATE_DISABLING}, {@link #WIFI_STATE_ENABLED},

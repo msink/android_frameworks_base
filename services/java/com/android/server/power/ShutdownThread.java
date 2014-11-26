@@ -17,6 +17,8 @@
  
 package com.android.server.power;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -33,6 +35,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -46,11 +49,16 @@ import android.os.storage.IMountShutdownObserver;
 
 import com.android.internal.telephony.ITelephony;
 
+import android.provider.Settings;
+import android.util.Slog;
 import android.util.Log;
 import android.view.IWindowManager;
 import android.view.WindowManager;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 
 public final class ShutdownThread extends Thread {
     // constants

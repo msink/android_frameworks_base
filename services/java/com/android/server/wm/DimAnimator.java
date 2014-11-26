@@ -70,7 +70,6 @@ class DimAnimator {
      */
     void updateParameters(final Resources res, final Parameters params, final long currentTime) {
         if (mDimSurface == null) {
-            Slog.e(TAG, "updateParameters: no Surface");
             return;
         }
 

@@ -1932,8 +1932,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadBooleanSetting(stmt, Settings.System.DIM_SCREEN,
                     R.bool.def_dim_screen);
-            loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
-                    R.integer.def_screen_off_timeout);
+
+            loadSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
+                    SystemProperties.getInt("ro.rk.screenoff_time",
+                    mContext.getResources().getInteger(R.integer.def_screen_off_timeout)));
 
             // Set default cdma DTMF type
             loadSetting(stmt, Settings.System.DTMF_TONE_TYPE_WHEN_DIALING, 0);
@@ -1944,8 +1946,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Set default tty mode
             loadSetting(stmt, Settings.System.TTY_MODE, 0);
 
-            loadIntegerSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
-                    R.integer.def_screen_brightness);
+            loadSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
+                    SystemProperties.getInt("ro.rk.def_brightness",
+                    mContext.getResources().getInteger(R.integer.def_screen_brightness)));
 
             loadIntegerSetting(stmt, Settings.System.HDMI_LCD_TIMEOUT,
                     R.integer.def_hdmi_lcd_timeout);
@@ -1977,8 +1980,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadUISoundEffectsSettings(stmt);
 
+            loadIntegerSetting(stmt, Settings.System.BRIGHTNESS_STATE,
+                    R.integer.def_brightness_state);
+
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
+
+            loadStringSetting(stmt, Settings.System.DEFAULT_SYSTEM_FONT,
+                    R.string.def_default_system_font);
+
+            loadSetting(stmt, Settings.System.AUTO_POWEROFF_TIMEOUT,
+                    SystemProperties.getInt("ro.onyx.auto_poweroff_timeout",
+                    mContext.getResources().getInteger(R.integer.def_auto_poweroff_timeout)));
+
+            loadSetting(stmt, Settings.System.WIFI_ON_AFTER_WAKEUP,
+                    SystemProperties.getInt("ro.onyx.wifi_on_after_wakeup", 1));
+
+            loadIntegerSetting(stmt, Settings.System.WIFI_INACTIVITY_TIMEOUT,
+                    R.integer.def_wifi_inactivity_timeout);
+
+            loadIntegerSetting(stmt, Settings.System.WIFI_DATA_TRANSIMIT_MIN,
+                    R.integer.def_wifi_data_transmit_min);
+
+            loadSetting(stmt, Settings.System.WIFI_MAC_ADDRESS, "");
+
+            loadIntegerSetting(stmt, Settings.System.WAKE_UP_BRIGHTNESS,
+                    R.integer.def_wake_up_brightness);
+
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -2092,6 +2120,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadBooleanSetting(stmt, Settings.Secure.USER_SETUP_COMPLETE,
                     R.bool.def_user_setup_complete);
+
+            loadStringSetting(stmt, Settings.Secure.DEFAULT_INPUT_METHOD,
+                    R.string.def_default_input_method);
+            loadStringSetting(stmt, Settings.Secure.ENABLED_INPUT_METHODS,
+                    R.string.def_enabled_input_methods);
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -2190,8 +2223,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadBooleanSetting(stmt, Settings.Global.NETSTATS_ENABLED,
                     R.bool.def_netstats_enabled);
 
-            loadBooleanSetting(stmt, Settings.Global.INSTALL_NON_MARKET_APPS,
-                    R.bool.def_install_non_market_apps);
+            loadSetting(stmt, Settings.Global.INSTALL_NON_MARKET_APPS,
+                    "true".equalsIgnoreCase(
+                            SystemProperties.get("ro.rk.install_non_market_apps",
+                                    "false")) ? 1 : 0);
 
             loadIntegerSetting(stmt, Settings.Global.NETWORK_PREFERENCE,
                     R.integer.def_network_preference);
@@ -2225,6 +2260,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.string.def_car_undock_sound);
             loadStringSetting(stmt, Settings.Global.WIRELESS_CHARGING_STARTED_SOUND,
                     R.string.def_wireless_charging_started_sound);
+            loadIntegerSetting(stmt, Settings.System.KEY_MAP_MODE,
+                    R.integer.def_key_map_mode);
 
             loadSetting(stmt, Settings.Global.SET_INSTALL_LOCATION, 0);
             loadSetting(stmt, Settings.Global.DEFAULT_INSTALL_LOCATION,

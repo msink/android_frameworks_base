@@ -129,6 +129,8 @@ public class WifiService extends IWifiManager.Stub {
     private int mDataActivity;
     private String mInterfaceName;
 
+    private boolean mWifiOnAfterWakeup = true;
+
     /**
      * Interval in milliseconds between polling for traffic
      * statistics
@@ -379,6 +381,11 @@ public class WifiService extends IWifiManager.Stub {
         Intent idleIntent = new Intent(ACTION_DEVICE_IDLE, null);
         mIdleIntent = PendingIntent.getBroadcast(mContext, IDLE_REQUEST, idleIntent, 0);
 
+        int intValueWifiOnAfterWakeup = Settings.System.getIntForUser(mContext.getContentResolver(),
+            Settings.System.WIFI_ON_AFTER_WAKEUP, 1, -2);
+        Slog.d(TAG, "wifi on after wakeup, int value: " + intValueWifiOnAfterWakeup);
+        mWifiOnAfterWakeup = (intValueWifiOnAfterWakeup > 0);
+
         mContext.registerReceiver(
                 new BroadcastReceiver() {
                     @Override
@@ -494,7 +501,7 @@ public class WifiService extends IWifiManager.Stub {
 
         // If we are already disabled (could be due to airplane mode), avoid changing persist
         // state here
-        if (wifiEnabled) setWifiEnabled(wifiEnabled);
+        if (wifiEnabled && mWifiOnAfterWakeup) setWifiEnabled(wifiEnabled);
 
         mWifiWatchdogStateMachine = WifiWatchdogStateMachine.
                makeWifiWatchdogStateMachine(mContext);
@@ -646,6 +653,32 @@ public class WifiService extends IWifiManager.Stub {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
+
+        if (enable) {
+            if (!mIsReceiverRegistered) {
+                registerForBroadcasts();
+                mIsReceiverRegistered = true;
+            }
+        } else if (mIsReceiverRegistered) {
+            mContext.unregisterReceiver(mReceiver);
+            mIsReceiverRegistered = false;
+        }
+
+        return true;
+    }
+
+    public synchronized boolean setWifiEnabledWithoutChangingSetting(boolean enable) {
+        enforceChangePermission();
+        Slog.d(TAG, "setWifiEnabledWithoutChangingSetting: " + enable + " pid=" + Binder.getCallingPid()
+                    + ", uid=" + Binder.getCallingUid());
+        if (DBG) {
+            Slog.e(TAG, "Invoking mWifiStateMachine.setWifiEnabled\n");
+        }
+
+        if (enable) {
+            reportStartWorkSource();
+        }
+        mWifiStateMachine.setWifiEnabled(enable);
 
         if (enable) {
             if (!mIsReceiverRegistered) {

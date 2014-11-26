@@ -18,6 +18,7 @@ package android.webkit;
 
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.util.Log;
 import android.webkit.HTML5VideoViewProxy;
 import java.io.IOException;
 import java.util.HashMap;
@@ -126,10 +127,12 @@ public class HTML5VideoView implements MediaPlayer.OnPreparedListener {
 
     public void seekTo(int pos) {
         int delta = Math.abs(getCurrentPosition() - pos);
-        if (mCurrentState == STATE_PREPARED && delta > 1000)
+        if (mCurrentState == STATE_PREPARED && delta > 1000) {
+            Log.d(LOGTAG, "seekTo: " + pos + ", mCurrentState: " + mCurrentState);
             mPlayer.seekTo(pos);
-        else
+        } else {
             mSaveSeekTime = pos;
+        }
     }
 
     public boolean isPlaying() {

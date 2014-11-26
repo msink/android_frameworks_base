@@ -150,6 +150,8 @@ public class WifiStateMachine extends StateMachine {
 
     private PowerManager.WakeLock mSuspendWakeLock;
 
+    private PowerManager.WakeLock mStayOnWakeLock;
+
     /**
      * Interval in milliseconds between polling for RSSI
      * and linkspeed information
@@ -689,6 +691,9 @@ public class WifiStateMachine extends StateMachine {
         mSuspendWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WifiSuspend");
         mSuspendWakeLock.setReferenceCounted(false);
 
+        mStayOnWakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK
+            | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "WifiStayOn");
+
         addState(mDefaultState);
             addState(mInitialState, mDefaultState);
             addState(mDriverUnloadingState, mDefaultState);
@@ -760,13 +765,27 @@ public class WifiStateMachine extends StateMachine {
     public void setWifiEnabled(boolean enable) {
         mLastEnableUid.set(Binder.getCallingUid());
         if (enable) {
+            SystemProperties.set("sys.wifi.noidle", "1");
+            if (!mWakeLock.isHeld()) {
+                mWakeLock.acquire();
+            }
+            if (!mStayOnWakeLock.isHeld()) {
+                mStayOnWakeLock.acquire();
+            }
             /* Argument is the state that is entered prior to load */
             sendMessage(obtainMessage(CMD_LOAD_DRIVER, WIFI_STATE_ENABLING, 0));
             sendMessage(CMD_START_SUPPLICANT);
         } else {
+            SystemProperties.set("sys.wifi.noidle", "0");
             sendMessage(CMD_STOP_SUPPLICANT);
             /* Argument is the state that is entered upon success */
             sendMessage(obtainMessage(CMD_UNLOAD_DRIVER, WIFI_STATE_DISABLED, 0));
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
+            if (mStayOnWakeLock.isHeld()) {
+                mStayOnWakeLock.release();
+            }
         }
     }
 
@@ -2372,6 +2391,11 @@ public class WifiStateMachine extends StateMachine {
             }
         }
 
+        private void saveMacAddress(String macAddress) {
+            Settings.System.putString(mContext.getContentResolver(),
+                Settings.System.WIFI_MAC_ADDRESS, macAddress);
+        }
+
         @Override
         public boolean processMessage(Message message) {
             if (DBG) log(getName() + message.toString() + "\n");
@@ -2388,7 +2412,9 @@ public class WifiStateMachine extends StateMachine {
                     mLastNetworkId = WifiConfiguration.INVALID_NETWORK_ID;
                     mLastSignalLevel = -1;
 
-                    mWifiInfo.setMacAddress(mWifiNative.getMacAddress());
+                    String mac = mWifiNative.getMacAddress();
+                    mWifiInfo.setMacAddress(mac);
+                    saveMacAddress(mac);
                     mWifiConfigStore.initialize();
                     initializeWpsDetails();
 

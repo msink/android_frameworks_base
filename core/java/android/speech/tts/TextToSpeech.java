@@ -1024,9 +1024,17 @@ public class TextToSpeech {
                 if (loc == null) {
                     return LANG_NOT_SUPPORTED;
                 }
-                String language = loc.getISO3Language();
-                String country = loc.getISO3Country();
-                String variant = loc.getVariant();
+                String language = Settings.Secure.getString(mContext.getContentResolver(),
+                    Settings.Secure.TTS_DEFAULT_LANG);
+                String country = Settings.Secure.getString(mContext.getContentResolver(),
+                    Settings.Secure.TTS_DEFAULT_COUNTRY);
+                String variant = Settings.Secure.getString(mContext.getContentResolver(),
+                    Settings.Secure.TTS_DEFAULT_VARIANT);
+                if ((language == null || country == null) && mCurrentEngine == "com.svox.pico") {
+                    language = loc.getISO3Language();
+                    country = loc.getISO3Country();
+                    variant = loc.getVariant();
+                }
                 // Check if the language, country, variant are available, and cache
                 // the available parts.
                 // Note that the language is not actually set here, instead it is cached so it

@@ -130,6 +130,9 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
     private List<Preference> mDependents;
     
     private boolean mBaseMethodCalled;
+
+    private TextView summaryView;
+    private TextView titleView;
     
     /**
      * Interface definition for a callback to be invoked when the value of this
@@ -491,6 +494,24 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
         }
         return layout;
     }
+
+    private void upateTextColorByState(boolean enabled) {
+        if (!enabled) {
+            if (titleView != null) {
+                titleView.setTextColor(0xff888888);
+            }
+            if (summaryView != null) {
+                summaryView.setTextColor(0xff888888);
+            }
+        } else {
+            if (titleView != null) {
+                titleView.setTextColor(0xff000000);
+            }
+            if (summaryView != null) {
+                summaryView.setTextColor(0xff000000);
+            }
+        }
+    }
     
     /**
      * Binds the created View to the data for this Preference.
@@ -504,7 +525,7 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
      * @see #onCreateView(ViewGroup)
      */
     protected void onBindView(View view) {
-        final TextView titleView = (TextView) view.findViewById(
+        titleView = (TextView) view.findViewById(
                 com.android.internal.R.id.title);
         if (titleView != null) {
             final CharSequence title = getTitle();
@@ -516,7 +537,7 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
             }
         }
 
-        final TextView summaryView = (TextView) view.findViewById(
+        summaryView = (TextView) view.findViewById(
                 com.android.internal.R.id.summary);
         if (summaryView != null) {
             final CharSequence summary = getSummary();
@@ -527,6 +548,8 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
                 summaryView.setVisibility(View.GONE);
             }
         }
+
+        upateTextColorByState(isEnabled());
 
         ImageView imageView = (ImageView) view.findViewById(com.android.internal.R.id.icon);
         if (imageView != null) {
@@ -717,6 +740,8 @@ public class Preference implements Comparable<Preference>, OnDependencyChangeLis
      * @param enabled Set true to enable it.
      */
     public void setEnabled(boolean enabled) {
+        upateTextColorByState(enabled);
+
         if (mEnabled != enabled) {
             mEnabled = enabled;
 

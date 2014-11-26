@@ -161,6 +161,8 @@ public class TimePicker extends FrameLayout {
         mHourSpinnerInput = (EditText) mHourSpinner.findViewById(R.id.numberpicker_input);
         mHourSpinnerInput.setImeOptions(EditorInfo.IME_ACTION_NEXT);
 
+        mHourSpinnerInput.requestFocus();
+
         // divider (only for the new widget style)
         mDivider = (TextView) findViewById(R.id.divider);
         if (mDivider != null) {

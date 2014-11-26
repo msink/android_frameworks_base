@@ -332,6 +332,14 @@ public final class InputMethodManager {
     static final int MSG_SET_ACTIVE = 4;
     static final int MSG_EVENT_TIMEOUT = 5;
     
+    public void setKeyMapMode(int mode) {
+        try {
+            mService.setKeyMapMode(mode);
+        } catch(RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     class H extends Handler {
         H(Looper looper) {
             super(looper);

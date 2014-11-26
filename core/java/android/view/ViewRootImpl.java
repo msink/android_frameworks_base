@@ -85,8 +85,8 @@ import com.android.internal.view.RootViewSurfaceTaker;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.HashSet;
 
@@ -1158,9 +1158,9 @@ public final class ViewRootImpl implements ViewParent,
         return windowSizeMayChange;
     }
 
-    public List<View> mAutoViews = new CopyOnWriteArrayList();
-    public List<View> mA2Views = new CopyOnWriteArrayList();
-    public List<View> mUnionViews = new CopyOnWriteArrayList();
+    public List<View> mAutoViews = new ArrayList();
+    public List<View> mA2Views = new ArrayList();
+    public List<View> mUnionViews = new ArrayList();
 
     public View.EINK_MODE mEinkMode = View.EINK_MODE.EPD_NULL;
 
@@ -1168,8 +1168,9 @@ public final class ViewRootImpl implements ViewParent,
     final public static int SF_A2 = 1023;
     final public static int SF_UNION = 1024;
     final public static int SF_DIRTY = 1025;
+    final public static int SF_HIDDEN_FULL_ONYX = 1101;
 
-    public synchronized boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force) {
+    public boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force) {
         boolean needFullRedraw = false;
         if (mode == View.EINK_MODE.EPD_AUTO) {
             if (!mAutoViews.contains(child)) {
@@ -1237,23 +1238,22 @@ public final class ViewRootImpl implements ViewParent,
         }
     }
 
-    private synchronized void applyEinkMode(boolean force) {
+    private void removeViewsIfInvisibleToUser(List<View> viewList) {
+        Iterator<View> it = viewList.iterator();
+        while (it.hasNext()) {
+           View item = it.next();
+           if (!item.isVisibleToUser()) {
+               it.remove();
+           }
+        }
+    }
+
+    private void applyEinkMode(boolean force) {
         Rect rect = new Rect();
-        for (View v : mA2Views) {
-            if (!v.isVisibleToUser()) {
-                mA2Views.remove(v);
-            }
-        }
-        for (View v : mUnionViews) {
-            if (!v.isVisibleToUser()) {
-                mUnionViews.remove(v);
-            }
-        }
-        for (View v : mAutoViews) {
-            if (!v.isVisibleToUser()) {
-                mAutoViews.remove(v);
-            }
-        }
+
+        removeViewsIfInvisibleToUser(mA2Views);
+        removeViewsIfInvisibleToUser(mUnionViews);
+        removeViewsIfInvisibleToUser(mAutoViews);
 
         try {
             IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
@@ -1311,6 +1311,24 @@ public final class ViewRootImpl implements ViewParent,
             Log.e(TAG, "failed to transact SF_SETMODE.", ex);
         }
         mEinkMode = View.EINK_MODE.EPD_NULL;
+    }
+
+    public boolean requestFullWhenHidden() {
+        if (mSurface == null || !mSurface.isValid())
+            return false;
+        try {
+            IBinder flinger = ServiceManager.getService("SurfaceFlinger");
+            if (flinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                flinger.transact(SF_HIDDEN_FULL_ONYX, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+            Log.e(TAG, "failed to transact SF_HIDDEN_FULL_ONYX.", ex);
+        }
+        return true;
     }
 
     private void performTraversals() {

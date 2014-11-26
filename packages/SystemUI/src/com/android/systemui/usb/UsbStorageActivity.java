@@ -66,9 +66,6 @@ public class UsbStorageActivity extends Activity
     private Button mMountButton;
     private Button mUnmountButton;
     private ProgressBar mProgressBar;
-    private TextView mBanner;
-    private TextView mMessage;
-    private ImageView mIcon;
     private StorageManager mStorageManager = null;
     private static final int DLG_CONFIRM_KILL_STORAGE_USERS = 1;
     private static final int DLG_ERROR_SHARING = 2;
@@ -158,27 +155,24 @@ public class UsbStorageActivity extends Activity
         
         mUIHandler = new Handler();
 
-        HandlerThread thr = new HandlerThread("SystemUI UsbStorageActivity");
+        thr = new HandlerThread("SystemUI UsbStorageActivity");
         thr.start();
         mAsyncStorageHandler = new Handler(thr.getLooper());
 
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         if (Environment.isExternalStorageRemovable()) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         }
 
-        setContentView(com.android.internal.R.layout.usb_storage_activity);
-
-        mIcon = (ImageView) findViewById(com.android.internal.R.id.icon);
-        mBanner = (TextView) findViewById(com.android.internal.R.id.banner);
-        mMessage = (TextView) findViewById(com.android.internal.R.id.message);
-
-        mMountButton = (Button) findViewById(com.android.internal.R.id.mount_button);
+        setContentView(com.android.systemui.R.layout.datatransfer_dialog);
+        mMountButton = (Button) findViewById(com.android.systemui.R.id.mount_button);
         mMountButton.setOnClickListener(this);
-        mUnmountButton = (Button) findViewById(com.android.internal.R.id.unmount_button);
+        mUnmountButton = (Button) findViewById(com.android.systemui.R.id.button_turn_off_storage);
         mUnmountButton.setOnClickListener(this);
-        mProgressBar = (ProgressBar) findViewById(com.android.internal.R.id.progress);
+        mProgressBar = (ProgressBar) findViewById(com.android.systemui.R.id.progress);
     }
 
     @Override
@@ -201,7 +195,7 @@ public class UsbStorageActivity extends Activity
         });
     }
 
-    private void switchDisplayAsync(boolean usbStorageInUse, boolean flashMount) {
+    private void switchDisplayAsync(boolean usbStorageInUse, final boolean flashMount) {
         boolean usbConnected = "true".equals(SystemProperties.get(
                                "sys.usb.umsavailible", "false"));
         if (!usbConnected)
@@ -211,16 +205,12 @@ public class UsbStorageActivity extends Activity
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.VISIBLE);
             mMountButton.setVisibility(View.GONE);
-            mIcon.setImageResource(com.android.internal.R.drawable.usb_android_connected);
-            mBanner.setText(com.android.internal.R.string.usb_storage_stop_title);
-            mMessage.setText(com.android.internal.R.string.usb_storage_stop_message);
+            mUnmountButton.requestFocus();
         } else if (flashMount) {
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.GONE);
             mMountButton.setVisibility(View.VISIBLE);
-            mIcon.setImageResource(com.android.internal.R.drawable.usb_android);
-            mBanner.setText(com.android.internal.R.string.usb_storage_title);
-            mMessage.setText(com.android.internal.R.string.usb_storage_message);
+            mMountButton.requestFocus();
         }
     }
 
@@ -255,7 +245,8 @@ public class UsbStorageActivity extends Activity
     }
 
     private void handleUsbStateChanged(Intent intent) {
-        boolean connected = intent.getExtras().getBoolean(UsbManager.USB_CONNECTED);
+        boolean connected = intent.getBooleanExtra(UsbManager.USB_CONNECTED, false) &&
+                intent.getBooleanExtra(UsbManager.USB_FUNCTION_MASS_STORAGE, false);
         if (!connected) {
             // It was disconnected from the plug, so finish
             Log.i(TAG, "-----finish UsbStorageActivity because usb disconnect-----");
@@ -290,6 +281,7 @@ public class UsbStorageActivity extends Activity
                         public void onClick(DialogInterface dialog, int which) {
                             mMountButton.setVisibility(View.VISIBLE);
                             mProgressBar.setVisibility(View.GONE);
+                            mMountButton.requestFocus();
                         }})
                     .setMessage(R.string.dlg_confirm_kill_storage_users_text)
                     .setOnCancelListener(this)

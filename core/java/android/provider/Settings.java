@@ -76,6 +76,12 @@ public final class Settings {
     public static final String ACTION_SETTINGS = "android.settings.SETTINGS";
 
     /**
+     * @hide
+     */
+    public static final String ACTION_ONYX_APPLICATION_SETTINGS =
+            "com.onyx.android.settings.APPLICATION_SETTINGS";
+
+    /**
      * Activity Action: Show settings to allow configuration of APNs.
      * <p>
      * Input: Nothing.
@@ -1730,6 +1736,51 @@ public final class Settings {
         public static final String SCREEN_OFF_TIMEOUT = "screen_off_timeout";
 
         /**
+         * @hide
+         */
+        public static final String AUTO_POWEROFF_TIMEOUT = "auto_poweroff_timeout";
+
+        /**
+         * @hide
+         */
+        public static final String WIFI_INACTIVITY_TIMEOUT = "wifi_inactivity_timeout";
+
+        /**
+         * @hide
+         */
+        public static final String WIFI_ON_AFTER_WAKEUP = "wifi_on_after_wakeup";
+
+        /**
+         * @hide
+         */
+        public static final String WIFI_DATA_TRANSIMIT_MIN = "wifi_data_transmit_min";
+
+        /**
+         * @hide
+         */
+        public static final String WIFI_MAC_ADDRESS = "wifi_mac_address";
+
+        /**
+         * @hide
+         */
+        public static final String BRIGHTNESS_STATE = "brightness_state";
+
+        /**
+         * @hide
+         */
+        public static final String WAKE_UP_BRIGHTNESS = "wake_up_brightness";
+
+        /**
+         * @hide
+         */
+        public static final String KEY_MAP_MODE = "key_map_mode";
+
+        /**
+         * @hide
+         */
+        public static final String DEFAULT_SYSTEM_FONT = "default_system_font";
+
+        /**
          * The screen backlight brightness between 0 and 255.
          */
         public static final String SCREEN_BRIGHTNESS = "screen_brightness";
@@ -2353,11 +2404,19 @@ public final class Settings {
             WIFI_STATIC_DNS2,
             BLUETOOTH_DISCOVERABILITY,
             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
+            KEY_MAP_MODE,
             DIM_SCREEN,
             SCREEN_OFF_TIMEOUT,
+            AUTO_POWEROFF_TIMEOUT,
+            WIFI_ON_AFTER_WAKEUP,
+            WIFI_MAC_ADDRESS,
             SCREEN_BRIGHTNESS,
+            WAKE_UP_BRIGHTNESS,
             SCREEN_BRIGHTNESS_MODE,
             SCREEN_AUTO_BRIGHTNESS_ADJ,
+            DEFAULT_SYSTEM_FONT,
+            WIFI_INACTIVITY_TIMEOUT,
+            WIFI_DATA_TRANSIMIT_MIN,
             VIBRATE_INPUT_DEVICES,
             MODE_RINGER,                // moved to global
             MODE_RINGER_STREAMS_AFFECTED,
@@ -2398,6 +2457,7 @@ public final class Settings {
             SIP_CALL_OPTIONS,
             SIP_RECEIVE_CALLS,
             POINTER_SPEED,
+            BRIGHTNESS_STATE,
             VIBRATE_WHEN_RINGING
         };
 

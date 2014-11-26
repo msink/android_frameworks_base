@@ -286,6 +286,8 @@ public class DatePicker extends FrameLayout {
         if (getImportantForAccessibility() == IMPORTANT_FOR_ACCESSIBILITY_AUTO) {
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
+
+        mDaySpinnerInput.requestFocus();
     }
 
     /**

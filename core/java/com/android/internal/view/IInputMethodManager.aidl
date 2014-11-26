@@ -55,6 +55,7 @@ interface IInputMethodManager {
             int controlFlags, int softInputMode, int windowFlags,
             in EditorInfo attribute, IInputContext inputContext);
             
+    void setKeyMapMode(int mode);
     void showInputMethodPickerFromClient(in IInputMethodClient client);
     void showInputMethodAndSubtypeEnablerFromClient(in IInputMethodClient client, String topId);
     void setInputMethod(in IBinder token, String id);

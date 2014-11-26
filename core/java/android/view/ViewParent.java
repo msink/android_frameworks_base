@@ -299,4 +299,6 @@ public interface ViewParent {
     public boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force);
 
     public boolean requestEpdUnion(View child);
+
+    public boolean requestFullWhenHidden();
 }

@@ -684,6 +684,16 @@ public class Intent implements Parcelable, Cloneable {
     public static final String ACTION_CREATE_SHORTCUT = "android.intent.action.CREATE_SHORTCUT";
 
     /**
+     * @hide
+     */
+    public static final String ACTION_CHANGE_LIGHT_STATE = "android.intent.action.CHANGE_LIGHT_STATE";
+
+    /**
+     * @hide
+     */
+    public static final String ACTION_HOME_MENU = "android.intent.action.HOME_MENU";
+
+    /**
      * The name of the extra used to define the Intent of a shortcut.
      *
      * @see #ACTION_CREATE_SHORTCUT

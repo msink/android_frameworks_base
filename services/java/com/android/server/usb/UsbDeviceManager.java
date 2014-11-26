@@ -742,7 +742,7 @@ public class UsbDeviceManager {
 
                     Intent intent = Intent.makeRestartActivityTask(
                             new ComponentName("com.android.settings",
-                                    "com.android.settings.DevelopmentSettings"));
+                                    "com.android.settings.ApplicationSettings"));
                     PendingIntent pi = PendingIntent.getActivityAsUser(mContext, 0,
                             intent, 0, null, UserHandle.CURRENT);
                     notification.setLatestEventInfo(mContext, title, message, pi);

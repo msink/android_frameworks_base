@@ -1463,7 +1463,6 @@ public class InputMethodService extends AbstractInputMethodService {
             onWindowShown();
             mWindow.show();
             if (mInputView != null) {
-                mInputView.requestEpdMode(View.EINK_MODE.EPD_AUTO);
             }
         }
     }

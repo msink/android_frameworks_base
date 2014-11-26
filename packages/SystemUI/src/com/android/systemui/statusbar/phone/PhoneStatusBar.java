@@ -23,11 +23,13 @@ import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -40,10 +42,13 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.hardware.DeviceController;
 import android.inputmethodservice.InputMethodService;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -57,6 +62,9 @@ import android.util.Log;
 import android.util.Slog;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.IWindowManager;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -70,10 +78,13 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.android.internal.statusbar.StatusBarIcon;
 import com.android.internal.statusbar.StatusBarNotification;
@@ -97,20 +108,14 @@ import com.android.systemui.statusbar.policy.Prefs;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.ArrayList;
-
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Handler;
-import android.os.Messenger;
-import android.provider.Settings;
-import android.util.Log;
 import android.widget.Toast;
-
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 public class PhoneStatusBar extends BaseStatusBar {
     static final String TAG = "PhoneStatusBar";
@@ -143,6 +148,24 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     private static final int NOTIFICATION_PRIORITY_MULTIPLIER = 10; // see NotificationManagerService
     private static final int HIDE_ICONS_BELOW_SCORE = Notification.PRIORITY_LOW * NOTIFICATION_PRIORITY_MULTIPLIER;
+
+    private static final int LOW_BRIGHTNESS_MAX =
+        Math.min(DeviceController.BRIGHTNESS_DEFAULT,
+                 DeviceController.BRIGHTNESS_MAXIMUM);
+
+    private boolean isLongClickOpenAndCloseFrontLight = false;
+    private ToggleButton mWifiSwitch = null;
+    private boolean isHomeMenuDialogShow = false;
+    private AlertDialog mHomeMenuDialog = null;
+    private View homeMenuDialogView = null;
+
+    private Integer[] mFrontLightValue = {
+          0,   5,  10,  15,  20,  25,  30,  35,  40,  45,
+         50,  55,  60,  65,  70,  75,  80,  85,  90,  95,
+        100, 105, 110, 115, 120, 125, 130, 135, 140, 145,
+        150, 155, 160,           175, 180, 185, 190, 195,
+        200, 205, 210, 215, 220, 225, 230, 235, 240, 245,
+        250 };
 
     // fling gesture tuning parameters, scaled to display density
     private float mSelfExpandVelocityPx; // classic value: 2000px/s
@@ -277,6 +300,10 @@ public class PhoneStatusBar extends BaseStatusBar {
     int[] mAbsPos = new int[2];
     Runnable mPostCollapseCleanup = null;
 
+    private WifiManager mWifiManager = null;
+    private boolean mWriteto = true;
+    private int lastvalue = 0;
+
     private Animator mLightsOutAnimation;
     private Animator mLightsOnAnimation;
 
@@ -287,6 +314,13 @@ public class PhoneStatusBar extends BaseStatusBar {
     int mSystemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
     DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+
+    private List<Integer> mLightSteps = new ArrayList();
+    private RatingBar mRatingBarLightSettings = null;
+    private ToggleButton mLightSwitch;
+    private int currentKeyCode;
+    private PanelHolder holder;
+    private DeviceController mDev;
 
     // XXX: gesture research
     private final GestureRecorder mGestureRec = DEBUG_GESTURES
@@ -442,16 +476,130 @@ public class PhoneStatusBar extends BaseStatusBar {
                 boolean show=intent.getBooleanExtra("show", false);
                 if (show) {
                     Log.d("screenshot","show screenshot button");
+                  if (mNavigationBarView != null)
                     mNavigationBarView.getScreenshotButton().setVisibility(View.VISIBLE);
                 } else {
                     Log.d("screenshot","disable screenshot button");
+                  if (mNavigationBarView != null)
                     mNavigationBarView.getScreenshotButton().setVisibility(View.GONE);
+                }
+            }
+            if (Intent.ACTION_HOME_MENU.equals(action)) {
+                if (!isHomeMenuDialogShow) {
+                    createHomeMenuDialog();
+                    mHomeMenuDialog.show();
+                    int menu_width = (int)mContext.getResources().getDimension(R.dimen.menu_width);
+                    int menu_height = (int)mContext.getResources().getDimension(R.dimen.menu_height);
+                    mHomeMenuDialog.getWindow().setLayout(menu_width, menu_height);
+                    mHomeMenuDialog.setContentView(homeMenuDialogView);
+                }
+            } else if (Intent.ACTION_CHANGE_LIGHT_STATE.equals(action)) {
+                if (mDev.getFrontLightValue() > 0) {
+                    mDev.closeFrontLight();
+                    mLightSwitch.setChecked(false);
+                } else {
+                    mDev.openFrontLight();
+                    mLightSwitch.setChecked(true);
                 }
             } else {
                 takeScreenshot();
             }
         }
     };
+
+    private void createHomeMenuDialog() {
+        LayoutInflater factory = LayoutInflater.from(mStatusBarView.getContext());
+        mHomeMenuDialog = null;
+        homeMenuDialogView = null;
+        homeMenuDialogView = factory.inflate(R.layout.home_menu_dialog, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mStatusBarView.getContext());
+        mHomeMenuDialog = builder.create();
+        mHomeMenuDialog.setInverseBackgroundForced(true);
+        mHomeMenuDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
+
+        if (!mDev.hasFrontLight()) {
+            Log.i("jim_log", "does not have moon light");
+            LinearLayout moonLigthLayout = (LinearLayout)
+                homeMenuDialogView.findViewById(R.id.linearlayout_moonlight);
+            moonLigthLayout.setVisibility(View.INVISIBLE);
+            LinearLayout settingsLayout = (LinearLayout)
+                homeMenuDialogView.findViewById(R.id.linearlayout_setting);
+            settingsLayout.setVisibility(View.VISIBLE);
+        }
+
+        mHomeMenuDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                currentKeyCode = keyCode;
+                switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (mDev.hasFrontLight()) {
+                        Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
+                        mStatusBarView.getContext().sendOrderedBroadcast(intent, null);
+                    } else {
+                        Intent intent = new Intent();
+                        intent.setClassName(
+                            "com.onyx.android.launcher",
+                            "com.onyx.android.launcher.SettingsActivity");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        mContext.startActivity(intent);
+                    }
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_HOME, 102, false);
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    animateExpandNotificationsPanel();
+                    mHomeMenuDialog.dismiss();
+                    break;
+                case KeyEvent.KEYCODE_BACK:
+                    mHomeMenuDialog.dismiss();
+                    break;
+                }
+                return true;
+            }
+        });
+
+        mHomeMenuDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(final DialogInterface dialog) {
+                isHomeMenuDialogShow = false;
+                if (currentKeyCode == 21) {
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
+                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                }
+            }
+        });
+
+        mHomeMenuDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                isHomeMenuDialogShow = true;
+            }
+        });
+    }
+
+    public void sendKeyEvent(int code, int event, boolean down) {
+        try {
+            KeyEvent ev = new KeyEvent(0, 0,
+                down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
+                code, 0, 0, 0, event, KeyEvent.FLAG_FROM_SYSTEM);
+            IWindowManager.Stub
+                .asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
+                .injectKeyEvent_status_bar(ev, true);
+        } catch (RemoteException e) {
+        }
+    }
+
     // ================================================================================
     // Constructing the view
     // ================================================================================
@@ -461,12 +609,15 @@ public class PhoneStatusBar extends BaseStatusBar {
         IntentFilter intentfilter=new IntentFilter();
         intentfilter.addAction("rk.android.screenshot.SHOW");
         intentfilter.addAction("rk.android.screenshot.ACTION");
+        intentfilter.addAction(Intent.ACTION_CHANGE_LIGHT_STATE);
+        intentfilter.addAction(Intent.ACTION_HOME_MENU);
         context.registerReceiver(receiver, intentfilter);
 
         Resources res = context.getResources();
 
         updateDisplaySize(); // populates mDisplayMetrics
         loadDimens();
+        mDev = new DeviceController(context);
 
         mIconSize = res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_icon_size);
 
@@ -488,7 +639,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         mStatusBarView.setBar(this);
         
 
-        PanelHolder holder = (PanelHolder) mStatusBarWindow.findViewById(R.id.panel_holder);
+        holder = (PanelHolder) mStatusBarWindow.findViewById(R.id.panel_holder);
         mStatusBarView.setPanelHolder(holder);
 
         mNotificationPanel = (NotificationPanelView) mStatusBarWindow.findViewById(R.id.notification_panel);
@@ -504,6 +655,58 @@ public class PhoneStatusBar extends BaseStatusBar {
                         return true; // e eats everything
                     }
                 });
+
+        if (hasFrontLight()) {
+            handleLightControl();
+        } else {
+            mStatusBarWindow.findViewById(R.id.layout_light_control).setVisibility(View.GONE);
+        }
+        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        LinearLayout linearLayout_wifi_switch = (LinearLayout)
+            mStatusBarWindow.findViewById(R.id.linearlayout_wifi_switch);
+        mWifiSwitch = (ToggleButton)
+            mStatusBarWindow.findViewById(R.id.togglebutton_wifi_switch);
+        linearLayout_wifi_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWifiManager.isWifiEnabled()) {
+                    mWifiManager.setWifiEnabled(false);
+                } else {
+                    mWifiManager.setWifiEnabled(true);
+                }
+            }
+        });
+        mWifiSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mWifiManager.isWifiEnabled()) {
+                    mWifiManager.setWifiEnabled(false);
+                } else {
+                    mWifiManager.setWifiEnabled(true);
+                }
+            }
+        });
+        ImageButton mWifiSettings = (ImageButton)
+            mStatusBarWindow.findViewById(R.id.button_wifi_settings);
+        mWifiSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setAction(Settings.ACTION_WIFI_SETTINGS);
+                mContext.startActivity(intent);
+                animateCollapsePanels();
+            }
+        });
+        if (hasAudio()) {
+            handleVolumeControl();
+        } else {
+            mStatusBarWindow.findViewById(R.id.layout_custom_volume_control).setVisibility(View.GONE);
+        }
+        if (!hasWifi()) {
+            mWifiSwitch.setVisibility(View.GONE);
+            mWifiSettings.setVisibility(View.GONE);
+        }
 
         if (!ActivityManager.isHighEndGfx()) {
             mStatusBarWindow.setBackground(null);
@@ -526,11 +729,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             boolean showNav = mWindowManagerService.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
-                mNavigationBarView =
-                    (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
-
-                mNavigationBarView.setDisabledFlags(mDisabled);
-                mNavigationBarView.setBar(this);
             }
         } catch (RemoteException ex) {
             // no window manager? good luck with that
@@ -647,8 +845,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         mShowCarrierInPanel = (mCarrierLabel != null);
         if (DEBUG) Slog.v(TAG, "carrierlabel=" + mCarrierLabel + " show=" + mShowCarrierInPanel);
         if (mShowCarrierInPanel) {
-            mCarrierLabel.setVisibility(mCarrierLabelVisible ? View.VISIBLE : View.INVISIBLE);
-
             // for mobile devices, we always show mobile connection info here (SPN/PLMN)
             // for other devices, we show whatever network is connected
             if (mNetworkController.hasMobileDataFeature()) {
@@ -736,6 +932,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         context.registerReceiver(mBroadcastReceiver, filter);
 
         // listen for USER_SETUP_COMPLETE setting (per-user)
@@ -744,9 +941,151 @@ public class PhoneStatusBar extends BaseStatusBar {
         return mStatusBarView;
     }
 
+    private void handleVolumeControl() {
+        ImageButton volume_add = (ImageButton)
+            mStatusBarWindow.findViewById(R.id.imagebutton_volume_add);
+        volume_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mStatusBarView.adjustVolume(true);
+            }
+        });
+        ImageButton volume_down = (ImageButton)
+            mStatusBarWindow.findViewById(R.id.imagebutton_volume_down);
+        volume_down.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mStatusBarView.adjustVolume(false);
+            }
+        });
+    }
+
+    private void handleLightControl() {
+        mRatingBarLightSettings = (RatingBar)
+            mStatusBarWindow.findViewById(R.id.ratingbar_light_settings);
+
+        mLightSteps = Arrays.asList(mFrontLightValue);
+        if (mLightSteps != null) {
+            mRatingBarLightSettings.setNumStars(mLightSteps.size() - 1);
+            mRatingBarLightSettings.setMax(mLightSteps.size() - 1);
+        } else {
+            int numStarts = mRatingBarLightSettings.getNumStars();
+            mLightSteps = initRangeArray(numStarts);
+        }
+        Collections.sort(mLightSteps);
+
+        mLightSwitch = (ToggleButton)
+            mStatusBarWindow.findViewById(R.id.togglebutton_light_switch);
+
+        mRatingBarLightSettings.setFocusable(false);
+        mRatingBarLightSettings.setOnRatingBarChangeListener(
+            new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating,
+                    boolean fromUser) {
+                changeLightState();
+                isLongClickOpenAndCloseFrontLight = false;
+            }
+        });
+
+        setLightRatingBarDefaultProgress();
+        updateLightSwitch();
+
+        ImageButton mLightDown = (ImageButton)
+            mStatusBarWindow.findViewById(R.id.imagebutton_light_down);
+        mLightDown.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mRatingBarLightSettings.setProgress(mRatingBarLightSettings.getProgress() - 1);
+                if (mRatingBarLightSettings.getProgress() == 0) {
+                    mLightSwitch.setChecked(false);
+                }
+            }
+        });
+
+        ImageButton mLightAdd = (ImageButton)
+            mStatusBarWindow.findViewById(R.id.imagebutton_light_add);
+        mLightAdd.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mRatingBarLightSettings.getProgress() == mRatingBarLightSettings.getMax()) {
+                    setLightRatingBarProgress();
+                } else {
+                    mRatingBarLightSettings.setProgress(mRatingBarLightSettings.getProgress() + 1);
+                }
+            }
+        });
+
+        mLightSwitch.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View arg0) {
+                if (mLightSwitch.isChecked()) {
+                    mDev.openFrontLight(mContext);
+                } else {
+                    mDev.closeFrontLight(mContext);
+                }
+            }
+        });
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DeviceController.ACTION_OPEN_FRONT_LIGHT);
+        filter.addAction(DeviceController.ACTION_CLOSE_FRONT_LIGHT);
+        mContext.registerReceiver(mOpenAndCloseFrontLightReceiver, filter);
+    }
+
     @Override
     protected View getStatusBarView() {
         return mStatusBarView;
+    }
+
+    private void changeLightState() {
+        if (!isLongClickOpenAndCloseFrontLight) {
+            setFrontLightValue();
+        }
+        updateLightSwitch();
+    }
+
+    private List<Integer> initRangeArray(int numStarts) {
+        List<Integer> brightnessList = new ArrayList(numStarts);
+        for (int i = 0; i <= numStarts; i++) {
+            brightnessList.add((DeviceController.BRIGHTNESS_MAXIMUM * i) / numStarts);
+        }
+        return brightnessList;
+    }
+
+    private void setFrontLightValue() {
+        if (mLightSteps.size() <= 0) return;
+        int value = ((Integer)(mLightSteps.get(mRatingBarLightSettings
+                                          .getProgress()))).intValue();
+        mDev.setFrontLightValue(mContext, value);
+        mDev.setFrontLightConfigValue(mContext, value);
+    }
+
+    private int getIndex(int val) {
+        int index = Collections.binarySearch(mLightSteps, val);
+        if (index == -1) {
+            index = 0;
+        } else if (index < 0) {
+            if (Math.abs(index) <= mLightSteps.size()) {
+                index = Math.abs(index) - 2;
+            } else {
+                index = mLightSteps.size() - 1;
+            }
+        }
+        return index;
+    }
+
+    private boolean hasFrontLight() {
+        return mDev.hasFrontLight();
+    }
+
+    private boolean isLightOn(Context context) {
+        return mDev.getFrontLightValue(mContext) > 0;
+    }
+
+    private boolean hasWifi() {
+        return mDev.hasWifi();
+    }
+
+    private boolean hasAudio() {
+        return mDev.hasAudio();
     }
 
     @Override
@@ -797,11 +1136,19 @@ public class PhoneStatusBar extends BaseStatusBar {
         return lp;
     }
 
+    private void updateLightSwitch() {
+        if (mLightSwitch != null) {
+            if (mRatingBarLightSettings.getProgress() != 0 && !mLightSwitch.isChecked()) {
+                mLightSwitch.setChecked(true);
+            } else if (mRatingBarLightSettings.getProgress() == 0 && mLightSwitch.isChecked()) {
+                mLightSwitch.setChecked(false);
+            }
+        }
+    }
+
     @Override
     protected void updateSearchPanel() {
         super.updateSearchPanel();
-        mSearchPanelView.setStatusBarView(mNavigationBarView);
-        mNavigationBarView.setDelegateView(mSearchPanelView);
     }
 
     @Override
@@ -811,20 +1158,11 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         // we want to freeze the sysui state wherever it is
         mSearchPanelView.setSystemUiVisibility(mSystemUiVisibility);
-
-        WindowManager.LayoutParams lp =
-            (android.view.WindowManager.LayoutParams) mNavigationBarView.getLayoutParams();
-        lp.flags &= ~WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        mWindowManager.updateViewLayout(mNavigationBarView, lp);
     }
 
     @Override
     public void hideSearchPanel() {
         super.hideSearchPanel();
-        WindowManager.LayoutParams lp =
-            (android.view.WindowManager.LayoutParams) mNavigationBarView.getLayoutParams();
-        lp.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        mWindowManager.updateViewLayout(mNavigationBarView, lp);
     }
 
     protected int getStatusBarGravity() {
@@ -838,6 +1176,38 @@ public class PhoneStatusBar extends BaseStatusBar {
                     res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
         }
         return mNaturalBarHeight;
+    }
+
+    private void setLightRatingBarDefaultProgress() {
+        if (hasFrontLight()) {
+            wrapSetLightRatingBarDefaultProgress();
+        }
+    }
+
+    private void wrapSetLightRatingBarDefaultProgress() {
+        int value = 0;
+        if (isLightOn(mContext)) {
+            value = mDev.getFrontLightConfigValue(mContext);
+            mRatingBarLightSettings.setProgress(getIndex(value));
+        } else {
+            mRatingBarLightSettings.setProgress(value);
+        }
+    }
+
+    private void setLightRatingBarProgress() {
+        int value = getBrightnessOfRating(mRatingBarLightSettings.getProgress());
+        Settings.System.putInt(mContext.getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS, value);
+    }
+
+    private int getBrightnessOfRating(int value) {
+        if (value <= 10)
+            return (value * 2) + 0;
+        if (value == mRatingBarLightSettings.getMax())
+            return DeviceController.BRIGHTNESS_MAXIMUM;
+        int big_interval = (DeviceController.BRIGHTNESS_MAXIMUM - LOW_BRIGHTNESS_MAX)
+                         / (mRatingBarLightSettings.getNumStars() - 10);
+        return ((value - 10) * big_interval) + LOW_BRIGHTNESS_MAX;
     }
 
     private View.OnClickListener mRecentsClickListener = new View.OnClickListener() {
@@ -885,6 +1255,8 @@ public class PhoneStatusBar extends BaseStatusBar {
     }
 
     private void prepareNavigationBarView() {
+        if (mNavigationBarView == null) return;
+
         mNavigationBarView.reorient();
 
         mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
@@ -1216,25 +1588,9 @@ public class PhoneStatusBar extends BaseStatusBar {
             if (DEBUG) {
                 Slog.d(TAG, "making carrier label " + (makeVisible?"visible":"invisible"));
             }
-            mCarrierLabel.animate().cancel();
             if (makeVisible) {
                 mCarrierLabel.setVisibility(View.VISIBLE);
             }
-            mCarrierLabel.animate()
-                .alpha(makeVisible ? 1f : 0f)
-                //.setStartDelay(makeVisible ? 500 : 0)
-                //.setDuration(makeVisible ? 750 : 100)
-                .setDuration(150)
-                .setListener(makeVisible ? null : new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        if (!mCarrierLabelVisible) { // race
-                            mCarrierLabel.setVisibility(View.INVISIBLE);
-                            mCarrierLabel.setAlpha(0f);
-                        }
-                    }
-                })
-                .start();
         }
     }
 
@@ -1399,30 +1755,22 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         if ((diff & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
             if ((state & StatusBarManager.DISABLE_NOTIFICATION_ICONS) != 0) {
+                Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: yes");
                 if (mTicking) {
-                    haltTicker();
+                    mNotificationIcons.setVisibility(View.INVISIBLE);
+                    mTicker.halt();
+                } else {
+                    setNotificationIconVisibility(false, com.android.internal.R.anim.fade_out);
                 }
-
-                mNotificationIcons.animate()
-                    .alpha(0f)
-                    .translationY(mNaturalBarHeight*0.5f)
-                    .setDuration(175)
-                    .setInterpolator(new DecelerateInterpolator(1.5f))
-                    .setListener(mMakeIconsInvisible)
-                    .start();
             } else {
-                mNotificationIcons.setVisibility(View.VISIBLE);
-                mNotificationIcons.animate()
-                    .alpha(1f)
-                    .translationY(0)
-                    .setStartDelay(0)
-                    .setInterpolator(new DecelerateInterpolator(1.5f))
-                    .setDuration(175)
-                    .start();
+                Slog.d(TAG, "DISABLE_NOTIFICATION_ICONS: no");
+                if (!mExpandedVisible) {
+                    setNotificationIconVisibility(true, com.android.internal.R.anim.fade_in);
+                }
             }
         } else if ((diff & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
             if (mTicking && (state & StatusBarManager.DISABLE_NOTIFICATION_TICKER) != 0) {
-                haltTicker();
+                mTicker.halt();
             }
         }
     }
@@ -1581,6 +1929,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     @Override
     public void animateExpandNotificationsPanel() {
+        setLightRatingBarDefaultProgress();
+
         if (SPEW) Slog.d(TAG, "animateExpand: mExpandedVisible=" + mExpandedVisible);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return ;
@@ -1970,8 +2320,10 @@ public class PhoneStatusBar extends BaseStatusBar {
 
             int fs = vis & View.GONE;
             if (fs != 0) {
+              if (mNavigationBarView != null)
                 mNavigationBarView.setVisibility(View.GONE);
             } else {
+              if (mNavigationBarView != null)
                 mNavigationBarView.setVisibility(View.VISIBLE);
             }
 
@@ -2084,7 +2436,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (n.notification.tickerText != null && mStatusBarWindow.getWindowToken() != null) {
             if (0 == (mDisabled & (StatusBarManager.DISABLE_NOTIFICATION_ICONS
                             | StatusBarManager.DISABLE_NOTIFICATION_TICKER))) {
-                mTicker.addEntry(n);
             }
         }
     }
@@ -2099,24 +2450,17 @@ public class PhoneStatusBar extends BaseStatusBar {
             mTicking = true;
             mStatusBarContents.setVisibility(View.GONE);
             mTickerView.setVisibility(View.VISIBLE);
-            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_in, null));
-            mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
         }
 
         @Override
         public void tickerDone() {
             mStatusBarContents.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
-            mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
-            mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_out,
-                        mTickingDoneListener));
         }
 
         public void tickerHalting() {
             mStatusBarContents.setVisibility(View.VISIBLE);
             mTickerView.setVisibility(View.GONE);
-            mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.fade_in, null));
-            // we do not animate the ticker away at this point, just get rid of it (b/6992707)
         }
     }
 
@@ -2416,6 +2760,18 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     };
 
+    private BroadcastReceiver mOpenAndCloseFrontLightReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                if (intent != null && intent.getAction() != null &&
+                        (DeviceController.ACTION_OPEN_FRONT_LIGHT.equals(intent.getAction()) ||
+                        DeviceController.ACTION_CLOSE_FRONT_LIGHT.equals(intent.getAction()))) {
+                    isLongClickOpenAndCloseFrontLight = true;
+                    int front_light_value = intent.getIntExtra(DeviceController.INTENT_FRONT_LIGHT_VALUE, 0);
+                    mRatingBarLightSettings.setProgress(getIndex(front_light_value));
+                }
+            }
+        };
+
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             if (DEBUG) Slog.v(TAG, "onReceive: " + intent);
@@ -2450,6 +2806,32 @@ public class PhoneStatusBar extends BaseStatusBar {
                 // work around problem where mDisplay.getRotation() is not stable while screen is off (bug 7086018)
                 repositionNavigationBar();
                 notifyNavigationBarScreenOn(true);
+            }
+            else if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+                if (WifiManager.WIFI_STATE_DISABLED ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setChecked(false);
+                    mWifiSwitch.setClickable(true);
+                }
+                else if (WifiManager.WIFI_STATE_ENABLED ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setClickable(true);
+                    mWifiSwitch.setChecked(true);
+                }
+                else if (WifiManager.WIFI_STATE_ENABLING ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)
+                     || WifiManager.WIFI_STATE_DISABLING ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)
+                     || WifiManager.WIFI_STATE_UNKNOWN ==
+                        intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                           WifiManager.WIFI_STATE_DISABLED)) {
+                    mWifiSwitch.setClickable(false);
+                    mWifiSwitch.setChecked(false);
+                }
             }
         }
     };

@@ -265,4 +265,9 @@ interface IWindowManager
      * credentials.
      */
     void showAssistant();
+
+    /**
+     * @hide
+     */
+    boolean injectKeyEvent_status_bar(in KeyEvent ev, boolean sync);
 }

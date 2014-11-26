@@ -105,6 +105,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.hardware.DeviceController;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -696,6 +697,47 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                         }
                     }
                 }, filter);
+
+        int key_map_mode = Settings.System.getInt(mContext.getContentResolver(),
+                           Settings.System.KEY_MAP_MODE, 1);
+        setKeyMapMode(key_map_mode);
+    }
+
+    private DeviceController mDeviceController;
+    private DeviceController getDeviceController() {
+        if (mDeviceController == null) {
+            mDeviceController = new DeviceController(mContext);
+        }
+        return mDeviceController;
+    }
+
+    public void setKeyMapMode(int mode) {
+        Slog.i(TAG, ">>>>>>>>>has 5-way buttons? " + getDeviceController().has5WayButton());
+        if (getDeviceController().has5WayButton()) {
+            writeFile(mode);
+        }
+    }
+
+    private static final String KEY_MAP_MODE_FILE =
+        "/sys/devices/platform/rk29-keypad/key_switching";
+
+    private void writeFile(int value) {
+        String message = Integer.toString(value);
+        FileOutputStream fout = null;
+        try {
+            fout = new java.io.FileOutputStream(KEY_MAP_MODE_FILE);
+            byte[] bytes = message.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (fout != null) fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return;
     }
 
     private void resetDefaultImeLocked(Context context) {

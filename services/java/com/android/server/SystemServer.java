@@ -325,6 +325,9 @@ class ServerThread extends Thread {
             display.setWindowManager(wm);
             display.setInputManager(inputManager);
 
+            Slog.i(TAG, "Onyx WifiLock Manager Service");
+            ServiceManager.addService("onyx_wifi_lock_manager_service", new OnyxWifiLockManagerService(context));
+
             // Skip Bluetooth if we have an emulator kernel
             // TODO: Use a more reliable check to see if this product should
             // support Bluetooth - see bug 988521

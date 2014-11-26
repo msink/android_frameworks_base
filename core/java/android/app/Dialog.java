@@ -291,6 +291,7 @@ public class Dialog implements DialogInterface, Window.Callback,
      */
     public void hide() {
         if (mDecor != null) {
+            mDecor.requestFullWhenHidden();
             mDecor.setVisibility(View.GONE);
         }
     }
@@ -319,6 +320,7 @@ public class Dialog implements DialogInterface, Window.Callback,
             return;
         }
 
+        mDecor.requestFullWhenHidden();
         try {
             mWindowManager.removeView(mDecor);
         } finally {

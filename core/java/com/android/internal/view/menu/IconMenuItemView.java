@@ -99,6 +99,7 @@ public final class IconMenuItemView extends TextView implements MenuView.ItemVie
             setTextAppearance(mTextAppearanceContext, mTextAppearance);
         }
 
+        updateTextColorByState();
         setTitle(title);
         setIcon(icon);
     }
@@ -110,6 +111,16 @@ public final class IconMenuItemView extends TextView implements MenuView.ItemVie
         
         setVisibility(itemData.isVisible() ? View.VISIBLE : View.GONE);
         setEnabled(itemData.isEnabled());
+    }
+
+    private void updateTextColorByState() {
+        if (mItemData != null) {
+            if (mItemData.isEnabled()) {
+                setTextColor(0xff000000);
+            } else {
+                setTextColor(0xff888888);
+            }
+        }
     }
 
     public void setItemData(MenuItemImpl data) {
@@ -179,11 +190,8 @@ public final class IconMenuItemView extends TextView implements MenuView.ItemVie
             /* Set the bounds of the icon since setCompoundDrawables needs it. */
             icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
             
-            // Set the compound drawables
-            setCompoundDrawables(null, icon, null, null);
-            
             // When there is an icon, make sure the text is at the bottom
-            setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+            setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
 
             /*
              * Request a layout to reposition the icon. The positioning of icon
@@ -195,7 +203,7 @@ public final class IconMenuItemView extends TextView implements MenuView.ItemVie
             setCompoundDrawables(null, null, null, null);
             
             // When there is no icon, make sure the text is centered vertically
-            setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         }
     }
 

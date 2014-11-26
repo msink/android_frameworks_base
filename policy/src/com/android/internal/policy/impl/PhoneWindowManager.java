@@ -37,6 +37,7 @@ import android.content.res.TypedArray;
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.hardware.DeviceController;
 import android.media.AudioManager;
 import android.media.IAudioService;
 import android.media.Ringtone;
@@ -185,6 +186,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final int LONG_PRESS_HOME_RECENT_DIALOG = 1;
     static final int LONG_PRESS_HOME_RECENT_SYSTEM_UI = 2;
 
+    static final int LONG_PRESS_BACK_NOTHING = 0;
+    static final int LONG_PRESS_BACK_TOGGLE_FRONT_LIGHT = 1;
+
     static final int APPLICATION_MEDIA_SUBLAYER = -2;
     static final int APPLICATION_MEDIA_OVERLAY_SUBLAYER = -1;
     static final int APPLICATION_PANEL_SUBLAYER = 1;
@@ -241,6 +245,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     final Object mServiceAquireLock = new Object();
     Vibrator mVibrator; // Vibrator for giving feedback of orientation changes
     SearchManager mSearchManager;
+
+    boolean mSimulatePageDownDownSent = false;
+    boolean mSimulatePageDownUpSent = false;
+    boolean mSimulatePageUpDownSent = false;
+    boolean mSimulatePageUpUpSent = false;
 
     // Vibrator pattern for haptic feedback of a long press.
     long[] mLongPressVibePattern;
@@ -326,6 +335,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // The last window we were told about in focusChanged.
     WindowState mFocusedWindow;
     IApplicationToken mFocusedApp;
+
+    DeviceController mDev;
 
     private static final class PointerLocationInputEventReceiver extends InputEventReceiver {
         private final PointerLocationView mView;
@@ -461,6 +472,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     // What we do when the user long presses on home
     private int mLongPressOnHomeBehavior = -1;
+
+    boolean mBackPressed;
+    private int mLongPressOnBackBehavior = -1;
+    boolean mLockOnKeyDown = true;
+    boolean mLockOnKeyUp = true;
+    boolean mMenuPressed = false;
+    boolean mPageDownPressed = false;
+    boolean mPageUpPressed = false;
+    boolean mDpadCenterPressed = false;
 
     // Screenshot trigger states
     // Time to volume and power must be pressed within this interval of each other.
@@ -749,6 +769,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     };
 
+    int getKeyOption() {
+        int keyOption = Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.KEY_MAP_MODE, 1);
+        return keyOption;
+    }
+
     void showGlobalActionsDialog() {
         if (mGlobalActions == null) {
             mGlobalActions = new GlobalActions(mContext, mWindowManagerFuncs);
@@ -801,6 +827,43 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mStatusBarService = null;
             }
         }
+    }
+
+    private void handleLongPressOnBack() {
+        Slog.i(TAG, "handleLongPressOnBack, mLongPressOnBackBehavior = " + mLongPressOnBackBehavior);
+        if (mLongPressOnBackBehavior < 0) {
+            mLongPressOnBackBehavior = mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_longPressOnBackBehavior);
+            Slog.i(TAG, "less than 0, set behaviour -> " + mLongPressOnBackBehavior);
+            if (mLongPressOnBackBehavior < LONG_PRESS_BACK_NOTHING ||
+                    mLongPressOnBackBehavior > LONG_PRESS_BACK_TOGGLE_FRONT_LIGHT) {
+                mLongPressOnBackBehavior = LONG_PRESS_BACK_NOTHING;
+            }
+        }
+
+        if (mLongPressOnBackBehavior != LONG_PRESS_BACK_NOTHING) {
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+        }
+
+        if (mLongPressOnBackBehavior == LONG_PRESS_BACK_TOGGLE_FRONT_LIGHT) {
+            Slog.i(TAG, "is toggle front light");
+            getDeviceController().toggleFrontLight();
+        }
+    }
+
+    private void sendMenuKeyEvent() {
+        if (!mDev.isTouchable()) {
+            Intent intent = new Intent(Intent.ACTION_HOME_MENU);
+            mContext.sendOrderedBroadcast(intent, null);
+        }
+    }
+
+    private DeviceController mDeviceController;
+    private DeviceController getDeviceController() {
+        if (mDeviceController == null) {
+            mDeviceController = new DeviceController(mContext);
+        }
+        return mDeviceController;
     }
 
     /**
@@ -860,6 +923,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             // don't create KeyguardViewMediator if headless
             mKeyguardMediator = new KeyguardViewMediator(context, null);
         }
+        mDev = new DeviceController(mContext);
         mHandler = new PolicyHandler();
         mOrientationListener = new MyOrientationListener(mContext);
         try {
@@ -1788,6 +1852,75 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
         };
 
+    Runnable mDpadCenterLongPress = new Runnable() {
+        public void run() {
+            mDpadCenterPressed = false;
+            handleLongPressOnBack();
+        }
+    };
+
+    Runnable mBackLongPress = new Runnable() {
+        public void run() {
+            mBackPressed = false;
+            if (mDev.has5WayButton()) {
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        if (getKeyOption() == 1) {
+                            sendMenuKeyEvent();
+                        } else if (getKeyOption() == 2) {
+                        } else if (getKeyOption() == 3) {
+                            sendMenuKeyEvent();
+                        } else if (getKeyOption() == 4) {
+                        }
+                    }
+                });
+                return;
+            }
+            handleLongPressOnBack();
+        }
+    };
+
+    Runnable mPageDownLongPress = new Runnable() {
+        public void run() {
+            mPageDownPressed = false;
+            mHandler.post(new Runnable() {
+                public void run() {
+                    if (getKeyOption() == 1) {
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+                    } else if (getKeyOption() == 2) {
+                        sendMenuKeyEvent();
+                    } else if (getKeyOption() == 3) {
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+                    } else if (getKeyOption() == 4) {
+                        sendMenuKeyEvent();
+                    }
+                }
+            });
+        }
+    };
+
+    Runnable mPageUpLongPress = new Runnable() {
+        public void run() {
+            mPageUpPressed = false;
+            mHandler.post(new Runnable() {
+                public void run() {
+                    if (getKeyOption() == 1) {
+                        sendMenuKeyEvent();
+                    } else if (getKeyOption() == 2) {
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                    } else if (getKeyOption() == 3) {
+                    } else if (getKeyOption() == 4) {
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                    }
+                }
+            });
+        }
+    };
+
     /** {@inheritDoc} */
     @Override
     public long interceptKeyBeforeDispatching(WindowState win, KeyEvent event, int policyFlags) {
@@ -1803,6 +1936,99 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             Log.d(TAG, "interceptKeyTi keyCode=" + keyCode + " down=" + down + " repeatCount="
                     + repeatCount + " keyguardOn=" + keyguardOn + " mHomePressed=" + mHomePressed
                     + " canceled=" + canceled);
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && !down) {
+            mHandler.removeCallbacks(mBackLongPress);
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN && !down) {
+            mHandler.removeCallbacks(mPageDownLongPress);
+        }
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP && !down) {
+            mHandler.removeCallbacks(mPageUpLongPress);
+        }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && !down) {
+            mHandler.removeCallbacks(mDpadCenterLongPress);
+        }
+
+        if (mDpadCenterPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER) && !down) {
+                mDpadCenterPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return 0;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER, 28, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER, 28, false);
+                        return -1;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring DPAD_CENTER; event canceled");
+                }
+            }
+        }
+
+        if (mBackPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_BACK) && !down) {
+                mBackPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return 0;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                        return -1;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring back; event canceled.");
+                }
+            }
+        }
+
+        if (mPageUpPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_PAGE_UP) && !down) {
+                mPageUpPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return 0;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 104, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 104, false);
+                        return -1;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring pagedown; event canceled.");
+                }
+            }
+        }
+
+        if (mPageDownPressed) {
+            if ((keyCode == KeyEvent.KEYCODE_PAGE_DOWN) && !down) {
+                mPageDownPressed = false;
+                if (!canceled) {
+                    if (!mLockOnKeyUp) {
+                        mLockOnKeyUp = true;
+                        return 0;
+                    } else {
+                        mLockOnKeyUp = false;
+                        mLockOnKeyDown = false;
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, false);
+                        return -1;
+                    }
+                } else {
+                    Log.i(TAG, "Ignoring pagedown; event canceled.");
+                }
+            }
         }
 
         // If we think we might have a volume down & power key chord on the way
@@ -1981,6 +2207,63 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     if (!keyguardOn) {
                         launchAssistAction();
                     }
+                }
+            }
+            return -1;
+
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mBackLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mBackPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+            return -1;
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mDpadCenterLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mDpadCenterPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+            return -1;
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mPageDownLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mPageDownPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+            return -1;
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            if (down && repeatCount == 0) {
+                if (!keyguardOn) {
+                    mHandler.postDelayed(mPageUpLongPress, ViewConfiguration.getGlobalActionKeyTimeout());
+                }
+                mPageUpPressed = true;
+                if (!mLockOnKeyDown) {
+                    mLockOnKeyDown = true;
+                    return 0;
+                } else {
+                    return -1;
                 }
             }
             return -1;
@@ -4726,5 +5009,28 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 pw.print(" mUpsideDownRotation="); pw.println(mUpsideDownRotation);
         pw.print(prefix); pw.print("mHdmiRotation="); pw.print(mHdmiRotation);
                 pw.print(" mHdmiRotationLock="); pw.println(mHdmiRotationLock);
+    }
+
+    public void sendKeyEventWithEventTime(int keyCode, int event, boolean down, long uptimeMillis) {
+        long downTime = android.os.SystemClock.uptimeMillis();
+        KeyEvent ev = new KeyEvent(downTime, uptimeMillis,
+                down ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP,
+                keyCode, 0, 0, 0, event, 8);
+        try {
+            IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE))
+                .injectKeyEvent_status_bar(ev, true);
+        } catch (RemoteException e) {
+            Slog.e(TAG, "RemoteException when send key event to status bar", e);
+        }
+    }
+
+    private void sendKeyEvent(int keyCode, int event, boolean down) {
+        long eventTime = SystemClock.uptimeMillis();
+        sendKeyEventWithEventTime(keyCode, event, down, eventTime);
+    }
+
+    private void sendDownAndUpKeyEvent(int keyCode, int event, boolean down) {
+        long uptime = SystemClock.uptimeMillis();
+        sendKeyEventWithEventTime(keyCode, event, down, uptime + 120);
     }
 }

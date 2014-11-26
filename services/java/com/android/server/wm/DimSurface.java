@@ -94,7 +94,6 @@ class DimSurface {
 
     void hide() {
         if (mDimSurface == null) {
-            Slog.e(TAG, "hide: no Surface");
             return;
         }
 

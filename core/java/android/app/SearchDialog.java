@@ -443,7 +443,6 @@ public class SearchDialog extends Dialog {
             Log.w(LOG_TAG, mLaunchComponent + " not found, using generic app icon");
         }
         mAppIcon.setImageDrawable(icon);
-        mAppIcon.setVisibility(View.VISIBLE);
         mSearchPlate.setPadding(SEARCH_PLATE_LEFT_PADDING_NON_GLOBAL, mSearchPlate.getPaddingTop(), mSearchPlate.getPaddingRight(), mSearchPlate.getPaddingBottom());
     }
 

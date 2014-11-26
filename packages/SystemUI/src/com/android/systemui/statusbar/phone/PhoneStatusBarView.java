@@ -17,16 +17,33 @@
 package com.android.systemui.statusbar.phone;
 
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.StatusBarManager;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.hardware.DeviceController;
+import android.hardware.input.InputManager;
+import android.media.AudioManager;
+import android.os.Build;
+import android.os.Bundle;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Slog;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.Button;
+import android.widget.ImageView;
 import com.android.systemui.R;
+import com.android.systemui.statusbar.policy.Clock;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PhoneStatusBarView extends PanelBar {
     private static final String TAG = "PhoneStatusBarView";
@@ -43,6 +60,18 @@ public class PhoneStatusBarView extends PanelBar {
     PanelView mNotificationPanel, mSettingsPanel;
     private boolean mShouldFade;
 
+    Button mbut_home;
+    Button mbut_menu;
+    ImageView line_image;
+    ImageView mbut_sync;
+    ImageView mbut_a2mode;
+
+    private long delay;
+    private Timer timer = null;
+    private TimerTask mTask = null;
+
+    public static boolean isA2Mode = false;
+
     public PhoneStatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -55,6 +84,154 @@ public class PhoneStatusBarView extends PanelBar {
             mSettingsPanelDragzoneFrac = 0f;
         }
         mFullWidthNotifications = mSettingsPanelDragzoneFrac <= 0f;
+    }
+
+    private void updateUI() {
+        DeviceController ctrl = new DeviceController(getContext());
+        if (ctrl.isTouchable()) {
+            mbut_sync.setVisibility(View.VISIBLE);
+            mbut_menu.setVisibility(View.VISIBLE);
+            line_image.setVisibility(View.VISIBLE);
+            mbut_a2mode.setVisibility(View.VISIBLE);
+            mbut_home.setVisibility(View.VISIBLE);
+        } else {
+            mbut_sync.setVisibility(View.GONE);
+            mbut_menu.setVisibility(View.GONE);
+            line_image.setVisibility(View.GONE);
+            mbut_a2mode.setVisibility(View.GONE);
+            mbut_home.setVisibility(View.GONE);
+        }
+    }
+
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
+        mbut_home = (Button) findViewById(R.id.status_bar_home);
+        mbut_menu = (Button) findViewById(R.id.status_bar_menu);
+        mbut_sync = (ImageView) findViewById(R.id.status_bar_sync);
+        line_image = (ImageView) findViewById(R.id.line_status_bar);
+        Clock clock = (Clock) findViewById(R.id.clock);
+        mbut_a2mode = (ImageView) findViewById(R.id.status_bar_a2);
+
+        updateUI();
+
+        mbut_home.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                sendKeyEvent(KeyEvent.KEYCODE_HOME);
+            }
+        });
+
+        clock.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!mBar.mExpandedVisible) {
+                    mBar.animateExpandNotificationsPanel();
+                } else {
+                    mBar.makeExpandedInvisible();
+                }
+            }
+        });
+
+        mbut_menu.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mBar.mExpandedVisible) {
+                    mBar.makeExpandedInvisible();
+                    delay = 1000;
+                } else {
+                    delay = 0;
+                }
+                sendMenuKeyEvent();
+            }
+        });
+
+        if (Build.BRAND.equalsIgnoreCase("Tagus")) {
+            mbut_a2mode.setVisibility(View.GONE);
+            mbut_sync.setVisibility(View.VISIBLE);
+        } else {
+            mbut_sync.setVisibility(View.GONE);
+        }
+
+        mbut_sync.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mBar.mExpandedVisible) {
+                    mBar.makeExpandedInvisible();
+                }
+                Intent intent = new android.content.Intent();
+                intent.setClassName("com.onyx.android.bookstore",
+                    "com.onyx.android.bookstore.ui.Bookshelf2Activity");
+                Bundle bundle = new Bundle();
+                bundle.putString("listing_type", "CLOUD");
+                intent.putExtras(bundle);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(intent);
+            }
+        });
+
+        mbut_a2mode.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!isA2Mode) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle(R.string.a2_select_dialog_title);
+                    builder.setCancelable(true);
+                    builder.setSingleChoiceItems(R.array.a2mode, 0,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which){
+                                if (which == 0) {
+                                    requestEpdMode(View.EINK_MODE.EPD_BLACK_WHITE);
+                                    mbut_a2mode.setImageResource(R.drawable.refresh_a2);
+                                    isA2Mode = true;
+                                    dialog.cancel();
+                                } else {
+                                    requestEpdMode(View.EINK_MODE.EPD_A2);
+                                    mbut_a2mode.setImageResource(R.drawable.refresh_a2);
+                                    isA2Mode = true;
+                                    dialog.cancel();
+                                }
+                            }
+                        });
+                    builder.setPositiveButton(R.string.datatransfer_button_cancel,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+                    AlertDialog alert = builder.create();
+                    alert.getWindow().setType(WindowManager
+                        .LayoutParams.TYPE_SYSTEM_ALERT);
+                    alert.show();
+                } else {
+                    isA2Mode = false;
+                    mbut_a2mode.setImageResource(R.drawable.refresh);
+                    requestEpdMode(View.EINK_MODE.EPD_FULL);
+                }
+                invalidate();
+            }
+        });
+    }
+
+    private void sendMenuKeyEvent() {
+        if (mTask != null) {
+            mTask.cancel();
+        }
+        mTask = new TimerTask() {
+            public void run() {
+                sendKeyEvent(KeyEvent.KEYCODE_MENU);
+            }
+        };
+        timer = new Timer(true);
+        timer.schedule(mTask, delay);
+    }
+
+    private void sendKeyEvent(int keycode) {
+        long now = android.os.SystemClock.uptimeMillis();
+        injectKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+                keycode, 0, 0, -1, 0, 0, 0x101));
+        injectKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP,
+                keycode, 0, 0, -1, 0, 0, 0x101));
+    }
+
+    private void injectKeyEvent(KeyEvent event) {
+        Log.i(TAG, "injectKeyEvent: " + event);
+        InputManager.getInstance().injectInputEvent(event, 2);
     }
 
     public void setBar(PhoneStatusBar bar) {
@@ -173,7 +350,7 @@ public class PhoneStatusBarView extends PanelBar {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return mBar.interceptTouchEvent(event) || super.onTouchEvent(event);
+        return true;
     }
 
     @Override
@@ -221,5 +398,25 @@ public class PhoneStatusBarView extends PanelBar {
         }
 
         mBar.updateCarrierLabelVisibility(false);
+    }
+
+    public void adjustVolume(boolean opition) {
+        AudioManager audioManager = (AudioManager)
+            getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null) {
+            if (opition) {
+                audioManager.adjustSuggestedStreamVolume(
+                    AudioManager.ADJUST_RAISE,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            } else {
+                audioManager.adjustSuggestedStreamVolume (
+                    AudioManager.ADJUST_LOWER,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            }
+        }
     }
 }
