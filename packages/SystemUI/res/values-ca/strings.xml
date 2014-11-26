@@ -40,12 +40,14 @@
     <string name="invalid_charger" msgid="4549105996740522523">"Càrrega d\'USB no admesa."\n"Utilitza només el carregador proporcionat."</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Ús de la bateria"</string>
     <string name="status_bar_settings_settings_button" msgid="3023889916699270224">"Configuració"</string>
-    <string name="status_bar_settings_wifi_button" msgid="1733928151698311923">"Wi-Fi"</string>
+    <string name="status_bar_settings_wifi_button" msgid="1733928151698311923">"WiFi"</string>
     <string name="status_bar_settings_airplane" msgid="4879879698500955300">"Mode d\'avió"</string>
     <string name="status_bar_settings_auto_rotation" msgid="3790482541357798421">"Gira pantalla automàticament"</string>
     <string name="status_bar_settings_mute_label" msgid="554682549917429396">"Silen."</string>
     <string name="status_bar_settings_auto_brightness_label" msgid="511453614962324674">"AUTO."</string>
     <string name="status_bar_settings_notifications" msgid="397146176280905137">"Notificacions"</string>
+    <string name="status_bar_settings_battery_meter_format">%d%%</string>
+    <string name="status_bar_network_name_separator">|</string>
     <string name="bluetooth_tethered" msgid="7094101612161133267">"Bluetooth ancorat"</string>
     <string name="status_bar_input_method_settings_configure_input_methods" msgid="3504292471512317827">"Configura els mètodes d\'entrada"</string>
     <string name="status_bar_use_physical_keyboard" msgid="7551903084416057810">"Teclat físic"</string>
@@ -100,12 +102,12 @@
     <string name="accessibility_data_two_bars" msgid="6166018492360432091">"Senyal de dades: dues barres."</string>
     <string name="accessibility_data_three_bars" msgid="9167670452395038520">"Senyal de dades: tres barres."</string>
     <string name="accessibility_data_signal_full" msgid="2708384608124519369">"Senyal de dades: complet."</string>
-    <string name="accessibility_wifi_off" msgid="3177380296697933627">"Wi-Fi desactivada."</string>
-    <string name="accessibility_no_wifi" msgid="1425476551827924474">"Wi-Fi desconnectada."</string>
-    <string name="accessibility_wifi_one_bar" msgid="7735893178010724377">"Senyal Wi-Fi: una barra."</string>
+    <string name="accessibility_wifi_off" msgid="3177380296697933627">"WiFi desactivada."</string>
+    <string name="accessibility_no_wifi" msgid="1425476551827924474">"WiFi desconnectada."</string>
+    <string name="accessibility_wifi_one_bar" msgid="7735893178010724377">"Senyal WiFi: una barra."</string>
     <string name="accessibility_wifi_two_bars" msgid="4994274250497262434">"Senyal Wi-Fi: dues barres."</string>
-    <string name="accessibility_wifi_three_bars" msgid="3495755044276588384">"Senyal Wi-Fi: tres barres."</string>
-    <string name="accessibility_wifi_signal_full" msgid="6853561303586480376">"Senyal Wi-Fi: complet."</string>
+    <string name="accessibility_wifi_three_bars" msgid="3495755044276588384">"Senyal WiFi: tres barres."</string>
+    <string name="accessibility_wifi_signal_full" msgid="6853561303586480376">"Senyal WiFi: complet."</string>
     <string name="accessibility_no_wimax" msgid="4329180129727630368">"Sense WiMAX."</string>
     <string name="accessibility_wimax_one_bar" msgid="4170994299011863648">"Una barra de WiMAX."</string>
     <string name="accessibility_wimax_two_bars" msgid="9176236858336502288">"Dues barres de WiMAX."</string>
@@ -134,9 +136,7 @@
     <string name="accessibility_no_sim" msgid="8274017118472455155">"No hi ha cap targeta SIM."</string>
     <string name="accessibility_bluetooth_tether" msgid="4102784498140271969">"Ancoratge de Bluetooth"</string>
     <string name="accessibility_airplane_mode" msgid="834748999790763092">"Mode d\'avió."</string>
-    <!-- String.format failed for translation -->
-    <!-- no translation found for accessibility_battery_level (7451474187113371965) -->
-    <skip />
+    <string name="accessibility_battery_level">%d per cent de bateria</string>
     <string name="accessibility_settings_button" msgid="799583911231893380">"Configuració del sistema."</string>
     <string name="accessibility_notifications_button" msgid="4498000369779421892">"Notificacions."</string>
     <string name="accessibility_remove_notification" msgid="3603099514902182350">"Esborra la notificació."</string>
@@ -164,7 +164,7 @@
     <string name="data_usage_disabled_dialog" msgid="3853117269051806280">"Has arribat al límit especificat d\'utilització de dades."\n\n"Si has reactivat les dades, és possible que l\'operador et faci algun càrrec."</string>
     <string name="data_usage_disabled_dialog_enable" msgid="7729772039208664606">"Torna a activar les dades"</string>
     <string name="status_bar_settings_signal_meter_disconnected" msgid="1940231521274147771">"No hi ha connexió a Internet"</string>
-    <string name="status_bar_settings_signal_meter_wifi_nossid" msgid="6557486452774597820">"Wi-Fi: connectada"</string>
+    <string name="status_bar_settings_signal_meter_wifi_nossid" msgid="6557486452774597820">"WiFi: connectada"</string>
     <string name="gps_notification_searching_text" msgid="8574247005642736060">"S\'està cercant un GPS"</string>
     <string name="gps_notification_found_text" msgid="4619274244146446464">"S\'ha establert la ubicació per GPS"</string>
     <string name="accessibility_clear_all" msgid="5235938559247164925">"Esborra totes les notificacions."</string>
@@ -195,14 +195,28 @@
     <string name="quick_settings_settings_label" msgid="5326556592578065401">"Configuració"</string>
     <string name="quick_settings_time_label" msgid="4635969182239736408">"Hora"</string>
     <string name="quick_settings_user_label" msgid="5238995632130897840">"Jo"</string>
-    <string name="quick_settings_wifi_label" msgid="9135344704899546041">"Wi-Fi"</string>
+    <string name="quick_settings_wifi_label" msgid="9135344704899546041">"WiFi"</string>
     <string name="quick_settings_wifi_not_connected" msgid="7171904845345573431">"Desconnectat"</string>
     <string name="quick_settings_wifi_no_network" msgid="2221993077220856376">"No hi ha cap xarxa"</string>
-    <string name="quick_settings_wifi_off_label" msgid="7558778100843885864">"Wi-Fi desconnectada"</string>
-    <string name="quick_settings_wifi_display_label" msgid="6893592964463624333">"Pantalla Wi-Fi"</string>
+    <string name="quick_settings_wifi_off_label" msgid="7558778100843885864">"WiFi desconnectada"</string>
+    <string name="quick_settings_wifi_display_label" msgid="6893592964463624333">"Pantalla WiFi"</string>
     <string name="quick_settings_wifi_display_no_connection_label" msgid="2355298740765736918">"Pantalla sense fil"</string>
     <string name="quick_settings_brightness_dialog_title" msgid="8599674057673605368">"Brillantor"</string>
     <string name="quick_settings_brightness_dialog_auto_brightness_label" msgid="5064982743784071218">"AUTOMÀTICA"</string>
     <string name="status_bar_help_title" msgid="1199237744086469217">"Les notificacions apareixen aquí"</string>
     <string name="status_bar_help_text" msgid="7874607155052076323">"Accedeix-hi en qualsevol moment: només has de fer lliscar el dit cap avall."\n"Torna a fer lliscar el dit cap avall per fer que es mostrin els controls del sistema."</string>
+
+    <string name="sdcard_unmount">"L'emmagatzematge intern està desmuntat"</string>
+    <string name="external_sd_unmount">La SD card està desmuntada</string>
+    <string name="usb_storage_unmount">"L'emmagatzematge intern està desmuntat"</string>
+    <string name="datatransfer_button_ok">OK</string>
+    <string name="datatransfer_button_cancel">Cancel·lar</string>
+    <string name="datatransfer_info">"Connectem a l'ordinador?"</string>
+    <string name="datatransfer_button_disable">Desconnectar emmagatzematge USB</string>
+    <string name="a2_select_dialog_title">Mode A2</string>
+    <string-array name="a2mode">
+        <item>Millor qualitat</item>
+        <item>Millor rendiment</item>
+    </string-array>
+    <string name="compat_mode_standard_screen_on">Completar pantalla estàndard</string>
 </resources>

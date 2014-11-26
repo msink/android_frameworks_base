@@ -26,7 +26,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:orientation="horizontal"
-    android:gravity="@integer/kg_selector_gravity"
+    android:gravity=""
     android:contentDescription="@string/keyguard_accessibility_slide_area"
 
     prvandroid:targetDrawables="@array/lockscreen_targets_unlock_only"

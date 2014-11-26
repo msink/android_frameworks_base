@@ -39,8 +39,8 @@
             android:layout_marginBottom="16dip"
             android:layout_marginStart="16dip"
             android:layout_marginEnd="6dip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             />
 
         <!-- divider -->
@@ -61,8 +61,8 @@
             android:layout_marginBottom="16dip"
             android:layout_marginStart="6dip"
             android:layout_marginEnd="8dip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             />
 
     </LinearLayout>
@@ -76,8 +76,8 @@
         android:layout_marginBottom="16dip"
         android:layout_marginStart="8dip"
         android:layout_marginEnd="16dip"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         />
 
 </LinearLayout>

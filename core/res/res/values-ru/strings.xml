@@ -29,7 +29,6 @@
     <string name="fileSizeSuffix" msgid="9164292791500531949">"<xliff:g id="NUMBER">%1$s</xliff:g> <xliff:g id="UNIT">%2$s</xliff:g>"</string>
     <string name="untitled" msgid="4638956954852782576">"&lt;Без названия&gt;"</string>
     <string name="ellipsis" msgid="7899829516048813237">"…"</string>
-    <string name="ellipsis_two_dots" msgid="1228078994866030736">"..."</string>
     <string name="emptyPhoneNumber" msgid="7694063042079676517">"(Нет номера телефона)"</string>
     <string name="unknownName" msgid="2277556546742746522">"(Неизвестно)"</string>
     <string name="defaultVoiceMailAlphaTag" msgid="2660020990097733077">"Голосовая почта"</string>
@@ -143,7 +142,7 @@
     <string name="silent_mode_vibrate" msgid="7072043388581551395">"Вибросигнал"</string>
     <string name="silent_mode_ring" msgid="8592241816194074353">"Звонок включен"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Выключение..."</string>
-    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Планшетный ПК будет отключен."</string>
+    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Вы хотите выключить устройство?"</string>
     <string name="shutdown_confirm" product="default" msgid="649792175242821353">"Телефон будет выключен."</string>
     <string name="shutdown_confirm_question" msgid="2906544768881136183">"Завершить работу?"</string>
     <string name="reboot_safemode_title" msgid="7054509914500140361">"Переход в безопасный режим"</string>
@@ -1247,6 +1246,7 @@
     <string name="accessibility_binding_label" msgid="4148120742096474641">"Спец. возможности"</string>
     <string name="wallpaper_binding_label" msgid="1240087844304687662">"Фоновый рисунок"</string>
     <string name="chooser_wallpaper" msgid="7873476199295190279">"Сменить обои"</string>
+    <string name="alternate_eri_file">/data/eri.xml</string>
     <string name="vpn_title" msgid="19615213552042827">"Сеть VPN активна"</string>
     <string name="vpn_title_long" msgid="6400714798049252294">"Сеть VPN активирована приложением <xliff:g id="APP">%s</xliff:g>"</string>
     <string name="vpn_text" msgid="3011306607126450322">"Нажмите, чтобы открыть настройки."</string>

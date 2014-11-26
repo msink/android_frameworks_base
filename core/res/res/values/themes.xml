@@ -61,7 +61,7 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceInverse">@android:style/TextAppearance.Inverse</item>
 
         <item name="textColorPrimary">@android:color/primary_text_dark</item>
-        <item name="textColorSecondary">@android:color/secondary_text_dark</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_dark</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_light</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_light</item>
@@ -170,7 +170,7 @@ please see themes_device_defaults.xml.
         <item name="windowContentOverlay">@null</item>
         <item name="windowShowWallpaper">false</item>
         <item name="windowTitleStyle">@android:style/WindowTitle</item>
-        <item name="windowTitleSize">25dip</item>
+        <item name="windowTitleSize">30dip</item>
         <item name="windowTitleBackgroundStyle">@android:style/WindowTitleBackground</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.Activity</item>
         <item name="android:windowSoftInputMode">stateUnspecified|adjustUnspecified</item>
@@ -415,7 +415,7 @@ please see themes_device_defaults.xml.
         <item name="colorForegroundInverse">@android:color/bright_foreground_light_inverse</item>
         
         <item name="textColorPrimary">@android:color/primary_text_light</item>
-        <item name="textColorSecondary">@android:color/secondary_text_light</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_light</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_dark</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_dark</item>
@@ -448,7 +448,7 @@ please see themes_device_defaults.xml.
         <item name="expandableListViewStyle">@android:style/Widget.ExpandableListView.White</item>
         <item name="listViewStyle">@android:style/Widget.ListView.White</item>
         <item name="listDivider">@drawable/divider_horizontal_bright</item>
-        <item name="listSeparatorTextViewStyle">@android:style/Widget.TextView.ListSeparator.White</item>
+        <item name="listSeparatorTextViewStyle">@android:style/Widget.TextView.ListSeparator</item>
 
         <item name="progressBarStyle">@android:style/Widget.ProgressBar.Inverse</item>
         <item name="progressBarStyleSmall">@android:style/Widget.ProgressBar.Small.Inverse</item>
@@ -609,7 +609,7 @@ please see themes_device_defaults.xml.
     <style name="Theme.Dialog">
         <item name="android:windowFrame">@null</item>
         <item name="android:windowTitleStyle">@android:style/DialogWindowTitle</item>
-        <item name="android:windowBackground">@android:drawable/panel_background</item>
+        <item name="android:windowBackground">@android:drawable/dialog_full_holo_light</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
@@ -623,7 +623,7 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceInverse">@android:style/TextAppearance.Inverse</item>
 
         <item name="textColorPrimary">@android:color/primary_text_dark</item>
-        <item name="textColorSecondary">@android:color/secondary_text_dark</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_dark</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_light</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_light</item>
@@ -797,8 +797,8 @@ please see themes_device_defaults.xml.
         <item name="android:itemTextAppearance">@android:style/TextAppearance.Widget.IconMenu.Item</item>
         <item name="android:itemBackground">?android:attr/selectableItemBackground</item>
         <item name="android:itemIconDisabledAlpha">?android:attr/disabledAlpha</item>
-        <item name="android:horizontalDivider">@android:drawable/divider_horizontal_dark</item>
-        <item name="android:verticalDivider">@android:drawable/divider_vertical_dark</item>
+        <item name="android:horizontalDivider">@android:drawable/divider_horizontal_dark_opaque</item>
+        <item name="android:verticalDivider">@android:drawable/divider_vertical_dark_opaque</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.OptionsPanel</item>
         <item name="android:moreIcon">@android:drawable/ic_menu_more</item>
         <item name="android:background">@null</item>
@@ -862,17 +862,6 @@ please see themes_device_defaults.xml.
         <item name="android:windowCloseOnTouchOutside">true</item>
     </style>
 
-    <!-- Default theme with an Action Bar. -->
-    <style name="Theme.WithActionBar">
-        <item name="android:windowActionBar">true</item>
-    </style>
-
-    <!-- No title bar, but Action Mode bars will overlay application content
-         instead of pushing it down to make room. -->
-    <style name="Theme.NoTitleBar.OverlayActionModes">
-        <item name="android:windowActionModeOverlay">true</item>
-    </style>
-    
     <!-- Honeycomb holographic theme (dark version).
          <p>This is the default system theme for apps that target API level 11 - 13. Starting
          with API level 14, the default system theme is supplied by {@link #Theme_DeviceDefault},
@@ -893,7 +882,7 @@ please see themes_device_defaults.xml.
          Specific resources used by Holo are named using the convention @type/foo_bar_baz_holo
          with trailing _dark or _light specifiers if they are not shared between both light and
          dark versions of the theme. -->
-    <style name="Theme.Holo">
+    <style name="Theme.Holo1">
         <item name="colorForeground">@android:color/bright_foreground_holo_dark</item>
         <item name="colorForegroundInverse">@android:color/bright_foreground_inverse_holo_dark</item>
         <item name="colorBackground">@android:color/background_holo_dark</item>
@@ -912,7 +901,7 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceInverse">@android:style/TextAppearance.Holo.Inverse</item>
 
         <item name="textColorPrimary">@android:color/primary_text_holo_dark</item>
-        <item name="textColorSecondary">@android:color/secondary_text_holo_dark</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_holo_dark</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_holo_light</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_holo_light</item>
@@ -930,13 +919,13 @@ please see themes_device_defaults.xml.
         <item name="textColorHighlightInverse">@android:color/highlighted_text_holo_light</item>
         <item name="textColorLink">@android:color/holo_blue_light</item>
         <item name="textColorLinkInverse">@android:color/holo_blue_light</item>
-        <item name="textColorAlertDialogListItem">@android:color/primary_text_holo_dark</item>
+        <item name="textColorAlertDialogListItem">@android:color/black</item>
 
         <item name="textAppearanceLarge">@android:style/TextAppearance.Holo.Large</item>
-        <item name="textAppearanceMedium">@android:style/TextAppearance.Holo.Medium</item>
+        <item name="textAppearanceMedium">@android:style/TextAppearance.Holo.Light.Medium</item>
         <item name="textAppearanceSmall">@android:style/TextAppearance.Holo.Small</item>
         <item name="textAppearanceLargeInverse">@android:style/TextAppearance.Holo.Large.Inverse</item>
-        <item name="textAppearanceMediumInverse">@android:style/TextAppearance.Holo.Medium.Inverse</item>
+        <item name="textAppearanceMediumInverse">@android:style/TextAppearance.Holo.Light.Medium.Inverse</item>
         <item name="textAppearanceSmallInverse">@android:style/TextAppearance.Holo.Small.Inverse</item>
         <item name="textAppearanceSearchResultTitle">@android:style/TextAppearance.Holo.SearchResult.Title</item>
         <item name="textAppearanceSearchResultSubtitle">@android:style/TextAppearance.Holo.SearchResult.Subtitle</item>
@@ -955,10 +944,10 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceSmallPopupMenu">@android:style/TextAppearance.Holo.Widget.PopupMenu.Small</item>
 
         <!-- Button styles -->
-        <item name="buttonStyle">@android:style/Widget.Holo.Button</item>
+        <item name="buttonStyle">@android:style/Widget.Button</item>
 
-        <item name="buttonStyleSmall">@android:style/Widget.Holo.Button.Small</item>
-        <item name="buttonStyleInset">@android:style/Widget.Holo.Button.Inset</item>
+        <item name="buttonStyleSmall">@android:style/Widget.Button.Small</item>
+        <item name="buttonStyleInset">@android:style/Widget.Button.Inset</item>
 
         <item name="buttonStyleToggle">@android:style/Widget.Holo.Button.Toggle</item>
         <item name="switchStyle">@android:style/Widget.Holo.CompoundButton.Switch</item>
@@ -1202,6 +1191,19 @@ please see themes_device_defaults.xml.
 
     </style>
 
+    <!-- Default theme with an Action Bar. -->
+    <style name="Theme.WithActionBar">
+        <item name="android:windowActionBar">true</item>
+    </style>
+
+    <!-- No title bar, but Action Mode bars will overlay application content
+         instead of pushing it down to make room. -->
+    <style name="Theme.NoTitleBar.OverlayActionModes">
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="Theme.Holo" parent="Theme.Holo.Light" />
+
     <!-- Honeycomb holographic theme (light version).  The widgets in the
          holographic theme are translucent on their brackground, so applications
          must ensure that any background they use with this theme is itself
@@ -1226,7 +1228,7 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceInverse">@android:style/TextAppearance.Holo.Light.Inverse</item>
 
         <item name="textColorPrimary">@android:color/primary_text_holo_light</item>
-        <item name="textColorSecondary">@android:color/secondary_text_holo_light</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_holo_light</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_holo_dark</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_holo_dark</item>
@@ -1269,10 +1271,10 @@ please see themes_device_defaults.xml.
         <item name="textAppearanceSmallPopupMenu">@android:style/TextAppearance.Holo.Light.Widget.PopupMenu.Small</item>
 
         <!-- Button styles -->
-        <item name="buttonStyle">@android:style/Widget.Holo.Light.Button</item>
+        <item name="buttonStyle">@android:style/Widget.Holo.Button</item>
 
-        <item name="buttonStyleSmall">@android:style/Widget.Holo.Light.Button.Small</item>
-        <item name="buttonStyleInset">@android:style/Widget.Holo.Light.Button.Inset</item>
+        <item name="buttonStyleSmall">@android:style/Widget.Button.Small</item>
+        <item name="buttonStyleInset">@android:style/Widget.Button.Inset</item>
 
         <item name="buttonStyleToggle">@android:style/Widget.Holo.Light.Button.Toggle</item>
         <item name="switchStyle">@android:style/Widget.Holo.Light.CompoundButton.Switch</item>
@@ -1295,7 +1297,7 @@ please see themes_device_defaults.xml.
 
         <!-- @hide -->
         <item name="searchResultListItemHeight">58dip</item>
-        <item name="listDivider">@drawable/list_divider_holo_light</item>
+        <item name="listDivider">@drawable/list_divider</item>
         <item name="listSeparatorTextViewStyle">@android:style/Widget.Holo.Light.TextView.ListSeparator</item>   
 
         <item name="listChoiceIndicatorSingle">@android:drawable/btn_radio_holo_light</item>

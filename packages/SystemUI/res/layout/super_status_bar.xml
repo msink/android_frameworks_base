@@ -36,6 +36,11 @@
         android:id="@+id/panel_holder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/usb_dialog_margin"
+        android:layout_marginTop="@*android:dimen/status_bar_height"
+        android:layout_marginRight="@dimen/usb_dialog_margin"
+        android:layout_marginBottom="@dimen/usb_dialog_margin"
+        android:background="@drawable/border"
         >
         <include layout="@layout/status_bar_expanded"
             android:layout_width="match_parent"

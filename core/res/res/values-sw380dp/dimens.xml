@@ -20,4 +20,5 @@
 <resources>
     <!-- Width of the sliding KeyguardSecurityContainer (includes 2x keyguard_security_view_margin) -->
     <dimen name="keyguard_security_width">340dp</dimen>
+    <dimen name="system_menu_layout_width">220dp</dimen>
 </resources>

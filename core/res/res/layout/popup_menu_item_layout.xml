@@ -42,6 +42,7 @@
             android:duplicateParentState="true"
             android:ellipsize="marquee"
             android:fadingEdge="horizontal"
+            android:textColor="@color/black"
             android:textAlignment="viewStart" />
 
         <TextView

@@ -29,7 +29,6 @@
     <string name="fileSizeSuffix" msgid="9164292791500531949">"<xliff:g id="NUMBER">%1$s</xliff:g> <xliff:g id="UNIT">%2$s</xliff:g>"</string>
     <string name="untitled" msgid="4638956954852782576">"&lt;Sense títol&gt;"</string>
     <string name="ellipsis" msgid="7899829516048813237">"…"</string>
-    <string name="ellipsis_two_dots" msgid="1228078994866030736">"‥"</string>
     <string name="emptyPhoneNumber" msgid="7694063042079676517">"(Sense número de telèfon)"</string>
     <string name="unknownName" msgid="2277556546742746522">"(Desconegut)"</string>
     <string name="defaultVoiceMailAlphaTag" msgid="2660020990097733077">"Correu de veu"</string>
@@ -129,10 +128,10 @@
     <string name="contentServiceSync" msgid="8353523060269335667">"Sincronització"</string>
     <string name="contentServiceSyncNotificationTitle" msgid="397743349191901458">"Sincronització"</string>
     <string name="contentServiceTooManyDeletesNotificationDesc" msgid="8100981435080696431">"Massa supressions de <xliff:g id="CONTENT_TYPE">%s</xliff:g>."</string>
-    <string name="low_memory" product="tablet" msgid="6494019234102154896">"L\'emmagatzematge de la tauleta és ple. Suprimeix uns quants fitxers per alliberar espai."</string>
+    <string name="low_memory" product="tablet" msgid="6494019234102154896">"L\'emmagatzematge de la dispositiu és ple. Suprimeix uns quants fitxers per alliberar espai."</string>
     <string name="low_memory" product="default" msgid="3475999286680000541">"L\'emmagatzematge del telèfon és ple. Suprimeix uns quants fitxers per alliberar espai."</string>
     <string name="me" msgid="6545696007631404292">"Mi"</string>
-    <string name="power_dialog" product="tablet" msgid="8545351420865202853">"Opcions de la tauleta"</string>
+    <string name="power_dialog" product="tablet" msgid="8545351420865202853">"Opcions de la dispositiu"</string>
     <string name="power_dialog" product="default" msgid="1319919075463988638">"Opcions del telèfon"</string>
     <string name="silent_mode" msgid="7167703389802618663">"Mode silenciós"</string>
     <string name="turn_on_radio" msgid="3912793092339962371">"Activa la xarxa sense fil"</string>
@@ -143,14 +142,14 @@
     <string name="silent_mode_vibrate" msgid="7072043388581551395">"Mode vibració"</string>
     <string name="silent_mode_ring" msgid="8592241816194074353">"Timbre activat"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"S\'està apagant..."</string>
-    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"La tauleta s\'apagarà."</string>
+    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"La dispositiu s\'apagarà."</string>
     <string name="shutdown_confirm" product="default" msgid="649792175242821353">"El telèfon s\'apagarà."</string>
     <string name="shutdown_confirm_question" msgid="2906544768881136183">"Vols apagar-lo?"</string>
     <string name="reboot_safemode_title" msgid="7054509914500140361">"Reinicia en mode segur"</string>
     <string name="reboot_safemode_confirm" msgid="55293944502784668">"Vols reiniciar en mode segur? Es desactivaran les aplicacions de tercers que hagis instal·lat. Es restabliran quan tornis a reiniciar."</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Recents"</string>
     <string name="no_recent_tasks" msgid="8794906658732193473">"No hi ha aplicacions recents"</string>
-    <string name="global_actions" product="tablet" msgid="408477140088053665">"Opcions de la tauleta"</string>
+    <string name="global_actions" product="tablet" msgid="408477140088053665">"Opcions de la dispositiu"</string>
     <string name="global_actions" product="default" msgid="2406416831541615258">"Opcions del telèfon"</string>
     <string name="global_action_lock" msgid="2844945191792119712">"Bloqueig de pantalla"</string>
     <string name="global_action_power_off" msgid="4471879440839879722">"Apaga"</string>
@@ -246,10 +245,10 @@
     <string name="permlab_sendSmsNoConfirmation" msgid="4781483105951730228">"enviament de missatges SMS sense confirmació"</string>
     <string name="permdesc_sendSmsNoConfirmation" msgid="402569800862935907">"Permet que l\'aplicació enviï missatges SMS. Aquesta acció pot provocar càrrecs inesperats. Les aplicacions malicioses poden enviar missatges sense la teva confirmació, cosa que et pot fer gastar diners."</string>
     <string name="permlab_readSms" msgid="8745086572213270480">"lectura dels missatges de text (SMS o MMS)"</string>
-    <string name="permdesc_readSms" product="tablet" msgid="2467981548684735522">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats a la tauleta o a la targeta SIM. Això permet que l\'aplicació llegeixi tots els missatges SMS, independentment del contingut o de la confidencialitat."</string>
+    <string name="permdesc_readSms" product="tablet" msgid="2467981548684735522">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats a la dispositiu o a la targeta SIM. Això permet que l\'aplicació llegeixi tots els missatges SMS, independentment del contingut o de la confidencialitat."</string>
     <string name="permdesc_readSms" product="default" msgid="3695967533457240550">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats al telèfon o a la targeta SIM. Això permet que l\'aplicació llegeixi tots els missatges SMS, independentment del contingut o de la confidencialitat."</string>
     <string name="permlab_writeSms" msgid="3216950472636214774">"edició dels missatges de text (SMS o MMS)"</string>
-    <string name="permdesc_writeSms" product="tablet" msgid="5160413947794501538">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats a la tauleta o a la targeta SIM. Les aplicacions malicioses poden llegir els teus missatges confidencials."</string>
+    <string name="permdesc_writeSms" product="tablet" msgid="5160413947794501538">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats a la dispositiu o a la targeta SIM. Les aplicacions malicioses poden llegir els teus missatges confidencials."</string>
     <string name="permdesc_writeSms" product="default" msgid="7268668709052328567">"Permet que l\'aplicació llegeixi missatges SMS emmagatzemats al telèfon o a la targeta SIM. Les aplicacions malicioses poden llegir els teus missatges confidencials."</string>
     <string name="permlab_receiveWapPush" msgid="5991398711936590410">"recepció de missatges de text (WAP)"</string>
     <string name="permdesc_receiveWapPush" msgid="748232190220583385">"Permet que l\'aplicació rebi i processi missatges WAP. Aquest permís inclou la capacitat de controlar o de suprimir missatges que s\'han enviat al teu dispositiu sense mostrar-te\'ls."</string>
@@ -330,7 +329,7 @@
     <string name="permlab_freezeScreen" msgid="4708181184441880175">"bloqueig de la pantalla"</string>
     <string name="permdesc_freezeScreen" msgid="8558923789222670064">"Permet a l\'aplicació bloquejar temporalment la pantalla per fer una transició de pantalla completa."</string>
     <string name="permlab_injectEvents" msgid="1378746584023586600">"prémer tecles i botons de control"</string>
-    <string name="permdesc_injectEvents" product="tablet" msgid="206352565599968632">"Permet que l\'aplicació lliuri els seus propis esdeveniments d\'entrada (tecles premudes, etc.) a d\'altres aplicacions. Les aplicacions malicioses poden utilitzar aquesta funció per controlar la tauleta."</string>
+    <string name="permdesc_injectEvents" product="tablet" msgid="206352565599968632">"Permet que l\'aplicació lliuri els seus propis esdeveniments d\'entrada (tecles premudes, etc.) a d\'altres aplicacions. Les aplicacions malicioses poden utilitzar aquesta funció per controlar la dispositiu."</string>
     <string name="permdesc_injectEvents" product="default" msgid="653128057572326253">"Permet que l\'aplicació lliuri els seus propis esdeveniments d\'entrada (tecles premudes, etc.) a d\'altres aplicacions. Les aplicacions malicioses poden utilitzar aquesta funció per controlar el telèfon."</string>
     <string name="permlab_readInputState" msgid="469428900041249234">"enregistrar allò que escriviu i les accions que dueu a terme"</string>
     <string name="permdesc_readInputState" msgid="8387754901688728043">"Permet que les aplicacions facin un seguiment de les tecles que prems, fins i tot quan s\'interactua amb una altra aplicació (com ara introduir una contrasenya). No s\'hauria de necessitar mai per a les aplicacions normals."</string>
@@ -357,7 +356,7 @@
     <string name="permlab_signalPersistentProcesses" msgid="4539002991947376659">"envia senyals Linux a les aplicacions"</string>
     <string name="permdesc_signalPersistentProcesses" msgid="4896992079182649141">"Permet que l\'aplicació sol·liciti que el senyal subministrat s\'enviï a tots els processos persistents."</string>
     <string name="permlab_persistentActivity" msgid="8841113627955563938">"fes que l\'aplicació s\'executi sempre"</string>
-    <string name="permdesc_persistentActivity" product="tablet" msgid="8525189272329086137">"Permet que l\'aplicació faci que parts de la seva memòria siguin persistents. Aquesta acció pot limitar la memòria disponible per a altres aplicacions i alentir la tauleta."</string>
+    <string name="permdesc_persistentActivity" product="tablet" msgid="8525189272329086137">"Permet que l\'aplicació faci que parts de la seva memòria siguin persistents. Aquesta acció pot limitar la memòria disponible per a altres aplicacions i alentir la dispositiu."</string>
     <string name="permdesc_persistentActivity" product="default" msgid="4384760047508278272">"Permet que l\'aplicació faci que parts de la seva memòria siguin persistents. Aquesta acció pot limitar la memòria disponible per a altres aplicacions i alentir el telèfon."</string>
     <string name="permlab_deletePackages" msgid="184385129537705938">"suprimeix aplicacions"</string>
     <string name="permdesc_deletePackages" msgid="7411480275167205081">"Permet que l\'aplicació suprimeixi els paquets d\'Android. Les aplicacions malicioses poden utilitzar-ho per suprimir aplicacions importants."</string>
@@ -370,19 +369,19 @@
     <string name="permlab_installPackages" msgid="2199128482820306924">"instal·la aplicacions directament"</string>
     <string name="permdesc_installPackages" msgid="5628530972548071284">"Permet que l\'aplicació instal·li paquets d\'Android nous o actualitzats. Les aplicacions malicioses poden utilitzar aquesta funció per afegir aplicacions noves amb permisos eficaços de manera arbitrària."</string>
     <string name="permlab_clearAppCache" msgid="7487279391723526815">"suprimeix totes les dades de memòria cau d\'aplicacions"</string>
-    <string name="permdesc_clearAppCache" product="tablet" msgid="8974640871945434565">"Permet que l\'aplicació alliberi espai a la tauleta mitjançant la supressió de fitxers als directoris de la memòria cau d\'altres aplicacions. Això pot fer que altres aplicacions s\'iniciïn més a poc a poc, perquè han de tornar a recuperar les dades."</string>
+    <string name="permdesc_clearAppCache" product="tablet" msgid="8974640871945434565">"Permet que l\'aplicació alliberi espai a la dispositiu mitjançant la supressió de fitxers als directoris de la memòria cau d\'altres aplicacions. Això pot fer que altres aplicacions s\'iniciïn més a poc a poc, perquè han de tornar a recuperar les dades."</string>
     <string name="permdesc_clearAppCache" product="default" msgid="2459441021956436779">"Permet que l\'aplicació alliberi espai al telèfon mitjançant la supressió de fitxers als directoris de la memòria cau d\'altres aplicacions. Això pot fer que altres aplicacions s\'iniciïn més a poc a poc, perquè han de tornar a recuperar les dades."</string>
     <string name="permlab_movePackage" msgid="3289890271645921411">"mou els recursos de l\'aplicació"</string>
     <string name="permdesc_movePackage" msgid="319562217778244524">"Permet que l\'aplicació desplaci els recursos de l\'aplicació de suports interns a externs i viceversa."</string>
     <string name="permlab_readLogs" msgid="6615778543198967614">"llegir dades de registre personals"</string>
-    <string name="permdesc_readLogs" product="tablet" msgid="82061313293455151">"Permet que l\'aplicació llegeixi els diversos fitxers de registre del sistema. Això li permet descobrir informació general sobre què estàs fent amb la tauleta, i pot incloure informació personal o privada."</string>
+    <string name="permdesc_readLogs" product="tablet" msgid="82061313293455151">"Permet que l\'aplicació llegeixi els diversos fitxers de registre del sistema. Això li permet descobrir informació general sobre què estàs fent amb la dispositiu, i pot incloure informació personal o privada."</string>
     <string name="permdesc_readLogs" product="default" msgid="2063438140241560443">"Permet que l\'aplicació llegeixi els diversos fitxers de registre del sistema. Això li permet descobrir informació general sobre què estàs fent amb el telèfon i, potencialment, pot incloure informació personal o privada."</string>
     <string name="permlab_anyCodecForPlayback" msgid="715805555823881818">"utilitza qualsevol descodificador de mitjans per a la reproducció"</string>
     <string name="permdesc_anyCodecForPlayback" msgid="8283912488433189010">"Permet que l\'aplicació utilitzi qualsevol descodificador de mitjans instal·lat per descodificar per a la reproducció."</string>
     <string name="permlab_diagnostic" msgid="8076743953908000342">"llegir/escriure recursos propietat de diag"</string>
     <string name="permdesc_diagnostic" msgid="6608295692002452283">"Permet que l\'aplicació llegeixi i escrigui a qualsevol recurs propietat del grup diag; per exemple, els fitxers de /dev. Això podria afectar l\'estabilitat i la seguretat del sistema. NOMÉS l\'hauria d\'utilitzar el fabricant o l\'operador per a diagnòstics específics de maquinari."</string>
     <string name="permlab_changeComponentState" msgid="6335576775711095931">"activa o desactiva els components de l\'aplicació"</string>
-    <string name="permdesc_changeComponentState" product="tablet" msgid="8887435740982237294">"Permet que l\'aplicació canviï si un component d\'una altra aplicació està activat o no. Les aplicacions malicioses poden utilitzar aquesta funció per desactivar funcions importants de la tauleta. Cal anar amb compte amb aquest permís, ja que és possible que els components de l\'aplicació esdevinguin inutilitzables, incoherents o inestables."</string>
+    <string name="permdesc_changeComponentState" product="tablet" msgid="8887435740982237294">"Permet que l\'aplicació canviï si un component d\'una altra aplicació està activat o no. Les aplicacions malicioses poden utilitzar aquesta funció per desactivar funcions importants de la dispositiu. Cal anar amb compte amb aquest permís, ja que és possible que els components de l\'aplicació esdevinguin inutilitzables, incoherents o inestables."</string>
     <string name="permdesc_changeComponentState" product="default" msgid="1827232484416505615">"Permet que l\'aplicació canviï si un component d\'una altra aplicació està activat o no. Les aplicacions malicioses poden utilitzar aquesta funció per desactivar funcions importants del telèfon. Cal anar amb compte amb aquest permís, perquè és possible que els components de l\'aplicació esdevinguin inutilitzables, incoherents o inestables."</string>
     <string name="permlab_grantRevokePermissions" msgid="4627315351093508795">"concedeix o denega permisos"</string>
     <string name="permdesc_grantRevokePermissions" msgid="4088642654085850662">"Permet que una aplicació concedeixi o denegui permisos específics per a aquesta o per a altres aplicacions. És possible que les aplicacions malicioses ho facin servir per accedir a funcions a les quals no has concedit accés."</string>
@@ -398,19 +397,19 @@
     <string name="permdesc_receiveBootCompleted" product="tablet" msgid="7390304664116880704">"Permet que l\'aplicació s\'iniciï tan bon punt el sistema hagi acabat d\'arrencar. Això pot fer que es trigui més a iniciar el telèfon i permetre a l\'aplicació alentir-ne el funcionament general en executar-se sempre."</string>
     <string name="permdesc_receiveBootCompleted" product="default" msgid="513950589102617504">"Permet que l\'aplicació s\'iniciï tan bon punt el sistema hagi acabat d\'arrencar. Això pot fer que es trigui més a iniciar el telèfon i permetre a l\'aplicació alentir-ne el funcionament general si s\'executa sempre."</string>
     <string name="permlab_broadcastSticky" msgid="7919126372606881614">"enviar difusió permanent"</string>
-    <string name="permdesc_broadcastSticky" product="tablet" msgid="7749760494399915651">"Permet que l\'aplicació enviï emissions permanents, que es conserven després de finalitzar l\'emissió. L\'ús excessiu pot alentir o desestabilitzar la tauleta si li fan utilitzar massa memòria."</string>
+    <string name="permdesc_broadcastSticky" product="tablet" msgid="7749760494399915651">"Permet que l\'aplicació enviï emissions permanents, que es conserven després de finalitzar l\'emissió. L\'ús excessiu pot alentir o desestabilitzar la dispositiu si li fan utilitzar massa memòria."</string>
     <string name="permdesc_broadcastSticky" product="default" msgid="2825803764232445091">"Permet que l\'aplicació enviï emissions permanents, que es conserven després de finalitzar l\'emissió. L\'ús excessiu pot alentir o desestabilitzar el telèfon si li fan utilitzar massa memòria."</string>
     <string name="permlab_readContacts" msgid="8348481131899886131">"lectura dels contactes"</string>
-    <string name="permdesc_readContacts" product="tablet" msgid="5294866856941149639">"Permet que l\'aplicació llegeixi dades sobre els contactes que tinguis emmagatzemats a la tauleta, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb persones concretes. Aquest permís permet que les aplicacions desin les dades dels teus contactes, i és possible que les aplicacions malicioses comparteixin dades dels contactes sense el teu coneixement."</string>
+    <string name="permdesc_readContacts" product="tablet" msgid="5294866856941149639">"Permet que l\'aplicació llegeixi dades sobre els contactes que tinguis emmagatzemats a la dispositiu, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb persones concretes. Aquest permís permet que les aplicacions desin les dades dels teus contactes, i és possible que les aplicacions malicioses comparteixin dades dels contactes sense el teu coneixement."</string>
     <string name="permdesc_readContacts" product="default" msgid="8440654152457300662">"Permet que l\'aplicació llegeixi dades sobre els contactes que tinguis emmagatzemats al telèfon, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb persones concretes. Aquest permís permet que les aplicacions desin les dades dels teus contactes, i és possible que les aplicacions malicioses comparteixin dades dels contactes sense el teu coneixement."</string>
     <string name="permlab_writeContacts" msgid="5107492086416793544">"modificació dels contactes"</string>
-    <string name="permdesc_writeContacts" product="tablet" msgid="897243932521953602">"Permet que l\'aplicació modifiqui les dades sobre contactes emmagatzemades a la tauleta, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb contactes concrets. Aquest permís permet que les aplicacions suprimeixin dades de contactes."</string>
+    <string name="permdesc_writeContacts" product="tablet" msgid="897243932521953602">"Permet que l\'aplicació modifiqui les dades sobre contactes emmagatzemades a la dispositiu, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb contactes concrets. Aquest permís permet que les aplicacions suprimeixin dades de contactes."</string>
     <string name="permdesc_writeContacts" product="default" msgid="589869224625163558">"Permet que l\'aplicació modifiqui les dades sobre contactes emmagatzemades al telèfon, inclosa la freqüència amb què has trucat, has enviat correus electrònics o t\'has comunicat d\'altres maneres amb contactes concrets. Aquest permís permet que les aplicacions suprimeixin dades de contactes."</string>
     <string name="permlab_readCallLog" msgid="3478133184624102739">"lectura del registre de trucades"</string>
-    <string name="permdesc_readCallLog" product="tablet" msgid="3700645184870760285">"Permet que l\'aplicació llegeixi el registre de trucades de la teva tauleta, incloses les dades sobre les trucades entrants i sortints. Aquest permís permet que les aplicacions desin les dades del registre de trucades, i és possible que les aplicacions malicioses comparteixin dades del registre de trucades sense el teu coneixement."</string>
+    <string name="permdesc_readCallLog" product="tablet" msgid="3700645184870760285">"Permet que l\'aplicació llegeixi el registre de trucades de la teva dispositiu, incloses les dades sobre les trucades entrants i sortints. Aquest permís permet que les aplicacions desin les dades del registre de trucades, i és possible que les aplicacions malicioses comparteixin dades del registre de trucades sense el teu coneixement."</string>
     <string name="permdesc_readCallLog" product="default" msgid="5777725796813217244">"Permet que l\'aplicació llegeixi el registre de trucades del teu telèfon, incloses les dades sobre les trucades entrants i sortints. Aquest permís permet que les aplicacions desin les dades del registre de trucades, i és possible que les aplicacions malicioses comparteixin dades del registre de trucades sense el teu coneixement."</string>
     <string name="permlab_writeCallLog" msgid="8552045664743499354">"escriptura del registre de trucades"</string>
-    <string name="permdesc_writeCallLog" product="tablet" msgid="6661806062274119245">"Permet que l\'aplicació modifiqui el registre de trucades de la teva tauleta, incloses les dades de les trucades entrants i sortints. És possible que les aplicacions malicioses ho utilitzin per eliminar o per modificar el teu registre de trucades."</string>
+    <string name="permdesc_writeCallLog" product="tablet" msgid="6661806062274119245">"Permet que l\'aplicació modifiqui el registre de trucades de la teva dispositiu, incloses les dades de les trucades entrants i sortints. És possible que les aplicacions malicioses ho utilitzin per eliminar o per modificar el teu registre de trucades."</string>
     <string name="permdesc_writeCallLog" product="default" msgid="683941736352787842">"Permet que l\'aplicació modifiqui el registre de trucades del teu telèfon, incloses les dades de les trucades entrants i sortints. És possible que les aplicacions malicioses ho utilitzin per eliminar o per modificar el teu registre de trucades."</string>
     <string name="permlab_readProfile" msgid="4701889852612716678">"lectura targeta de contacte"</string>
     <string name="permdesc_readProfile" product="default" msgid="5462475151849888848">"Permet que l\'aplicació pugui llegir informació del perfil personal emmagatzemada al dispositiu, com ara el teu nom i la teva informació de contacte. Això significa que l\'aplicació et pot identificar i enviar la informació del teu perfil a altres persones."</string>
@@ -421,10 +420,10 @@
     <string name="permlab_writeSocialStream" product="default" msgid="3504179222493235645">"escriu al tauler d\'activitat social"</string>
     <string name="permdesc_writeSocialStream" product="default" msgid="3086557552204114849">"Permet que l\'aplicació mostri actualitzacions socials dels teus amics. Vés amb compte en compartir informació: això permet que l\'aplicació produeixi missatges que pot semblar que provinguin d\'un amic. Nota: És possible que aquest permís no s\'apliqui a totes les xarxes socials."</string>
     <string name="permlab_readCalendar" msgid="5972727560257612398">"llegeix els esdeveniments del calendari més informació confidencial"</string>
-    <string name="permdesc_readCalendar" product="tablet" msgid="4216462049057658723">"Permet que l\'aplicació llegeixi tots els esdeveniments del calendari emmagatzemats a la tauleta, inclosos els dels amics o dels companys de feina. Aquesta acció pot permetre que l\'aplicació comparteixi o desi les dades del teu calendari, sense tenir en compte la confidencialitat."</string>
+    <string name="permdesc_readCalendar" product="tablet" msgid="4216462049057658723">"Permet que l\'aplicació llegeixi tots els esdeveniments del calendari emmagatzemats a la dispositiu, inclosos els dels amics o dels companys de feina. Aquesta acció pot permetre que l\'aplicació comparteixi o desi les dades del teu calendari, sense tenir en compte la confidencialitat."</string>
     <string name="permdesc_readCalendar" product="default" msgid="7434548682470851583">"Permet que l\'aplicació llegeixi tots els esdeveniments del calendari emmagatzemats al telèfon, inclosos els dels amics o dels companys de feina. Aquesta acció pot permetre que l\'aplicació comparteixi o desi les dades del teu calendari, sense tenir en compte la confidencialitat."</string>
     <string name="permlab_writeCalendar" msgid="8438874755193825647">"afegeix o modifica els esdeveniments del calendari i envia correus electrònics als clients sense el coneixement dels propietaris"</string>
-    <string name="permdesc_writeCalendar" product="tablet" msgid="6679035520113668528">"Permet que l\'aplicació afegeixi, elimini o canviï esdeveniments que pots modificar a la tauleta, inclosos els d\'amics o de companys de feina. Aquesta acció pot permetre que l\'aplicació enviï missatges que sembli que provinguin dels propietaris del calendari o que modifiqui esdeveniments sense el coneixement dels propietaris."</string>
+    <string name="permdesc_writeCalendar" product="tablet" msgid="6679035520113668528">"Permet que l\'aplicació afegeixi, elimini o canviï esdeveniments que pots modificar a la dispositiu, inclosos els d\'amics o de companys de feina. Aquesta acció pot permetre que l\'aplicació enviï missatges que sembli que provinguin dels propietaris del calendari o que modifiqui esdeveniments sense el coneixement dels propietaris."</string>
     <string name="permdesc_writeCalendar" product="default" msgid="2324469496327249376">"Permet que l\'aplicació afegeixi, elimini o canviï esdeveniments que pots modificar al telèfon, inclosos els d\'amics o de companys de feina. Aquesta acció pot permetre que l\'aplicació enviï missatges que sembli que provinguin dels propietaris del calendari o que modifiqui esdeveniments sense el coneixement dels propietaris."</string>
     <string name="permlab_accessMockLocation" msgid="8688334974036823330">"crear orígens d\'ubicacions fictícies per fer proves"</string>
     <string name="permdesc_accessMockLocation" msgid="5808711039482051824">"Crea fonts d\'ubicació fictícies per provar o per instal·lar un proveïdor d\'ubicació nou. Aquesta acció permet que l\'aplicació substitueixi la ubicació o l\'estat que retornen altres fonts d\'ubicació, com ara el GPS o altres proveïdors d\'ubicació."</string>
@@ -450,13 +449,13 @@
     <string name="permdesc_recordAudio" msgid="4906839301087980680">"Permet que l\'aplicació enregistri àudio amb el micròfon. Aquest permís permet que l\'aplicació enregistri àudio en qualsevol moment sense la teva confirmació."</string>
     <string name="permlab_camera" msgid="3616391919559751192">"fes fotos i vídeos"</string>
     <string name="permdesc_camera" msgid="8497216524735535009">"Permet que l\'aplicació faci fotos i vídeos amb la càmera. Aquest permís permet que l\'aplicació utilitzi la càmera en qualsevol moment sense la teva confirmació."</string>
-    <string name="permlab_brick" product="tablet" msgid="2961292205764488304">"desactiva la tauleta de manera permanent"</string>
+    <string name="permlab_brick" product="tablet" msgid="2961292205764488304">"desactiva la dispositiu de manera permanent"</string>
     <string name="permlab_brick" product="default" msgid="8337817093326370537">"desactivar definitivament el telèfon"</string>
-    <string name="permdesc_brick" product="tablet" msgid="4334818808001699530">"Permet que l\'aplicació desactivi tota la tauleta de manera permanent. Aquesta acció és molt perillosa."</string>
+    <string name="permdesc_brick" product="tablet" msgid="4334818808001699530">"Permet que l\'aplicació desactivi tota la dispositiu de manera permanent. Aquesta acció és molt perillosa."</string>
     <string name="permdesc_brick" product="default" msgid="5788903297627283099">"Permet a l\'aplicació desactivar tot el telèfon definitivament. Això és molt perillós."</string>
-    <string name="permlab_reboot" product="tablet" msgid="3436634972561795002">"fes que la tauleta es reiniciï"</string>
+    <string name="permlab_reboot" product="tablet" msgid="3436634972561795002">"fes que la dispositiu es reiniciï"</string>
     <string name="permlab_reboot" product="default" msgid="2898560872462638242">"forçar el reinici del telèfon"</string>
-    <string name="permdesc_reboot" product="tablet" msgid="8172056180063700741">"Permet que l\'aplicació faci que es reiniciï la tauleta."</string>
+    <string name="permdesc_reboot" product="tablet" msgid="8172056180063700741">"Permet que l\'aplicació faci que es reiniciï la dispositiu."</string>
     <string name="permdesc_reboot" product="default" msgid="5326008124289989969">"Permet que l\'aplicació faci que es reiniciï el telèfon."</string>
     <string name="permlab_mount_unmount_filesystems" product="nosdcard" msgid="2927361537942591841">"accés sist. fitxers emmag. USB"</string>
     <string name="permlab_mount_unmount_filesystems" product="default" msgid="4402305049890953810">"accés al sistema de fitxers de la targeta SD"</string>
@@ -488,7 +487,7 @@
     <string name="permdesc_callPhone" msgid="3740797576113760827">"Permet que l\'aplicació truqui a números de telèfon sense la teva intervenció. Aquesta acció pot produir càrrecs o trucades inesperades. Tingues en compte que això no permet que l\'aplicació truqui a números d\'emergència. Les aplicacions malicioses poden fer trucades sense la teva confirmació, cosa que et pot fer gastar diners."</string>
     <string name="permlab_callPrivileged" msgid="4198349211108497879">"trucar directament a qualsevol número de telèfon"</string>
     <string name="permdesc_callPrivileged" msgid="1689024901509996810">"Permet que l\'aplicació truqui a qualsevol número de telèfon, inclosos els números d\'emergència, sense la teva intervenció. Les aplicacions malicioses poden fer trucades innecessàries i il·legals a serveis d\'emergència."</string>
-    <string name="permlab_performCdmaProvisioning" product="tablet" msgid="4842576994144604821">"inicia directament la configuració de la tauleta CDMA"</string>
+    <string name="permlab_performCdmaProvisioning" product="tablet" msgid="4842576994144604821">"inicia directament la configuració de la dispositiu CDMA"</string>
     <string name="permlab_performCdmaProvisioning" product="default" msgid="5604848095315421425">"iniciar directament la configuració del telèfon CDMA"</string>
     <string name="permdesc_performCdmaProvisioning" msgid="1994193538802314186">"Permet que l\'aplicació iniciï l\'aprovisionament CDMA. Les aplicacions malicioses poden iniciar l\'aprovisionament CDMA innecessàriament."</string>
     <string name="permlab_locationUpdates" msgid="7785408253364335740">"controlar les notificacions d\'actualització de la ubicació"</string>
@@ -501,16 +500,16 @@
     <string name="permdesc_modifyPhoneState" msgid="1029877529007686732">"Permet que l\'aplicació controli les funcions de telèfon del dispositiu. Una aplicació amb aquest permís pot canviar de xarxa, activar i desactivar la ràdio del telèfon i dur a terme accions semblants sense notificar-t\'ho."</string>
     <string name="permlab_readPhoneState" msgid="9178228524507610486">"lectura de l\'estat i la identitat del telèfon"</string>
     <string name="permdesc_readPhoneState" msgid="1639212771826125528">"Permet que l\'aplicació accedeixi a les funcions de telèfon del dispositiu. Aquest permís permet que l\'aplicació determini el número de telèfon i els identificadors del dispositiu, si hi ha una trucada activa i el número remot connectat amb una trucada."</string>
-    <string name="permlab_wakeLock" product="tablet" msgid="1531731435011495015">"evita que la tauleta entri en mode d\'inactivitat"</string>
+    <string name="permlab_wakeLock" product="tablet" msgid="1531731435011495015">"evita que la dispositiu entri en mode d\'inactivitat"</string>
     <string name="permlab_wakeLock" product="default" msgid="573480187941496130">"impedir que el telèfon se suspengui"</string>
-    <string name="permdesc_wakeLock" product="tablet" msgid="7311319824400447868">"Permet que l\'aplicació impedeixi que la tauleta entri en repòs."</string>
+    <string name="permdesc_wakeLock" product="tablet" msgid="7311319824400447868">"Permet que l\'aplicació impedeixi que la dispositiu entri en repòs."</string>
     <string name="permdesc_wakeLock" product="default" msgid="8559100677372928754">"Permet que l\'aplicació impedeixi que el telèfon entri en repòs."</string>
-    <string name="permlab_devicePower" product="tablet" msgid="2787034722616350417">"activa o desactiva la tauleta"</string>
+    <string name="permlab_devicePower" product="tablet" msgid="2787034722616350417">"activa o desactiva la dispositiu"</string>
     <string name="permlab_devicePower" product="default" msgid="4928622470980943206">"engegar o apagar el telèfon"</string>
-    <string name="permdesc_devicePower" product="tablet" msgid="6689862878984631831">"Permet que l\'aplicació encengui i apagui la tauleta."</string>
+    <string name="permdesc_devicePower" product="tablet" msgid="6689862878984631831">"Permet que l\'aplicació encengui i apagui la dispositiu."</string>
     <string name="permdesc_devicePower" product="default" msgid="6037057348463131032">"Permet a l\'aplicació engegar o apagar el telèfon."</string>
     <string name="permlab_factoryTest" msgid="3715225492696416187">"executar en mode de proves de fàbrica"</string>
-    <string name="permdesc_factoryTest" product="tablet" msgid="3952059318359653091">"Executa com a prova de perfil baix del fabricant que permet accés complet al maquinari de la tauleta. Només està disponible quan la tauleta s\'executa en mode de prova del fabricant."</string>
+    <string name="permdesc_factoryTest" product="tablet" msgid="3952059318359653091">"Executa com a prova de perfil baix del fabricant que permet accés complet al maquinari de la dispositiu. Només està disponible quan la dispositiu s\'executa en mode de prova del fabricant."</string>
     <string name="permdesc_factoryTest" product="default" msgid="8136644990319244802">"S\'executa com a prova del fabricant de baix nivell, cosa que permet l\'accés total al maquinari del telèfon. Només està disponible quan un telèfon s\'executa en mode de proves del fabricant."</string>
     <string name="permlab_setWallpaper" msgid="6627192333373465143">"definir fons de pantalla"</string>
     <string name="permdesc_setWallpaper" msgid="7373447920977624745">"Permet que l\'aplicació estableixi el fons de pantalla del sistema."</string>
@@ -519,15 +518,15 @@
     <string name="permlab_masterClear" msgid="2315750423139697397">"restablir el sistema als valors predeterminats de fàbrica"</string>
     <string name="permdesc_masterClear" msgid="3665380492633910226">"Permet que l\'aplicació restableixi completament el sistema a la configuració de fàbrica, amb la qual cosa s\'esborren totes les dades, la configuració i les aplicacions instal·lades."</string>
     <string name="permlab_setTime" msgid="2021614829591775646">"definir l\'hora"</string>
-    <string name="permdesc_setTime" product="tablet" msgid="1896341438151152881">"Permet que l\'aplicació canviï la zona horària de la tauleta."</string>
+    <string name="permdesc_setTime" product="tablet" msgid="1896341438151152881">"Permet que l\'aplicació canviï la zona horària de la dispositiu."</string>
     <string name="permdesc_setTime" product="default" msgid="1855702730738020">"Permet que l\'aplicació canviï l\'hora del rellotge del telèfon."</string>
     <string name="permlab_setTimeZone" msgid="2945079801013077340">"definir el fus horari"</string>
-    <string name="permdesc_setTimeZone" product="tablet" msgid="1676983712315827645">"Permet que l\'aplicació canviï la zona horària de la tauleta."</string>
+    <string name="permdesc_setTimeZone" product="tablet" msgid="1676983712315827645">"Permet que l\'aplicació canviï la zona horària de la dispositiu."</string>
     <string name="permdesc_setTimeZone" product="default" msgid="4499943488436633398">"Permet que l\'aplicació canviï la zona horària del telèfon."</string>
     <string name="permlab_accountManagerService" msgid="4829262349691386986">"actuar com a AccountManagerService"</string>
     <string name="permdesc_accountManagerService" msgid="1948455552333615954">"Permet que una aplicació faci trucades a autenticadors de comptes."</string>
     <string name="permlab_getAccounts" msgid="1086795467760122114">"cerca de comptes al dispositiu"</string>
-    <string name="permdesc_getAccounts" product="tablet" msgid="2741496534769660027">"Permet que l\'aplicació obtingui la llista de comptes coneguts per la tauleta. Això pot incloure tots els comptes que hagin creat les aplicacions que tens instal·lades."</string>
+    <string name="permdesc_getAccounts" product="tablet" msgid="2741496534769660027">"Permet que l\'aplicació obtingui la llista de comptes coneguts per la dispositiu. Això pot incloure tots els comptes que hagin creat les aplicacions que tens instal·lades."</string>
     <string name="permdesc_getAccounts" product="default" msgid="3448316822451807382">"Permet que l\'aplicació obtingui la llista de comptes coneguts pel telèfon. Això pot incloure tots els comptes que hagin creat les aplicacions que tens instal·lades."</string>
     <string name="permlab_authenticateAccounts" msgid="5265908481172736933">"creació de comptes i definició de contrasenyes"</string>
     <string name="permdesc_authenticateAccounts" msgid="5472124296908977260">"Permet que l\'aplicació utilitzi les funcions d\'autenticador de comptes del gestor de comptes, incloses la creació de comptes i l\'obtenció i la definició de les seves contrasenyes."</string>
@@ -551,19 +550,19 @@
     <string name="permdesc_accessWifiState" msgid="5002798077387803726">"Permet que l\'aplicació visualitzi informació sobre les xarxes Wi-Fi, com ara si la Wi-Fi està activada i el nom dels dispositius Wi-Fi connectats."</string>
     <string name="permlab_changeWifiState" msgid="6550641188749128035">"connexió i desconnexió de la Wi-Fi"</string>
     <string name="permdesc_changeWifiState" msgid="7137950297386127533">"Permet que l\'aplicació es connecti i es desconnecti de punts d\'accés Wi-Fi i que faci canvis a la configuració de les xarxes Wi-Fi dels dispositius."</string>
-    <string name="permlab_changeWifiMulticastState" msgid="1368253871483254784">"permetre la recepció de multidifusió Wi-fi"</string>
-    <string name="permdesc_changeWifiMulticastState" product="tablet" msgid="7969774021256336548">"Permet que l\'aplicació rebi paquets enviats a tots els dispositius d\'una xarxa Wi-Fi mitjançant les adreces multidifusió, no només a la teva tauleta. Fa servir més energia que el mode que no és multidifusió."</string>
+    <string name="permlab_changeWifiMulticastState" msgid="1368253871483254784">"permetre la recepció de multidifusió Wifi"</string>
+    <string name="permdesc_changeWifiMulticastState" product="tablet" msgid="7969774021256336548">"Permet que l\'aplicació rebi paquets enviats a tots els dispositius d\'una xarxa Wi-Fi mitjançant les adreces multidifusió, no només a la teva dispositiu. Fa servir més energia que el mode que no és multidifusió."</string>
     <string name="permdesc_changeWifiMulticastState" product="default" msgid="6851949706025349926">"Permet que l\'aplicació rebi paquets enviats a tots els dispositius d\'una xarxa Wi-Fi mitjançant les adreces multidifusió, no només al teu telèfon. Fa servir més energia que el mode que no és multidifusió."</string>
     <string name="permlab_bluetoothAdmin" msgid="6006967373935926659">"accés a la configuració de Bluetooth"</string>
-    <string name="permdesc_bluetoothAdmin" product="tablet" msgid="6921177471748882137">"Permet que l\'aplicació configuri la tauleta Bluetooth local i que cerqui i sincronitzi dispositius remots."</string>
+    <string name="permdesc_bluetoothAdmin" product="tablet" msgid="6921177471748882137">"Permet que l\'aplicació configuri la dispositiu Bluetooth local i que cerqui i sincronitzi dispositius remots."</string>
     <string name="permdesc_bluetoothAdmin" product="default" msgid="8931682159331542137">"Permet que l\'aplicació configuri el telèfon Bluetooth local i que cerqui i sincronitzi dispositius remots."</string>
     <string name="permlab_accessWimaxState" msgid="4195907010610205703">"connecta i desconnecta de WiMAX"</string>
     <string name="permdesc_accessWimaxState" msgid="6360102877261978887">"Permet que l\'aplicació determini si WiMAX està activat i que vegi la informació sobre totes les xarxes WiMAX que estan connectades."</string>
     <string name="permlab_changeWimaxState" msgid="2405042267131496579">"Canvia l\'estat de WiMAX"</string>
-    <string name="permdesc_changeWimaxState" product="tablet" msgid="3156456504084201805">"Permet que l\'aplicació connecti i desconnecti la tauleta de les xarxes WiMAX."</string>
+    <string name="permdesc_changeWimaxState" product="tablet" msgid="3156456504084201805">"Permet que l\'aplicació connecti i desconnecti la dispositiu de les xarxes WiMAX."</string>
     <string name="permdesc_changeWimaxState" product="default" msgid="697025043004923798">"Permet que l\'aplicació connecti i desconnecti el telèfon de les xarxes WiMAX."</string>
     <string name="permlab_bluetooth" msgid="6127769336339276828">"sincronització amb dispositius Bluetooth"</string>
-    <string name="permdesc_bluetooth" product="tablet" msgid="3480722181852438628">"Permet que l\'aplicació visualitzi la configuració de Bluetooth de la tauleta i que estableixi i accepti connexions amb dispositius sincronitzats."</string>
+    <string name="permdesc_bluetooth" product="tablet" msgid="3480722181852438628">"Permet que l\'aplicació visualitzi la configuració de Bluetooth de la dispositiu i que estableixi i accepti connexions amb dispositius sincronitzats."</string>
     <string name="permdesc_bluetooth" product="default" msgid="3207106324452312739">"Permet que una aplicació visualitzi la configuració de Bluetooth del telèfon i que estableixi i accepti connexions amb els dispositius sincronitzats."</string>
     <string name="permlab_nfc" msgid="4423351274757876953">"controla Near Field Communication (NFC)"</string>
     <string name="permdesc_nfc" msgid="7120611819401789907">"Permet que l\'aplicació es comuniqui amb les etiquetes, les targetes i els lectors de Near Field Communication (NFC)."</string>
@@ -608,14 +607,14 @@
     <string name="policylab_limitPassword" msgid="4497420728857585791">"Defineix les normes de contrasenya"</string>
     <string name="policydesc_limitPassword" msgid="3252114203919510394">"Controla la longitud i els caràcters permesos a les contrasenyes de desbloqueig de pantalla."</string>
     <string name="policylab_watchLogin" msgid="914130646942199503">"Control d\'intents de desbloqueig de pantalla"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="3215729294215070072">"Supervisa el nombre de contrasenyes incorrectes introduïdes per desbloquejar la pantalla i bloqueja la tauleta o n\'esborra totes les dades si s\'introdueixen massa contrasenyes incorrectes."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="3215729294215070072">"Supervisa el nombre de contrasenyes incorrectes introduïdes per desbloquejar la pantalla i bloqueja la dispositiu o n\'esborra totes les dades si s\'introdueixen massa contrasenyes incorrectes."</string>
     <string name="policydesc_watchLogin" product="default" msgid="5712323091846761073">"Supervisa el nombre de contrasenyes incorrectes introduïdes en desbloquejar la pantalla, i bloqueja el telèfon o esborra totes les dades del telèfon si s\'introdueixen massa contrasenyes incorrectes."</string>
     <string name="policylab_resetPassword" msgid="2620077191242688955">"Canvia la contrasenya de desbloqueig de pantalla"</string>
     <string name="policydesc_resetPassword" msgid="605963962301904458">"Canvia la contrasenya de desbloqueig de pantalla."</string>
     <string name="policylab_forceLock" msgid="2274085384704248431">"Bloqueig de pantalla"</string>
     <string name="policydesc_forceLock" msgid="1141797588403827138">"Controla com i quan es bloqueja la pantalla."</string>
     <string name="policylab_wipeData" msgid="3910545446758639713">"Esborra totes les dades"</string>
-    <string name="policydesc_wipeData" product="tablet" msgid="4306184096067756876">"Esborra les dades de la tauleta sense advertiment mitjançant un restabliment de les dades de fàbrica."</string>
+    <string name="policydesc_wipeData" product="tablet" msgid="4306184096067756876">"Esborra les dades de la dispositiu sense advertiment mitjançant un restabliment de les dades de fàbrica."</string>
     <string name="policydesc_wipeData" product="default" msgid="5096895604574188391">"Esborra les dades del telèfon sense advertiment mitjançant un restabliment de les dades de fàbrica."</string>
     <string name="policylab_setGlobalProxy" msgid="2784828293747791446">"Defineix el servidor intermediari global del dispositiu"</string>
     <string name="policydesc_setGlobalProxy" msgid="6387497466660154931">"Defineix el servidor intermediari global del dispositiu que cal utilitzar mentre la política estigui activada. Només el primer administrador del dispositiu pot definir el servidor intermediari global efectiu."</string>
@@ -766,7 +765,7 @@
     <string name="lockscreen_battery_short" msgid="4477264849386850266">"<xliff:g id="NUMBER">%d</xliff:g> <xliff:g id="PERCENT">%%</xliff:g>"</string>
     <string name="lockscreen_low_battery" msgid="1482873981919249740">"Connecteu el carregador."</string>
     <string name="lockscreen_missing_sim_message_short" msgid="5099439277819215399">"No hi ha cap targeta SIM."</string>
-    <string name="lockscreen_missing_sim_message" product="tablet" msgid="151659196095791474">"No hi ha cap targeta SIM a la tauleta."</string>
+    <string name="lockscreen_missing_sim_message" product="tablet" msgid="151659196095791474">"No hi ha cap targeta SIM a la dispositiu."</string>
     <string name="lockscreen_missing_sim_message" product="default" msgid="2186920585695169078">"No hi ha cap targeta SIM al telèfon."</string>
     <string name="lockscreen_missing_sim_instructions" msgid="5372787138023272615">"Insereix una targeta SIM."</string>
     <string name="lockscreen_missing_sim_instructions_long" msgid="3526573099019319472">"Falta la targeta SIM o no es pot llegir. Insereix-ne una."</string>
@@ -786,11 +785,11 @@
     <string name="lockscreen_too_many_failed_attempts_dialog_message" msgid="6481623830344107222">"Has dibuixat el patró de desbloqueig de manera incorrecta <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
     <string name="lockscreen_too_many_failed_password_attempts_dialog_message" msgid="2725973286239344555">"Has escrit malament la contrasenya <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
     <string name="lockscreen_too_many_failed_pin_attempts_dialog_message" msgid="6216672706545696955">"Has escrit malament la contrasenya <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
-    <string name="lockscreen_failed_attempts_almost_glogin" product="tablet" msgid="9191611984625460820">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis la tauleta amb l\'inici de sessió de Google."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
+    <string name="lockscreen_failed_attempts_almost_glogin" product="tablet" msgid="9191611984625460820">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis la dispositiu amb l\'inici de sessió de Google."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
     <string name="lockscreen_failed_attempts_almost_glogin" product="default" msgid="2590227559763762751">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis el telèfon amb l\'inici de sessió de Google."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
-    <string name="lockscreen_failed_attempts_almost_at_wipe" product="tablet" msgid="6128106399745755604">"Has provat de desbloquejar la tauleta <xliff:g id="NUMBER_0">%d</xliff:g> vegades incorrectament. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la tauleta es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
-    <string name="lockscreen_failed_attempts_almost_at_wipe" product="default" msgid="8603565142156826565">"Has provat de desbloquejar la tauleta <xliff:g id="NUMBER_0">%d</xliff:g> vegades incorrectament. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la tauleta es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
-    <string name="lockscreen_failed_attempts_now_wiping" product="tablet" msgid="280873516493934365">"Has provat de desbloquejar la tauleta <xliff:g id="NUMBER">%d</xliff:g> vegades incorrectament. Ara la tauleta es restablirà a la configuració predeterminada de fàbrica."</string>
+    <string name="lockscreen_failed_attempts_almost_at_wipe" product="tablet" msgid="6128106399745755604">"Has provat de desbloquejar la dispositiu <xliff:g id="NUMBER_0">%d</xliff:g> vegades incorrectament. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la dispositiu es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
+    <string name="lockscreen_failed_attempts_almost_at_wipe" product="default" msgid="8603565142156826565">"Has provat de desbloquejar la dispositiu <xliff:g id="NUMBER_0">%d</xliff:g> vegades incorrectament. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la dispositiu es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
+    <string name="lockscreen_failed_attempts_now_wiping" product="tablet" msgid="280873516493934365">"Has provat de desbloquejar la dispositiu <xliff:g id="NUMBER">%d</xliff:g> vegades incorrectament. Ara la dispositiu es restablirà a la configuració predeterminada de fàbrica."</string>
     <string name="lockscreen_failed_attempts_now_wiping" product="default" msgid="3025504721764922246">"Has provat de desbloquejar el telèfon <xliff:g id="NUMBER">%d</xliff:g> vegades incorrectament. Ara el telèfon es restablirà a la configuració predeterminada de fàbrica."</string>
     <string name="lockscreen_too_many_failed_attempts_countdown" msgid="6251480343394389665">"Torneu-ho a provar d\'aquí a <xliff:g id="NUMBER">%d</xliff:g> segons."</string>
     <string name="lockscreen_forgot_pattern_button_text" msgid="2626999449610695930">"Heu oblidat el patró?"</string>
@@ -869,7 +868,7 @@
     <string name="permlab_readHistoryBookmarks" msgid="3775265775405106983">"lectura dels marcadors i l\'historial web"</string>
     <string name="permdesc_readHistoryBookmarks" msgid="8462378226600439658">"Permet que l\'aplicació llegeixi l\'historial de tots els URL que has visitat amb el navegador i tots els marcadors. Nota: És possible que aquest permís no s\'apliqui a navegadors de tercers o a altres aplicacions amb capacitats de navegació web."</string>
     <string name="permlab_writeHistoryBookmarks" msgid="3714785165273314490">"introducció de marcadors i d\'historial web"</string>
-    <string name="permdesc_writeHistoryBookmarks" product="tablet" msgid="6825527469145760922">"Permet que l\'aplicació modifiqui l\'historial del navegador o els marcadors de la tauleta. Això pot permetre que l\'aplicació esborri o modifiqui les dades del navegador. Nota: És possible que aquest permís no s\'apliqui a navegadors de tercers o a altres aplicacions amb capacitats de navegació web."</string>
+    <string name="permdesc_writeHistoryBookmarks" product="tablet" msgid="6825527469145760922">"Permet que l\'aplicació modifiqui l\'historial del navegador o els marcadors de la dispositiu. Això pot permetre que l\'aplicació esborri o modifiqui les dades del navegador. Nota: És possible que aquest permís no s\'apliqui a navegadors de tercers o a altres aplicacions amb capacitats de navegació web."</string>
     <string name="permdesc_writeHistoryBookmarks" product="default" msgid="8497389531014185509">"Permet que l\'aplicació modifiqui l\'historial del navegador o els marcadors del telèfon. Això pot permetre que l\'aplicació esborri o modifiqui les dades del navegador. Nota: És possible que aquest permís no s\'apliqui a navegadors de tercers o a altres aplicacions amb capacitats de navegació web."</string>
     <string name="permlab_setAlarm" msgid="1379294556362091814">"configuració d\'una alarma"</string>
     <string name="permdesc_setAlarm" msgid="316392039157473848">"Permet que l\'aplicació defineixi una alarma en una aplicació de despertador instal·lada. És possible que algunes aplicacions de despertador no incorporin aquesta funció."</string>
@@ -905,7 +904,7 @@
     <string name="searchview_description_submit" msgid="2688450133297983542">"Envia la consulta"</string>
     <string name="searchview_description_voice" msgid="2453203695674994440">"Cerca per veu"</string>
     <string name="enable_explore_by_touch_warning_title" msgid="7460694070309730149">"Vols activar l\'exploració tàctil?"</string>
-    <string name="enable_explore_by_touch_warning_message" product="tablet" msgid="8655887539089910577">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> vol activar l\'exploració tàctil. Quan l\'exploració tàctil està activada, pots escoltar o veure les descripcions del contingut seleccionat o utilitzar gestos per interactuar amb la tauleta."</string>
+    <string name="enable_explore_by_touch_warning_message" product="tablet" msgid="8655887539089910577">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> vol activar l\'exploració tàctil. Quan l\'exploració tàctil està activada, pots escoltar o veure les descripcions del contingut seleccionat o utilitzar gestos per interactuar amb la dispositiu."</string>
     <string name="enable_explore_by_touch_warning_message" product="default" msgid="2708199672852373195">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> vol activar l\'exploració tàctil. Quan l\'exploració per tàctil està activada, pots escoltar o veure les descripcions del contingut seleccionat o utilitzar gestos per interactuar amb el telèfon."</string>
     <string name="oneMonthDurationPast" msgid="7396384508953779925">"Fa 1 mes"</string>
     <string name="beforeOneMonthDurationPast" msgid="909134546836499826">"Fa menys d\'1 mes"</string>
@@ -1102,19 +1101,18 @@
     <item quantity="other" msgid="4192424489168397386">"Xarxes Wi-fi disponibles"</item>
   </plurals>
   <plurals name="wifi_available_detailed">
-    <item quantity="one" msgid="1634101450343277345">"Xarxa Wi-fi oberta disponible"</item>
-    <item quantity="other" msgid="7915895323644292768">"Xarxes Wi-fi obertes disponibles"</item>
+    <item quantity="one" msgid="1634101450343277345">"Xarxa Wifi oberta disponible"</item>
+    <item quantity="other" msgid="7915895323644292768">"Xarxes Wifi obertes disponibles"</item>
   </plurals>
     <string name="wifi_available_sign_in" msgid="4029489716605255386">"Inicia la sessió a la xarxa Wi-Fi"</string>
     <string name="network_available_sign_in" msgid="8495155593358054676">"Inicia la sessió a la xarxa"</string>
-    <!-- no translation found for network_available_sign_in_detailed (8000081941447976118) -->
-    <skip />
+    <string name="network_available_sign_in_detailed">%1$s</string>
     <string name="wifi_watchdog_network_disabled" msgid="7904214231651546347">"No s\'ha pogut connectar a la Wi-Fi"</string>
     <string name="wifi_watchdog_network_disabled_detailed" msgid="5548780776418332675">" té una mala connexió a Internet."</string>
-    <string name="wifi_p2p_dialog_title" msgid="97611782659324517">"Wi-Fi Direct"</string>
+    <string name="wifi_p2p_dialog_title" msgid="97611782659324517">"WiFi Direct"</string>
     <string name="wifi_p2p_turnon_message" msgid="2909250942299627244">"Inicia Wi-Fi Direct. Això desactivarà el client/la zona Wi-Fi."</string>
     <string name="wifi_p2p_failed_message" msgid="3763669677935623084">"No s\'ha pogut iniciar Wi-Fi Direct."</string>
-    <string name="wifi_p2p_enabled_notification_title" msgid="2068321881673734886">"Wi-Fi Direct està activat"</string>
+    <string name="wifi_p2p_enabled_notification_title" msgid="2068321881673734886">"WiFi Direct està activat"</string>
     <string name="wifi_p2p_enabled_notification_message" msgid="1638949953993894335">"Toca per accedir a la configuració"</string>
     <string name="accept" msgid="1645267259272829559">"Accepta"</string>
     <string name="decline" msgid="2112225451706137894">"Rebutja"</string>
@@ -1185,6 +1183,7 @@
     <string name="extmedia_format_button_format" msgid="4131064560127478695">"Formata"</string>
     <string name="adb_active_notification_title" msgid="6729044778949189918">"Depuració USB activada"</string>
     <string name="adb_active_notification_message" msgid="1016654627626476142">"Toca per desactivar la depuració USB."</string>
+    <string name="locale_replacement" />
     <string name="select_input_method" msgid="4653387336791222978">"Selecciona un mètodes d\'entrada"</string>
     <string name="configure_input_methods" msgid="9091652157722495116">"Configura els mètodes d\'entrada"</string>
     <string name="use_physical_keyboard" msgid="6203112478095117625">"Teclat físic"</string>
@@ -1195,28 +1194,28 @@
     <string name="fast_scroll_numeric_alphabet" msgid="4030170524595123610">" 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="candidates_style" msgid="4333913089637062257"><u>"candidats"</u></string>
     <string name="ext_media_checking_notification_title" product="nosdcard" msgid="3449816005351468560">"S\'està preparant l\'emmagatzematge USB"</string>
-    <string name="ext_media_checking_notification_title" product="default" msgid="5457603418970994050">"S\'està preparant la targeta SD"</string>
+    <string name="ext_media_checking_notification_title" product="default" msgid="5457603418970994050">"Preparant emmagatzematge"</string>
     <string name="ext_media_checking_notification_message" msgid="8287319882926737053">"S\'està comprovant si hi ha errors."</string>
     <string name="ext_media_nofs_notification_title" product="nosdcard" msgid="7788040745686229307">"Emmagatzematge USB buit"</string>
     <string name="ext_media_nofs_notification_title" product="default" msgid="780477838241212997">"Targeta SD en blanc"</string>
     <string name="ext_media_nofs_notification_message" product="nosdcard" msgid="7840121067427269500">"L\'emmagatzematge USB està buit o té un sistema de fitxers incompatible."</string>
-    <string name="ext_media_nofs_notification_message" product="default" msgid="8641065641786923604">"La targeta SD està buida o té un sistema de fitxers incompatible."</string>
+    <string name="ext_media_nofs_notification_message" product="default" msgid="8641065641786923604">"Memòria buida o format d'arxius no suportat"</string>
     <string name="ext_media_unmountable_notification_title" product="nosdcard" msgid="2090046769532713563">"Emmagatzematge USB danyat"</string>
-    <string name="ext_media_unmountable_notification_title" product="default" msgid="6410723906019100189">"Targeta SD malmesa"</string>
+    <string name="ext_media_unmountable_notification_title" product="default" msgid="6410723906019100189">"Memòria danyada"</string>
     <string name="ext_media_unmountable_notification_message" product="nosdcard" msgid="1795917578395333280">"L\'emmagatzematge USB està malmès. Prova a formatar-lo."</string>
-    <string name="ext_media_unmountable_notification_message" product="default" msgid="1753898567525568253">"La targeta SD està malmesa. Prova a formatar-la."</string>
+    <string name="ext_media_unmountable_notification_message" product="default" msgid="1753898567525568253">"Memòria d'emmagatzematge danyada. És possible que calgui donar-li format de nou."</string>
     <string name="ext_media_badremoval_notification_title" product="nosdcard" msgid="1661683031330951073">"Emmag. USB retirat inesperadament"</string>
-    <string name="ext_media_badremoval_notification_title" product="default" msgid="6872152882604407837">"Targeta SD extreta inesperadament"</string>
+    <string name="ext_media_badremoval_notification_title" product="default" msgid="6872152882604407837">"Memòria extreta inesperadament"</string>
     <string name="ext_media_badremoval_notification_message" product="nosdcard" msgid="4329848819865594241">"Desinstal·la l\'emmagatzematge USB abans de retirar-la per evitar pèrdues de dades."</string>
-    <string name="ext_media_badremoval_notification_message" product="default" msgid="7260183293747448241">"Expulseu la targeta SD abans d\'extreure-la per evitar la pèrdua de dades."</string>
+    <string name="ext_media_badremoval_notification_message" product="default" msgid="7260183293747448241">"Desmuntar emmagatzematge abans de retirar la memòria per evitar perdre dades"</string>
     <string name="ext_media_safe_unmount_notification_title" product="nosdcard" msgid="3967973893270360230">"És segur retirar l\'emmagatzematge USB"</string>
-    <string name="ext_media_safe_unmount_notification_title" product="default" msgid="6729801130790616200">"La targeta SD es pot extreure"</string>
+    <string name="ext_media_safe_unmount_notification_title" product="default" msgid="6729801130790616200">"És segur extreure de l'emmagatzematge"</string>
     <string name="ext_media_safe_unmount_notification_message" product="nosdcard" msgid="6142195361606493530">"Pots retirar l\'emmagatzematge USB de forma segura."</string>
-    <string name="ext_media_safe_unmount_notification_message" product="default" msgid="568841278138377604">"Podeu extreure la targeta SD sense problemes."</string>
+    <string name="ext_media_safe_unmount_notification_message" product="default" msgid="568841278138377604">"Pots retirar la memòria de manera segura"</string>
     <string name="ext_media_nomedia_notification_title" product="nosdcard" msgid="4486377230140227651">"Emmagatzematge USB retirat"</string>
-    <string name="ext_media_nomedia_notification_title" product="default" msgid="8902518030404381318">"Targeta SD extreta"</string>
+    <string name="ext_media_nomedia_notification_title" product="default" msgid="8902518030404381318">"Extreure memòria"</string>
     <string name="ext_media_nomedia_notification_message" product="nosdcard" msgid="6921126162580574143">"Emmagatzematge USB retirat. Insereix el mitjà nou."</string>
-    <string name="ext_media_nomedia_notification_message" product="default" msgid="3870120652983659641">"S\'ha extret la targeta SD. Inseriu-ne una."</string>
+    <string name="ext_media_nomedia_notification_message" product="default" msgid="3870120652983659641">"Memoria extraída. Inserta una nueva."</string>
     <string name="activity_list_empty" msgid="1675388330786841066">"No s\'ha trobat cap activitat coincident."</string>
     <string name="permlab_pkgUsageStats" msgid="8787352074326748892">"actualitzar les estadístiques d\'ús de components"</string>
     <string name="permdesc_pkgUsageStats" msgid="1106612424254277630">"Permet que l\'aplicació modifiqui les estadístiques d\'ús dels components recopilades. No la poden fer servir les aplicacions normals."</string>
@@ -1247,6 +1246,7 @@
     <string name="accessibility_binding_label" msgid="4148120742096474641">"Accessibilitat"</string>
     <string name="wallpaper_binding_label" msgid="1240087844304687662">"Fons de pantalla"</string>
     <string name="chooser_wallpaper" msgid="7873476199295190279">"Canvia el fons de pantalla"</string>
+    <string name="alternate_eri_file">/data/eri.xml</string>
     <string name="vpn_title" msgid="19615213552042827">"VPN activada"</string>
     <string name="vpn_title_long" msgid="6400714798049252294">"<xliff:g id="APP">%s</xliff:g> ha activat VPN"</string>
     <string name="vpn_text" msgid="3011306607126450322">"Toca per gestionar la xarxa."</string>
@@ -1278,17 +1278,17 @@
   </plurals>
     <string name="action_mode_done" msgid="7217581640461922289">"Fet"</string>
     <string name="progress_unmounting" product="nosdcard" msgid="3923810448507612746">"S\'està desactivant l\'emmagatzematge USB..."</string>
-    <string name="progress_unmounting" product="default" msgid="1327894998409537190">"S\'està desactivant la targeta SD..."</string>
+    <string name="progress_unmounting" product="default" msgid="1327894998409537190">"Desmuntant emmagatzematge"</string>
     <string name="progress_erasing" product="nosdcard" msgid="4521573321524340058">"S\'està esborrant l\'emmagatzematge USB..."</string>
-    <string name="progress_erasing" product="default" msgid="6596988875507043042">"S\'està esborrant la targeta SD..."</string>
+    <string name="progress_erasing" product="default" msgid="6596988875507043042">"Esborrant memòria..."</string>
     <string name="format_error" product="nosdcard" msgid="6299769563624776948">"No s\'ha pogut esborrar l\'emmagatzematge USB."</string>
-    <string name="format_error" product="default" msgid="7315248696644510935">"No s\'ha pogut esborrar la targeta SD."</string>
-    <string name="media_bad_removal" msgid="7960864061016603281">"La targeta SD s\'ha retirat abans de desinstal·lar-la."</string>
+    <string name="format_error" product="default" msgid="7315248696644510935">"No es pot esborrar la memòria"</string>
+    <string name="media_bad_removal" msgid="7960864061016603281">"La memòria ha estat extreta abans de ser desmuntada"</string>
     <string name="media_checking" product="nosdcard" msgid="418188720009569693">"Actualment s\'està comprovant l\'emmagatzematge USB."</string>
-    <string name="media_checking" product="default" msgid="7334762503904827481">"S\'està comprovant la targeta SD."</string>
-    <string name="media_removed" msgid="7001526905057952097">"S\'ha retirat la targeta SD."</string>
+    <string name="media_checking" product="default" msgid="7334762503904827481">"La memòria està sent comprovada."</string>
+    <string name="media_removed" msgid="7001526905057952097">"La memòria s'ha extret"</string>
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"Actualment, un equip està utilitzant l\'emmagatzematge USB."</string>
-    <string name="media_shared" product="default" msgid="5706130568133540435">"Actualment, un equip està utilitzant la targeta SD."</string>
+    <string name="media_shared" product="default" msgid="5706130568133540435">"la memòria està sent utilitzada per un ordinador"</string>
     <string name="media_unknown_state" msgid="729192782197290385">"Mitjà extern en un estat desconegut."</string>
     <string name="share" msgid="1778686618230011964">"Comparteix"</string>
     <string name="find" msgid="4808270900322985960">"Cerca"</string>
@@ -1359,7 +1359,7 @@
     <string name="data_usage_3g_limit_title" msgid="7093334419518706686">"Dades 2G-3G desactivades"</string>
     <string name="data_usage_4g_limit_title" msgid="7636489436819470761">"Dades 4G desactivades"</string>
     <string name="data_usage_mobile_limit_title" msgid="7869402519391631884">"Dades mòbils desactivades"</string>
-    <string name="data_usage_wifi_limit_title" msgid="8992154736441284865">"S\'han desactivat les dades Wi-Fi"</string>
+    <string name="data_usage_wifi_limit_title" msgid="8992154736441284865">"S\'han desactivat les dades WiFi"</string>
     <string name="data_usage_limit_body" msgid="3317964706973601386">"Toca per activar."</string>
     <string name="data_usage_3g_limit_snoozed_title" msgid="7026739121138005231">"S\'ha superat el límit de dades 2G-3G"</string>
     <string name="data_usage_4g_limit_snoozed_title" msgid="1106562779311209039">"S\'ha superat el límit de dades 4G"</string>
@@ -1392,7 +1392,7 @@
     <string name="SetupCallDefault" msgid="5834948469253758575">"Vols acceptar la trucada?"</string>
     <string name="activity_resolver_use_always" msgid="8017770747801494933">"Sempre"</string>
     <string name="activity_resolver_use_once" msgid="2404644797149173758">"Només una"</string>
-    <string name="default_audio_route_name" product="tablet" msgid="4617053898167127471">"Tauleta"</string>
+    <string name="default_audio_route_name" product="tablet" msgid="4617053898167127471">"Dispositiu"</string>
     <string name="default_audio_route_name" product="default" msgid="4239291273420140123">"Telèfon"</string>
     <string name="default_audio_route_name_headphones" msgid="8119971843803439110">"Auriculars"</string>
     <string name="default_audio_route_name_dock_speakers" msgid="6240602982276591864">"Altaveus del connector"</string>
@@ -1442,11 +1442,11 @@
     <string name="kg_too_many_failed_pin_attempts_dialog_message" msgid="8276745642049502550">"Has escrit malament el PIN <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
     <string name="kg_too_many_failed_password_attempts_dialog_message" msgid="7813713389422226531">"Has escrit malament la contrasenya <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
     <string name="kg_too_many_failed_pattern_attempts_dialog_message" msgid="74089475965050805">"Has dibuixat el patró de desbloqueig de manera incorrecta <xliff:g id="NUMBER_0">%d</xliff:g> vegades. "\n\n"Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> segons."</string>
-    <string name="kg_failed_attempts_almost_at_wipe" product="tablet" msgid="1575557200627128949">"Has provat de desbloquejar la tauleta <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la tauleta es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
+    <string name="kg_failed_attempts_almost_at_wipe" product="tablet" msgid="1575557200627128949">"Has provat de desbloquejar la dispositiu <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, la dispositiu es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
     <string name="kg_failed_attempts_almost_at_wipe" product="default" msgid="4051015943038199910">"Has provat de desbloquejar el telèfon <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. D\'aquí a <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, el telèfon es restablirà a la configuració predeterminada de fàbrica i es perdran totes les dades dels usuaris."</string>
-    <string name="kg_failed_attempts_now_wiping" product="tablet" msgid="2072996269148483637">"Has provat de desbloquejar la tauleta <xliff:g id="NUMBER">%d</xliff:g> vegades de manera incorrecta. Ara la tauleta es restablirà a la configuració predeterminada de fàbrica."</string>
+    <string name="kg_failed_attempts_now_wiping" product="tablet" msgid="2072996269148483637">"Has provat de desbloquejar la dispositiu <xliff:g id="NUMBER">%d</xliff:g> vegades de manera incorrecta. Ara la dispositiu es restablirà a la configuració predeterminada de fàbrica."</string>
     <string name="kg_failed_attempts_now_wiping" product="default" msgid="4817627474419471518">"Has provat de desbloquejar el telèfon <xliff:g id="NUMBER">%d</xliff:g> vegades de manera incorrecta. Ara el telèfon es restablirà a la configuració predeterminada de fàbrica."</string>
-    <string name="kg_failed_attempts_almost_at_login" product="tablet" msgid="3253575572118914370">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis la tauleta amb un compte de correu electrònic."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
+    <string name="kg_failed_attempts_almost_at_login" product="tablet" msgid="3253575572118914370">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis la dispositiu amb un compte de correu electrònic."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
     <string name="kg_failed_attempts_almost_at_login" product="default" msgid="1437638152015574839">"Has dibuixat el patró de desbloqueig <xliff:g id="NUMBER_0">%d</xliff:g> vegades de manera incorrecta. Després de <xliff:g id="NUMBER_1">%d</xliff:g> intents incorrectes més, se\'t demanarà que desbloquegis el telèfon amb un compte de correu electrònic."\n\n" Torna-ho a provar d\'aquí a <xliff:g id="NUMBER_2">%d</xliff:g> segons."</string>
     <string name="kg_text_message_separator" product="default" msgid="4160700433287233771">" — "</string>
     <string name="kg_reordering_delete_drop_target_text" msgid="7899202978204438708">"Elimina"</string>

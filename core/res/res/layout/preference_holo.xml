@@ -55,6 +55,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"
             android:ellipsize="marquee"
             android:fadingEdge="horizontal" />
 
@@ -63,6 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@android:id/title"
             android:layout_alignStart="@android:id/title"
+            android:paddingLeft="@dimen/preference_item_padding_side"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="?android:attr/textColorSecondary"
             android:maxLines="10" />

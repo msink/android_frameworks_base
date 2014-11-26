@@ -203,4 +203,10 @@
     <string name="quick_settings_brightness_dialog_auto_brightness_label" msgid="5064982743784071218">"AUTOMATYCZNA"</string>
     <string name="status_bar_help_title" msgid="1199237744086469217">"Tutaj pokazują się powiadomienia"</string>
     <string name="status_bar_help_text" msgid="7874607155052076323">"Możesz je otworzyć w dowolnej chwili, przesuwając w dół."\n"Przesuń jeszcze raz w dół, by otworzyć ustawienia systemowe."</string>
+
+    <string name="menu_dialog_menu">Menu</string>
+    <string name="menu_dialog_home">Strona Startowa</string>
+    <string name="menu_dialog_settings">Ustawienia</string>
+    <string name="menu_dialog_status_bar">Pasek Statusu</string>
+    <string name="menu_dialog_moonlight">Podświetlenie</string>
 </resources>

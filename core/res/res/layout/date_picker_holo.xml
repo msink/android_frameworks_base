@@ -43,10 +43,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dip"
             android:layout_marginBottom="16dip"
-            android:layout_marginStart="8dip"
-            android:layout_marginEnd="8dip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:layout_weight="1"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             />
 
         <!-- Day -->
@@ -56,10 +55,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dip"
             android:layout_marginBottom="16dip"
-            android:layout_marginStart="8dip"
-            android:layout_marginEnd="8dip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:layout_weight="1"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             />
 
         <!-- Year -->
@@ -69,10 +67,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dip"
             android:layout_marginBottom="16dip"
-            android:layout_marginStart="8dip"
-            android:layout_marginEnd="16dip"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:layout_weight="1"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             />
 
     </LinearLayout>
@@ -85,8 +82,8 @@
         android:layout_marginStart="16dip"
         android:layout_marginEnd="16dip"
         android:layout_weight="1"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         />
 
 </LinearLayout>

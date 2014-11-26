@@ -16,7 +16,7 @@
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:internal="http://schemas.android.com/apk/prv/res/android"
-    android:background="@android:drawable/notification_bg"
+    android:background="@color/white"
     android:id="@+id/status_bar_latest_event_content"
     android:layout_width="match_parent"
     android:layout_height="64dp"
@@ -26,8 +26,9 @@
     <ImageView android:id="@+id/icon"
         android:layout_width="@dimen/notification_large_icon_width"
         android:layout_height="@dimen/notification_large_icon_height"
-        android:background="@android:drawable/notification_template_icon_bg"
-        android:scaleType="center"
+        android:layout_marginLeft="@dimen/notification_large_icon_margin"
+        android:layout_marginTop="@dimen/notification_large_icon_margin"
+        android:background="@drawable/notification_template_icon_bg"
         />
     <LinearLayout
         android:layout_width="match_parent"

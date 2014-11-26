@@ -16,9 +16,11 @@
 
 <com.android.internal.view.menu.IconMenuView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+android:id/icon_menu" 
-    android:layout_width="match_parent"
+    android:layout_width="@dimen/system_menu_layout_width"
     android:layout_height="wrap_content"
-    android:rowHeight="66dip"
-    android:maxItems="6"
-    android:maxRows="3"
-    android:maxItemsPerRow="3" />
+    android:itemBackground="@drawable/item_background"
+    android:paddingBottom="2dip"
+    android:rowHeight="48dip"
+    android:maxItems="12"
+    android:maxRows="12"
+    android:maxItemsPerRow="1" />

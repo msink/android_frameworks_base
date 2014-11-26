@@ -205,8 +205,18 @@
     <string name="quick_settings_brightness_dialog_auto_brightness_label" msgid="5064982743784071218">"自动"</string>
     <string name="status_bar_help_title" msgid="1199237744086469217">"通知会显示在这里"</string>
     <string name="status_bar_help_text" msgid="7874607155052076323">"向下滑动可随时查看通知。"\n"再次向下滑动可使用系统控制功能。"</string>
+
     <string name="sdcard_unmount">内部存储正在使用中</string>
     <string name="external_sd_unmount">SD卡未挂载</string>
     <string name="usb_storage_unmount">USB存储未挂载</string>
+    <string name="datatransfer_button_ok">确定</string>
+    <string name="datatransfer_button_cancel">取消</string>
+    <string name="datatransfer_info">是否将USB存储设备连接到计算机？</string>
+    <string name="datatransfer_button_disable">关闭USB存储设备</string>
+    <string name="a2_select_dialog_title">A2 刷新模式</string>
+    <string-array name="a2mode">
+        <item>画质优先</item>
+        <item>速度优先</item>
+    </string-array>
     <string name="compat_mode_standard_screen_on">标准屏幕模式</string>
 </resources>

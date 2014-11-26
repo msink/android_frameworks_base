@@ -16,17 +16,31 @@
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@android:id/background"
-          android:drawable="@android:drawable/progress_bg_holo_light" />
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="@dimen/border_default_radius" />
+            <stroke  android:width="@dimen/border_default_stroke_width"
+                     android:color="@color/black" />
+            <solid   android:color="@color/white" />
+        </shape>
+    </item>
 
     <item android:id="@android:id/secondaryProgress">
-        <scale android:scaleWidth="100%"
-               android:drawable="@android:drawable/progress_secondary_holo_light" />
+        <clip>
+            <shape>
+                <corners android:radius="@dimen/border_default_radius" />
+                <solid   android:color="@color/black" />
+            </shape>
+        </clip>
     </item>
 
     <item android:id="@android:id/progress">
-        <scale android:scaleWidth="100%"
-               android:drawable="@android:drawable/progress_primary_holo_light" />
+        <clip>
+            <shape>
+                <corners android:radius="@dimen/border_default_radius" />
+                <solid   android:color="@color/black" />
+            </shape>
+        </clip>
     </item>
 
 </layer-list>

@@ -9,7 +9,7 @@
     android:background="@color/white"
     >
 
-    <ImageView android:id="@+id/icon"
+   <ImageView android:id="@+id/icon"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         android:layout_height="wrap_content"

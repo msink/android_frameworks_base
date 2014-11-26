@@ -29,7 +29,6 @@
     <string name="fileSizeSuffix" msgid="9164292791500531949">"<xliff:g id="NUMBER">%1$s</xliff:g><xliff:g id="UNIT">%2$s</xliff:g>"</string>
     <string name="untitled" msgid="4638956954852782576">"&lt;Untitled&gt;"</string>
     <string name="ellipsis" msgid="7899829516048813237">"…"</string>
-    <string name="ellipsis_two_dots" msgid="1228078994866030736">"‥"</string>
     <string name="emptyPhoneNumber" msgid="7694063042079676517">"(No phone number)"</string>
     <string name="unknownName" msgid="2277556546742746522">"(Unknown)"</string>
     <string name="defaultVoiceMailAlphaTag" msgid="2660020990097733077">"Voicemail"</string>
@@ -129,10 +128,10 @@
     <string name="contentServiceSync" msgid="8353523060269335667">"Sync"</string>
     <string name="contentServiceSyncNotificationTitle" msgid="397743349191901458">"Sync"</string>
     <string name="contentServiceTooManyDeletesNotificationDesc" msgid="8100981435080696431">"Too many <xliff:g id="CONTENT_TYPE">%s</xliff:g> deletions."</string>
-    <string name="low_memory" product="tablet" msgid="6494019234102154896">"Tablet storage is full. Delete some files to free space."</string>
+    <string name="low_memory" product="tablet" msgid="6494019234102154896">"Device storage is full. Delete some files to free space."</string>
     <string name="low_memory" product="default" msgid="3475999286680000541">"Phone storage is full. Delete some files to free space."</string>
     <string name="me" msgid="6545696007631404292">"Me"</string>
-    <string name="power_dialog" product="tablet" msgid="8545351420865202853">"Tablet options"</string>
+    <string name="power_dialog" product="tablet" msgid="8545351420865202853">"Device options"</string>
     <string name="power_dialog" product="default" msgid="1319919075463988638">"Phone options"</string>
     <string name="silent_mode" msgid="7167703389802618663">"Silent mode"</string>
     <string name="turn_on_radio" msgid="3912793092339962371">"Turn on wireless"</string>
@@ -143,14 +142,14 @@
     <string name="silent_mode_vibrate" msgid="7072043388581551395">"Ringer vibrate"</string>
     <string name="silent_mode_ring" msgid="8592241816194074353">"Ringer on"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Shutting down…"</string>
-    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Your tablet will shut down."</string>
+    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Your device will shut down."</string>
     <string name="shutdown_confirm" product="default" msgid="649792175242821353">"Your phone will shut down."</string>
     <string name="shutdown_confirm_question" msgid="2906544768881136183">"Do you want to shut down?"</string>
     <string name="reboot_safemode_title" msgid="7054509914500140361">"Reboot to safe mode"</string>
     <string name="reboot_safemode_confirm" msgid="55293944502784668">"Do you want to reboot into safe mode? This will disable all third-party applications that you have installed. They will be restored when you reboot again."</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Recent"</string>
     <string name="no_recent_tasks" msgid="8794906658732193473">"No recent apps"</string>
-    <string name="global_actions" product="tablet" msgid="408477140088053665">"Tablet options"</string>
+    <string name="global_actions" product="tablet" msgid="408477140088053665">"Device options"</string>
     <string name="global_actions" product="default" msgid="2406416831541615258">"Phone options"</string>
     <string name="global_action_lock" msgid="2844945191792119712">"Screen lock"</string>
     <string name="global_action_power_off" msgid="4471879440839879722">"Power off"</string>
@@ -246,10 +245,10 @@
     <string name="permlab_sendSmsNoConfirmation" msgid="4781483105951730228">"send SMS messages with no confirmation"</string>
     <string name="permdesc_sendSmsNoConfirmation" msgid="402569800862935907">"Allows the app to send SMS messages. This may result in unexpected charges. Malicious apps may cost you money by sending messages without your confirmation."</string>
     <string name="permlab_readSms" msgid="8745086572213270480">"read your text messages (SMS or MMS)"</string>
-    <string name="permdesc_readSms" product="tablet" msgid="2467981548684735522">"Allows the app to read SMS messages stored on your tablet or SIM card. This allows the app to read all SMS messages, regardless of content or confidentiality."</string>
+    <string name="permdesc_readSms" product="tablet" msgid="2467981548684735522">"Allows the app to read SMS messages stored on your device or SIM card. This allows the app to read all SMS messages, regardless of content or confidentiality."</string>
     <string name="permdesc_readSms" product="default" msgid="3695967533457240550">"Allows the app to read SMS messages stored on your phone or SIM card. This allows the app to read all SMS messages, regardless of content or confidentiality."</string>
     <string name="permlab_writeSms" msgid="3216950472636214774">"edit your text messages (SMS or MMS)"</string>
-    <string name="permdesc_writeSms" product="tablet" msgid="5160413947794501538">"Allows the app to write to SMS messages stored on your tablet or SIM card. Malicious apps may delete your messages."</string>
+    <string name="permdesc_writeSms" product="tablet" msgid="5160413947794501538">"Allows the app to write to SMS messages stored on your device or SIM card. Malicious apps may delete your messages."</string>
     <string name="permdesc_writeSms" product="default" msgid="7268668709052328567">"Allows the app to write to SMS messages stored on your phone or SIM card. Malicious apps may delete your messages."</string>
     <string name="permlab_receiveWapPush" msgid="5991398711936590410">"receive text messages (WAP)"</string>
     <string name="permdesc_receiveWapPush" msgid="748232190220583385">"Allows the app to receive and process WAP messages. This permission includes the ability to monitor or delete messages sent to you without showing them to you."</string>
@@ -330,7 +329,7 @@
     <string name="permlab_freezeScreen" msgid="4708181184441880175">"freeze screen"</string>
     <string name="permdesc_freezeScreen" msgid="8558923789222670064">"Allows the application to temporarily freeze the screen for a full-screen transition."</string>
     <string name="permlab_injectEvents" msgid="1378746584023586600">"press keys and control buttons"</string>
-    <string name="permdesc_injectEvents" product="tablet" msgid="206352565599968632">"Allows the app to deliver its own input events (key presses, etc.) to other apps. Malicious apps may use this to take over the tablet."</string>
+    <string name="permdesc_injectEvents" product="tablet" msgid="206352565599968632">"Allows the app to deliver its own input events (key presses, etc.) to other apps. Malicious apps may use this to take over the device."</string>
     <string name="permdesc_injectEvents" product="default" msgid="653128057572326253">"Allows the app to deliver its own input events (key presses, etc.) to other apps. Malicious apps may use this to take over the phone."</string>
     <string name="permlab_readInputState" msgid="469428900041249234">"record what you type and actions that you take"</string>
     <string name="permdesc_readInputState" msgid="8387754901688728043">"Allows the app to watch the keys that you press even when interacting with another app (such as typing a password). Should never be needed for normal apps."</string>
@@ -357,7 +356,7 @@
     <string name="permlab_signalPersistentProcesses" msgid="4539002991947376659">"send Linux signals to apps"</string>
     <string name="permdesc_signalPersistentProcesses" msgid="4896992079182649141">"Allows the app to request that the supplied signal be sent to all persistent processes."</string>
     <string name="permlab_persistentActivity" msgid="8841113627955563938">"make app always run"</string>
-    <string name="permdesc_persistentActivity" product="tablet" msgid="8525189272329086137">"Allows the app to make parts of itself persistent in memory. This can limit the memory available to other apps, slowing down the tablet."</string>
+    <string name="permdesc_persistentActivity" product="tablet" msgid="8525189272329086137">"Allows the app to make parts of itself persistent in memory. This can limit the memory available to other apps, slowing down the device."</string>
     <string name="permdesc_persistentActivity" product="default" msgid="4384760047508278272">"Allows the app to make parts of itself persistent in memory. This can limit the memory available to other apps, slowing down the phone."</string>
     <string name="permlab_deletePackages" msgid="184385129537705938">"delete apps"</string>
     <string name="permdesc_deletePackages" msgid="7411480275167205081">"Allows the app to delete Android packages. Malicious apps may use this to delete important apps."</string>
@@ -370,19 +369,19 @@
     <string name="permlab_installPackages" msgid="2199128482820306924">"directly install apps"</string>
     <string name="permdesc_installPackages" msgid="5628530972548071284">"Allows the app to install new or updated Android packages. Malicious apps may use this to add new apps with arbitrarily powerful permissions."</string>
     <string name="permlab_clearAppCache" msgid="7487279391723526815">"delete all app cache data"</string>
-    <string name="permdesc_clearAppCache" product="tablet" msgid="8974640871945434565">"Allows the app to free tablet storage by deleting files in the cache directories of other applications. This may cause other applications to start up more slowly as they need to re-retrieve their data."</string>
+    <string name="permdesc_clearAppCache" product="tablet" msgid="8974640871945434565">"Allows the app to free device storage by deleting files in the cache directories of other applications. This may cause other applications to start up more slowly as they need to re-retrieve their data."</string>
     <string name="permdesc_clearAppCache" product="default" msgid="2459441021956436779">"Allows the app to free phone storage by deleting files in the cache directories of other applications. This may cause other applications to start up more slowly as they need to re-retrieve their data."</string>
     <string name="permlab_movePackage" msgid="3289890271645921411">"move app resources"</string>
     <string name="permdesc_movePackage" msgid="319562217778244524">"Allows the app to move app resources from internal to external media and vice versa."</string>
     <string name="permlab_readLogs" msgid="6615778543198967614">"read sensitive log data"</string>
-    <string name="permdesc_readLogs" product="tablet" msgid="82061313293455151">"Allows the app to read from the system\'s various log files. This allows it to discover general information about what you are doing with the tablet, potentially including personal or private information."</string>
+    <string name="permdesc_readLogs" product="tablet" msgid="82061313293455151">"Allows the app to read from the system\'s various log files. This allows it to discover general information about what you are doing with the device, potentially including personal or private information."</string>
     <string name="permdesc_readLogs" product="default" msgid="2063438140241560443">"Allows the app to read from the system\'s various log files. This allows it to discover general information about what you are doing with the phone, potentially including personal or private information."</string>
     <string name="permlab_anyCodecForPlayback" msgid="715805555823881818">"use any media decoder for playback"</string>
     <string name="permdesc_anyCodecForPlayback" msgid="8283912488433189010">"Allows the app to use any installed media decoder to decode for playback."</string>
     <string name="permlab_diagnostic" msgid="8076743953908000342">"read/write to resources owned by diag"</string>
     <string name="permdesc_diagnostic" msgid="6608295692002452283">"Allows the app to read and write to any resource owned by the diag group; for example, files in /dev. This could potentially affect system stability and security. This should ONLY be used for hardware-specific diagnostics by the manufacturer or operator."</string>
     <string name="permlab_changeComponentState" msgid="6335576775711095931">"enable or disable app components"</string>
-    <string name="permdesc_changeComponentState" product="tablet" msgid="8887435740982237294">"Allows the app to change whether a component of another app is enabled or not. Malicious apps may use this to disable important tablet capabilities. Care must be taken with this permission, as it is possible to get app components into an unusable, inconsistent or unstable state."</string>
+    <string name="permdesc_changeComponentState" product="tablet" msgid="8887435740982237294">"Allows the app to change whether a component of another app is enabled or not. Malicious apps may use this to disable important device capabilities. Care must be taken with this permission, as it is possible to get app components into an unusable, inconsistent or unstable state."</string>
     <string name="permdesc_changeComponentState" product="default" msgid="1827232484416505615">"Allows the app to change whether a component of another app is enabled or not. Malicious apps may use this to disable important phone capabilities. Care must be taken with this permission, as it is possible to get app components into an unusable, inconsistent or unstable state."</string>
     <string name="permlab_grantRevokePermissions" msgid="4627315351093508795">"grant or revoke permissions"</string>
     <string name="permdesc_grantRevokePermissions" msgid="4088642654085850662">"Allows an application to grant or revoke specific permissions for it or other applications. Malicious applications may use this to access features for which you have not granted them permission."</string>
@@ -395,22 +394,22 @@
     <string name="permlab_writeGservices" msgid="2149426664226152185">"modify the Google services map"</string>
     <string name="permdesc_writeGservices" msgid="1287309437638380229">"Allows the app to modify the Google services map. Not for use by normal apps."</string>
     <string name="permlab_receiveBootCompleted" msgid="5312965565987800025">"run at startup"</string>
-    <string name="permdesc_receiveBootCompleted" product="tablet" msgid="7390304664116880704">"Allows the app to have itself started as soon as the system has finished booting. This can make it take longer to start the tablet and allow the app to slow down the overall tablet by always running."</string>
+    <string name="permdesc_receiveBootCompleted" product="tablet" msgid="7390304664116880704">"Allows the app to have itself started as soon as the system has finished booting. This can make it take longer to start the device and allow the app to slow down the overall device by always running."</string>
     <string name="permdesc_receiveBootCompleted" product="default" msgid="513950589102617504">"Allows the app to have itself started as soon as the system has finished booting. This can make it take longer to start the phone and allow the app to slow down the overall phone by always running."</string>
     <string name="permlab_broadcastSticky" msgid="7919126372606881614">"send sticky broadcast"</string>
-    <string name="permdesc_broadcastSticky" product="tablet" msgid="7749760494399915651">"Allows the app to send sticky broadcasts, which remain after the broadcast ends. Excessive use may make the tablet slow or unstable by causing it to use too much memory."</string>
+    <string name="permdesc_broadcastSticky" product="tablet" msgid="7749760494399915651">"Allows the app to send sticky broadcasts, which remain after the broadcast ends. Excessive use may make the device slow or unstable by causing it to use too much memory."</string>
     <string name="permdesc_broadcastSticky" product="default" msgid="2825803764232445091">"Allows the app to send sticky broadcasts, which remain after the broadcast ends. Excessive use may make the phone slow or unstable by causing it to use too much memory."</string>
     <string name="permlab_readContacts" msgid="8348481131899886131">"read your contacts"</string>
-    <string name="permdesc_readContacts" product="tablet" msgid="5294866856941149639">"Allows the app to read data about your contacts stored on your tablet, including the frequency with which you\'ve called, emailed or communicated in other ways with specific individuals. This permission allows apps to save your contact data, and malicious apps may share contact data without your knowledge."</string>
+    <string name="permdesc_readContacts" product="tablet" msgid="5294866856941149639">"Allows the app to read data about your contacts stored on your device, including the frequency with which you\'ve called, emailed or communicated in other ways with specific individuals. This permission allows apps to save your contact data, and malicious apps may share contact data without your knowledge."</string>
     <string name="permdesc_readContacts" product="default" msgid="8440654152457300662">"Allows the app to read data about your contacts stored on your phone, including the frequency with which you\'ve called, emailed or communicated in other ways with specific individuals. This permission allows apps to save your contact data, and malicious apps may share contact data without your knowledge."</string>
     <string name="permlab_writeContacts" msgid="5107492086416793544">"modify your contacts"</string>
-    <string name="permdesc_writeContacts" product="tablet" msgid="897243932521953602">"Allows the app to modify the data about your contacts stored on your tablet, including the frequency with which you\'ve called, emailed or communicated in other ways with specific contacts. This permission allows apps to delete contact data."</string>
+    <string name="permdesc_writeContacts" product="tablet" msgid="897243932521953602">"Allows the app to modify the data about your contacts stored on your device, including the frequency with which you\'ve called, emailed or communicated in other ways with specific contacts. This permission allows apps to delete contact data."</string>
     <string name="permdesc_writeContacts" product="default" msgid="589869224625163558">"Allows the app to modify the data about your contacts stored on your phone, including the frequency with which you\'ve called, emailed or communicated in other ways with specific contacts. This permission allows apps to delete contact data."</string>
     <string name="permlab_readCallLog" msgid="3478133184624102739">"read call log"</string>
-    <string name="permdesc_readCallLog" product="tablet" msgid="3700645184870760285">"Allows the app to read your tablet\'s call log, including data about incoming and outgoing calls. This permission allows apps to save your call log data, and malicious apps may share call log data without your knowledge."</string>
+    <string name="permdesc_readCallLog" product="tablet" msgid="3700645184870760285">"Allows the app to read your device\'s call log, including data about incoming and outgoing calls. This permission allows apps to save your call log data, and malicious apps may share call log data without your knowledge."</string>
     <string name="permdesc_readCallLog" product="default" msgid="5777725796813217244">"Allows the app to read your phone\'s call log, including data about incoming and outgoing calls. This permission allows apps to save your call log data, and malicious apps may share call log data without your knowledge."</string>
     <string name="permlab_writeCallLog" msgid="8552045664743499354">"write call log"</string>
-    <string name="permdesc_writeCallLog" product="tablet" msgid="6661806062274119245">"Allows the app to modify your tablet\'s call log, including data about incoming and outgoing calls. Malicious apps may use this to erase or modify your call log."</string>
+    <string name="permdesc_writeCallLog" product="tablet" msgid="6661806062274119245">"Allows the app to modify your device\'s call log, including data about incoming and outgoing calls. Malicious apps may use this to erase or modify your call log."</string>
     <string name="permdesc_writeCallLog" product="default" msgid="683941736352787842">"Allows the app to modify your phone\'s call log, including data about incoming and outgoing calls. Malicious apps may use this to erase or modify your call log."</string>
     <string name="permlab_readProfile" msgid="4701889852612716678">"read your own contact card"</string>
     <string name="permdesc_readProfile" product="default" msgid="5462475151849888848">"Allows the app to read personal profile information stored on your device, such as your name and contact information. This means that the app can identify you and may send your profile information to others."</string>
@@ -421,10 +420,10 @@
     <string name="permlab_writeSocialStream" product="default" msgid="3504179222493235645">"write to your social stream"</string>
     <string name="permdesc_writeSocialStream" product="default" msgid="3086557552204114849">"Allows the app to display social updates from your friends. Be careful when sharing information - this allows the app to produce messages that may appear to come from a friend. Note: this permission may not be enforced on all social networks."</string>
     <string name="permlab_readCalendar" msgid="5972727560257612398">"read calendar events plus confidential information"</string>
-    <string name="permdesc_readCalendar" product="tablet" msgid="4216462049057658723">"Allows the app to read all calendar events stored on your tablet, including those of friends or co-workers. This may allow the app to share or save your calendar data, regardless of confidentiality or sensitivity."</string>
+    <string name="permdesc_readCalendar" product="tablet" msgid="4216462049057658723">"Allows the app to read all calendar events stored on your device, including those of friends or co-workers. This may allow the app to share or save your calendar data, regardless of confidentiality or sensitivity."</string>
     <string name="permdesc_readCalendar" product="default" msgid="7434548682470851583">"Allows the app to read all calendar events stored on your phone, including those of friends or co-workers. This may allow the app to share or save your calendar data, regardless of confidentiality or sensitivity."</string>
     <string name="permlab_writeCalendar" msgid="8438874755193825647">"add or modify calendar events and send emails to guests without owners\' knowledge"</string>
-    <string name="permdesc_writeCalendar" product="tablet" msgid="6679035520113668528">"Allows the app to add, remove and change events that you can modify on your tablet, including those of friends or co-workers. This may allow the app to send messages that appear to come from calendar owners, or modify events without the owners\' knowledge."</string>
+    <string name="permdesc_writeCalendar" product="tablet" msgid="6679035520113668528">"Allows the app to add, remove and change events that you can modify on your device, including those of friends or co-workers. This may allow the app to send messages that appear to come from calendar owners, or modify events without the owners\' knowledge."</string>
     <string name="permdesc_writeCalendar" product="default" msgid="2324469496327249376">"Allows the app to add, remove and change events that you can modify on your phone, including those of friends or co-workers. This may allow the app to send messages that appear to come from calendar owners, or modify events without the owners\' knowledge."</string>
     <string name="permlab_accessMockLocation" msgid="8688334974036823330">"mock location sources for testing"</string>
     <string name="permdesc_accessMockLocation" msgid="5808711039482051824">"Create mock location sources for testing or install a new location provider. This allows the app to override the location and/or status returned by other location sources such as GPS or location providers."</string>
@@ -450,13 +449,13 @@
     <string name="permdesc_recordAudio" msgid="4906839301087980680">"Allows the app to record audio with the microphone. This permission allows the app to record audio at any time without your confirmation."</string>
     <string name="permlab_camera" msgid="3616391919559751192">"take pictures and videos"</string>
     <string name="permdesc_camera" msgid="8497216524735535009">"Allows the app to take pictures and videos with the camera. This permission allows the app to use the camera at any time without your confirmation."</string>
-    <string name="permlab_brick" product="tablet" msgid="2961292205764488304">"permanently disable tablet"</string>
+    <string name="permlab_brick" product="tablet" msgid="2961292205764488304">"permanently disable device"</string>
     <string name="permlab_brick" product="default" msgid="8337817093326370537">"permanently disable phone"</string>
-    <string name="permdesc_brick" product="tablet" msgid="4334818808001699530">"Allows the app to permanently disable the entire tablet. This is very dangerous."</string>
+    <string name="permdesc_brick" product="tablet" msgid="4334818808001699530">"Allows the app to permanently disable the entire device. This is very dangerous."</string>
     <string name="permdesc_brick" product="default" msgid="5788903297627283099">"Allows the app to permanently disable the entire phone. This is very dangerous."</string>
-    <string name="permlab_reboot" product="tablet" msgid="3436634972561795002">"force tablet reboot"</string>
+    <string name="permlab_reboot" product="tablet" msgid="3436634972561795002">"force device reboot"</string>
     <string name="permlab_reboot" product="default" msgid="2898560872462638242">"force phone reboot"</string>
-    <string name="permdesc_reboot" product="tablet" msgid="8172056180063700741">"Allows the app to force the tablet to reboot."</string>
+    <string name="permdesc_reboot" product="tablet" msgid="8172056180063700741">"Allows the app to force the device to reboot."</string>
     <string name="permdesc_reboot" product="default" msgid="5326008124289989969">"Allows the app to force the phone to reboot."</string>
     <string name="permlab_mount_unmount_filesystems" product="nosdcard" msgid="2927361537942591841">"access USB storage filesystem"</string>
     <string name="permlab_mount_unmount_filesystems" product="default" msgid="4402305049890953810">"access SD Card filesystem"</string>
@@ -488,7 +487,7 @@
     <string name="permdesc_callPhone" msgid="3740797576113760827">"Allows the app to call phone numbers without your intervention. This may result in unexpected charges or calls. Note that this doesn\'t allow the app to call emergency numbers. Malicious apps may cost you money by making calls without your confirmation."</string>
     <string name="permlab_callPrivileged" msgid="4198349211108497879">"directly call any phone numbers"</string>
     <string name="permdesc_callPrivileged" msgid="1689024901509996810">"Allows the app to call any phone number, including emergency numbers, without your intervention. Malicious apps may place unnecessary and illegal calls to emergency services."</string>
-    <string name="permlab_performCdmaProvisioning" product="tablet" msgid="4842576994144604821">"directly start CDMA tablet setup"</string>
+    <string name="permlab_performCdmaProvisioning" product="tablet" msgid="4842576994144604821">"directly start CDMA device setup"</string>
     <string name="permlab_performCdmaProvisioning" product="default" msgid="5604848095315421425">"directly start CDMA phone setup"</string>
     <string name="permdesc_performCdmaProvisioning" msgid="1994193538802314186">"Allows the app to start CDMA provisioning. Malicious apps may unnecessarily start CDMA provisioning."</string>
     <string name="permlab_locationUpdates" msgid="7785408253364335740">"control location update notifications"</string>
@@ -501,16 +500,16 @@
     <string name="permdesc_modifyPhoneState" msgid="1029877529007686732">"Allows the app to control the phone features of the device. An app with this permission can switch networks, turn the phone radio on and off and the like without ever notifying you."</string>
     <string name="permlab_readPhoneState" msgid="9178228524507610486">"read phone status and identity"</string>
     <string name="permdesc_readPhoneState" msgid="1639212771826125528">"Allows the app to access the phone features of the device. This permission allows the app to determine the phone number and device IDs, whether a call is active and the remote number connected by a call."</string>
-    <string name="permlab_wakeLock" product="tablet" msgid="1531731435011495015">"prevent tablet from sleeping"</string>
+    <string name="permlab_wakeLock" product="tablet" msgid="1531731435011495015">"prevent device from sleeping"</string>
     <string name="permlab_wakeLock" product="default" msgid="573480187941496130">"prevent phone from sleeping"</string>
-    <string name="permdesc_wakeLock" product="tablet" msgid="7311319824400447868">"Allows the app to prevent the tablet from going to sleep."</string>
+    <string name="permdesc_wakeLock" product="tablet" msgid="7311319824400447868">"Allows the app to prevent the device from going to sleep."</string>
     <string name="permdesc_wakeLock" product="default" msgid="8559100677372928754">"Allows the app to prevent the phone from going to sleep."</string>
-    <string name="permlab_devicePower" product="tablet" msgid="2787034722616350417">"turn tablet on or off"</string>
+    <string name="permlab_devicePower" product="tablet" msgid="2787034722616350417">"turn device on or off"</string>
     <string name="permlab_devicePower" product="default" msgid="4928622470980943206">"turn phone on or off"</string>
-    <string name="permdesc_devicePower" product="tablet" msgid="6689862878984631831">"Allows the app to turn the tablet on or off."</string>
+    <string name="permdesc_devicePower" product="tablet" msgid="6689862878984631831">"Allows the app to turn the device on or off."</string>
     <string name="permdesc_devicePower" product="default" msgid="6037057348463131032">"Allows the app to turn the phone on or off."</string>
     <string name="permlab_factoryTest" msgid="3715225492696416187">"run in factory test mode"</string>
-    <string name="permdesc_factoryTest" product="tablet" msgid="3952059318359653091">"Run as a low-level manufacturer test, allowing complete access to the tablet hardware. Only available when a tablet is running in manufacturer test mode."</string>
+    <string name="permdesc_factoryTest" product="tablet" msgid="3952059318359653091">"Run as a low-level manufacturer test, allowing complete access to the device hardware. Only available when a device is running in manufacturer test mode."</string>
     <string name="permdesc_factoryTest" product="default" msgid="8136644990319244802">"Run as a low-level manufacturer test, allowing complete access to the phone hardware. Only available when a phone is running in manufacturer test mode."</string>
     <string name="permlab_setWallpaper" msgid="6627192333373465143">"set wallpaper"</string>
     <string name="permdesc_setWallpaper" msgid="7373447920977624745">"Allows the app to set the system wallpaper."</string>
@@ -519,15 +518,15 @@
     <string name="permlab_masterClear" msgid="2315750423139697397">"reset system to factory defaults"</string>
     <string name="permdesc_masterClear" msgid="3665380492633910226">"Allows the app to completely reset the system to its factory settings, erasing all data, configuration and installed apps."</string>
     <string name="permlab_setTime" msgid="2021614829591775646">"set time"</string>
-    <string name="permdesc_setTime" product="tablet" msgid="1896341438151152881">"Allows the app to change the tablet\'s clock time."</string>
+    <string name="permdesc_setTime" product="tablet" msgid="1896341438151152881">"Allows the app to change the device\'s clock time."</string>
     <string name="permdesc_setTime" product="default" msgid="1855702730738020">"Allows the app to change the phone\'s clock time."</string>
     <string name="permlab_setTimeZone" msgid="2945079801013077340">"set time zone"</string>
-    <string name="permdesc_setTimeZone" product="tablet" msgid="1676983712315827645">"Allows the app to change the tablet\'s time zone."</string>
+    <string name="permdesc_setTimeZone" product="tablet" msgid="1676983712315827645">"Allows the app to change the device\'s time zone."</string>
     <string name="permdesc_setTimeZone" product="default" msgid="4499943488436633398">"Allows the app to change the phone\'s time zone."</string>
     <string name="permlab_accountManagerService" msgid="4829262349691386986">"act as the Account Manager Service"</string>
     <string name="permdesc_accountManagerService" msgid="1948455552333615954">"Allows the app to make calls to Account Authenticators."</string>
     <string name="permlab_getAccounts" msgid="1086795467760122114">"find accounts on the device"</string>
-    <string name="permdesc_getAccounts" product="tablet" msgid="2741496534769660027">"Allows the app to get the list of accounts known by the tablet. This may include any accounts created by applications that you have installed."</string>
+    <string name="permdesc_getAccounts" product="tablet" msgid="2741496534769660027">"Allows the app to get the list of accounts known by the device. This may include any accounts created by applications that you have installed."</string>
     <string name="permdesc_getAccounts" product="default" msgid="3448316822451807382">"Allows the app to get the list of accounts known by the phone. This may include any accounts created by applications that you have installed."</string>
     <string name="permlab_authenticateAccounts" msgid="5265908481172736933">"create accounts and set passwords"</string>
     <string name="permdesc_authenticateAccounts" msgid="5472124296908977260">"Allows the app to use the account authenticator capabilities of the Account Manager, including creating accounts and getting and setting their passwords."</string>
@@ -552,18 +551,18 @@
     <string name="permlab_changeWifiState" msgid="6550641188749128035">"connect and disconnect from Wi-Fi"</string>
     <string name="permdesc_changeWifiState" msgid="7137950297386127533">"Allows the app to connect to and disconnect from Wi-FI access points and to make changes to device configuration for Wi-FI networks."</string>
     <string name="permlab_changeWifiMulticastState" msgid="1368253871483254784">"allow Wi-Fi Multicast reception"</string>
-    <string name="permdesc_changeWifiMulticastState" product="tablet" msgid="7969774021256336548">"Allows the app to receive packets sent to all devices on a Wi-FI network using multicast addresses, not just your tablet. It uses more power than the non-multicast mode."</string>
+    <string name="permdesc_changeWifiMulticastState" product="tablet" msgid="7969774021256336548">"Allows the app to receive packets sent to all devices on a Wi-FI network using multicast addresses, not just your device. It uses more power than the non-multicast mode."</string>
     <string name="permdesc_changeWifiMulticastState" product="default" msgid="6851949706025349926">"Allows the app to receive packets sent to all devices on a Wi-FI network using multicast addresses, not just your phone. It uses more power than the non-multicast mode."</string>
     <string name="permlab_bluetoothAdmin" msgid="6006967373935926659">"access Bluetooth settings"</string>
-    <string name="permdesc_bluetoothAdmin" product="tablet" msgid="6921177471748882137">"Allows the app to configure the local Bluetooth tablet and to discover and pair with remote devices."</string>
+    <string name="permdesc_bluetoothAdmin" product="tablet" msgid="6921177471748882137">"Allows the app to configure the local Bluetooth device and to discover and pair with remote devices."</string>
     <string name="permdesc_bluetoothAdmin" product="default" msgid="8931682159331542137">"Allows the app to configure the local Bluetooth phone and to discover and pair with remote devices."</string>
     <string name="permlab_accessWimaxState" msgid="4195907010610205703">"connect and disconnect from WiMAX"</string>
     <string name="permdesc_accessWimaxState" msgid="6360102877261978887">"Allows the app to determine whether WiMAX is enabled and information about any WiMAX networks that are connected."</string>
     <string name="permlab_changeWimaxState" msgid="2405042267131496579">"change WiMAX state"</string>
-    <string name="permdesc_changeWimaxState" product="tablet" msgid="3156456504084201805">"Allows the app to connect the tablet to and disconnect the tablet from WiMAX networks."</string>
+    <string name="permdesc_changeWimaxState" product="tablet" msgid="3156456504084201805">"Allows the app to connect the device to and disconnect the device from WiMAX networks."</string>
     <string name="permdesc_changeWimaxState" product="default" msgid="697025043004923798">"Allows the app to connect the phone to and disconnect the phone from WiMAX networks."</string>
     <string name="permlab_bluetooth" msgid="6127769336339276828">"pair with Bluetooth devices"</string>
-    <string name="permdesc_bluetooth" product="tablet" msgid="3480722181852438628">"Allows the app to view the configuration of Bluetooth on the tablet and to make and accept connections with paired devices."</string>
+    <string name="permdesc_bluetooth" product="tablet" msgid="3480722181852438628">"Allows the app to view the configuration of Bluetooth on the device and to make and accept connections with paired devices."</string>
     <string name="permdesc_bluetooth" product="default" msgid="3207106324452312739">"Allows the app to view the configuration of the Bluetooth on the phone and to make and accept connections with paired devices."</string>
     <string name="permlab_nfc" msgid="4423351274757876953">"control Near-Field Communication"</string>
     <string name="permdesc_nfc" msgid="7120611819401789907">"Allows the app to communicate with Near Field Communication (NFC) tags, cards and readers."</string>
@@ -608,14 +607,14 @@
     <string name="policylab_limitPassword" msgid="4497420728857585791">"Set password rules"</string>
     <string name="policydesc_limitPassword" msgid="3252114203919510394">"Control the length and the characters allowed in screen-unlock passwords."</string>
     <string name="policylab_watchLogin" msgid="914130646942199503">"Monitor screen-unlock attempts"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="3215729294215070072">"Monitor the number of incorrect passwords typed when unlocking the screen and lock the tablet or erase all the tablet\'s data if too many incorrect passwords are typed."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="3215729294215070072">"Monitor the number of incorrect passwords typed when unlocking the screen and lock the device or erase all the device\'s data if too many incorrect passwords are typed."</string>
     <string name="policydesc_watchLogin" product="default" msgid="5712323091846761073">"Monitor the number of incorrect passwords typed when unlocking the screen and lock the phone or erase all the phone\'s data if too many incorrect passwords are typed."</string>
     <string name="policylab_resetPassword" msgid="2620077191242688955">"Change the screen-unlock password"</string>
     <string name="policydesc_resetPassword" msgid="605963962301904458">"Change the screen-unlock password."</string>
     <string name="policylab_forceLock" msgid="2274085384704248431">"Lock the screen"</string>
     <string name="policydesc_forceLock" msgid="1141797588403827138">"Control how and when the screen locks."</string>
     <string name="policylab_wipeData" msgid="3910545446758639713">"Erase all data"</string>
-    <string name="policydesc_wipeData" product="tablet" msgid="4306184096067756876">"Erase the tablet\'s data without warning by performing a factory data reset."</string>
+    <string name="policydesc_wipeData" product="tablet" msgid="4306184096067756876">"Erase the device\'s data without warning by performing a factory data reset."</string>
     <string name="policydesc_wipeData" product="default" msgid="5096895604574188391">"Erase the phone\'s data without warning by performing a factory data reset."</string>
     <string name="policylab_setGlobalProxy" msgid="2784828293747791446">"Set the device global proxy"</string>
     <string name="policydesc_setGlobalProxy" msgid="6387497466660154931">"Set the device\'s global proxy to be used while policy is enabled. Only the first device admin sets the effective global proxy."</string>
@@ -766,7 +765,7 @@
     <string name="lockscreen_battery_short" msgid="4477264849386850266">"<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>"</string>
     <string name="lockscreen_low_battery" msgid="1482873981919249740">"Connect your charger."</string>
     <string name="lockscreen_missing_sim_message_short" msgid="5099439277819215399">"No SIM card"</string>
-    <string name="lockscreen_missing_sim_message" product="tablet" msgid="151659196095791474">"No SIM card in tablet."</string>
+    <string name="lockscreen_missing_sim_message" product="tablet" msgid="151659196095791474">"No SIM card in device."</string>
     <string name="lockscreen_missing_sim_message" product="default" msgid="2186920585695169078">"No SIM card in phone."</string>
     <string name="lockscreen_missing_sim_instructions" msgid="5372787138023272615">"Insert a SIM card."</string>
     <string name="lockscreen_missing_sim_instructions_long" msgid="3526573099019319472">"The SIM card is missing or not readable. Insert a SIM card."</string>
@@ -786,11 +785,11 @@
     <string name="lockscreen_too_many_failed_attempts_dialog_message" msgid="6481623830344107222">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
     <string name="lockscreen_too_many_failed_password_attempts_dialog_message" msgid="2725973286239344555">"You have incorrectly typed your password <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
     <string name="lockscreen_too_many_failed_pin_attempts_dialog_message" msgid="6216672706545696955">"You have incorrectly typed your PIN <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
-    <string name="lockscreen_failed_attempts_almost_glogin" product="tablet" msgid="9191611984625460820">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your tablet using your Google sign-in."\n\n" Try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
+    <string name="lockscreen_failed_attempts_almost_glogin" product="tablet" msgid="9191611984625460820">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your device using your Google sign-in."\n\n" Try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
     <string name="lockscreen_failed_attempts_almost_glogin" product="default" msgid="2590227559763762751">"You have drawn your unlock pattern incorrectly <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your phone using your Google sign-in."\n\n" Please try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
-    <string name="lockscreen_failed_attempts_almost_at_wipe" product="tablet" msgid="6128106399745755604">"You have incorrectly attempted to unlock the tablet <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the tablet will be reset to factory default and all user data will be lost."</string>
+    <string name="lockscreen_failed_attempts_almost_at_wipe" product="tablet" msgid="6128106399745755604">"You have incorrectly attempted to unlock the device <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the device will be reset to factory default and all user data will be lost."</string>
     <string name="lockscreen_failed_attempts_almost_at_wipe" product="default" msgid="8603565142156826565">"You have incorrectly attempted to unlock the phone <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the phone will be reset to factory default and all user data will be lost."</string>
-    <string name="lockscreen_failed_attempts_now_wiping" product="tablet" msgid="280873516493934365">"You have incorrectly attempted to unlock the tablet <xliff:g id="NUMBER">%d</xliff:g> times. The tablet will now be reset to factory default."</string>
+    <string name="lockscreen_failed_attempts_now_wiping" product="tablet" msgid="280873516493934365">"You have incorrectly attempted to unlock the device <xliff:g id="NUMBER">%d</xliff:g> times. The device will now be reset to factory default."</string>
     <string name="lockscreen_failed_attempts_now_wiping" product="default" msgid="3025504721764922246">"You have incorrectly attempted to unlock the phone <xliff:g id="NUMBER">%d</xliff:g> times. The phone will now be reset to factory default."</string>
     <string name="lockscreen_too_many_failed_attempts_countdown" msgid="6251480343394389665">"Try again in <xliff:g id="NUMBER">%d</xliff:g> seconds."</string>
     <string name="lockscreen_forgot_pattern_button_text" msgid="2626999449610695930">"Forgotten pattern?"</string>
@@ -869,7 +868,7 @@
     <string name="permlab_readHistoryBookmarks" msgid="3775265775405106983">"read your Web bookmarks and history"</string>
     <string name="permdesc_readHistoryBookmarks" msgid="8462378226600439658">"Allows the app to read the history of all URLs that the Browser has visited, and all of the Browser\'s bookmarks. Note: this permission may not be enforced by third-party browsers or other applications with web browsing capabilities."</string>
     <string name="permlab_writeHistoryBookmarks" msgid="3714785165273314490">"write web bookmarks and history"</string>
-    <string name="permdesc_writeHistoryBookmarks" product="tablet" msgid="6825527469145760922">"Allows the app to modify the Browser\'s history or bookmarks stored on your tablet. This may allow the app to delete or modify Browser data. Note: this permission may not be enforced by third-party browsers or other applications with web browsing capabilities."</string>
+    <string name="permdesc_writeHistoryBookmarks" product="tablet" msgid="6825527469145760922">"Allows the app to modify the Browser\'s history or bookmarks stored on your device. This may allow the app to delete or modify Browser data. Note: this permission may not be enforced by third-party browsers or other applications with web browsing capabilities."</string>
     <string name="permdesc_writeHistoryBookmarks" product="default" msgid="8497389531014185509">"Allows the app to modify the Browser\'s history or bookmarks stored on your phone. This may allow the app to delete or modify Browser data. Note: this permission may not be enforced by third-party browsers or other applications with web browsing capabilities."</string>
     <string name="permlab_setAlarm" msgid="1379294556362091814">"set an alarm"</string>
     <string name="permdesc_setAlarm" msgid="316392039157473848">"Allows the app to set an alarm in an installed alarm clock app. Some alarm clock apps may not implement this feature."</string>
@@ -905,7 +904,7 @@
     <string name="searchview_description_submit" msgid="2688450133297983542">"Submit query"</string>
     <string name="searchview_description_voice" msgid="2453203695674994440">"Voice search"</string>
     <string name="enable_explore_by_touch_warning_title" msgid="7460694070309730149">"Enable Explore by Touch?"</string>
-    <string name="enable_explore_by_touch_warning_message" product="tablet" msgid="8655887539089910577">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> wants to enable Explore by Touch. When Explore by Touch is turned on, you can hear or see descriptions of what\'s under your finger or perform gestures to interact with the tablet."</string>
+    <string name="enable_explore_by_touch_warning_message" product="tablet" msgid="8655887539089910577">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> wants to enable Explore by Touch. When Explore by Touch is turned on, you can hear or see descriptions of what\'s under your finger or perform gestures to interact with the device."</string>
     <string name="enable_explore_by_touch_warning_message" product="default" msgid="2708199672852373195">"<xliff:g id="ACCESSIBILITY_SERVICE_NAME">%1$s</xliff:g> wants to enable Explore by Touch. When Explore by Touch is turned on, you can hear or see descriptions of what\'s under your finger or perform gestures to interact with the phone."</string>
     <string name="oneMonthDurationPast" msgid="7396384508953779925">"1 month ago"</string>
     <string name="beforeOneMonthDurationPast" msgid="909134546836499826">"Before 1 month ago"</string>
@@ -1345,7 +1344,7 @@
     <string name="description_target_silent" msgid="893551287746522182">"Silent"</string>
     <string name="description_target_soundon" msgid="30052466675500172">"Sound on"</string>
     <string name="description_target_search" msgid="3091587249776033139">"Search"</string>
-    <string name="description_target_unlock_tablet" msgid="3833195335629795055">"Swipe to unlock."</string>
+    <string name="description_target_unlock_device" msgid="3833195335629795055">"Swipe to unlock."</string>
     <string name="keyboard_headset_required_to_hear_password" msgid="7011927352267668657">"Plug in a headset to hear password keys spoken."</string>
     <string name="keyboard_password_character_no_headset" msgid="2859873770886153678">"Dot"</string>
     <string name="action_bar_home_description" msgid="5293600496601490216">"Navigate home"</string>
@@ -1393,7 +1392,7 @@
     <string name="SetupCallDefault" msgid="5834948469253758575">"Accept call?"</string>
     <string name="activity_resolver_use_always" msgid="8017770747801494933">"Always"</string>
     <string name="activity_resolver_use_once" msgid="2404644797149173758">"Just once"</string>
-    <string name="default_audio_route_name" product="tablet" msgid="4617053898167127471">"Tablet"</string>
+    <string name="default_audio_route_name" product="tablet" msgid="4617053898167127471">"Device"</string>
     <string name="default_audio_route_name" product="default" msgid="4239291273420140123">"Phone"</string>
     <string name="default_audio_route_name_headphones" msgid="8119971843803439110">"Headphones"</string>
     <string name="default_audio_route_name_dock_speakers" msgid="6240602982276591864">"Dock speakers"</string>
@@ -1443,11 +1442,11 @@
     <string name="kg_too_many_failed_pin_attempts_dialog_message" msgid="8276745642049502550">"You have incorrectly typed your PIN <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
     <string name="kg_too_many_failed_password_attempts_dialog_message" msgid="7813713389422226531">"You have incorrectly typed your password <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
     <string name="kg_too_many_failed_pattern_attempts_dialog_message" msgid="74089475965050805">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. "\n\n"Try again in <xliff:g id="NUMBER_1">%d</xliff:g> seconds."</string>
-    <string name="kg_failed_attempts_almost_at_wipe" product="tablet" msgid="1575557200627128949">"You have incorrectly attempted to unlock the tablet <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the tablet will be reset to factory default and all user data will be lost."</string>
+    <string name="kg_failed_attempts_almost_at_wipe" product="tablet" msgid="1575557200627128949">"You have incorrectly attempted to unlock the device <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the device will be reset to factory default and all user data will be lost."</string>
     <string name="kg_failed_attempts_almost_at_wipe" product="default" msgid="4051015943038199910">"You have incorrectly attempted to unlock the phone <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, the phone will be reset to factory default and all user data will be lost."</string>
-    <string name="kg_failed_attempts_now_wiping" product="tablet" msgid="2072996269148483637">"You have incorrectly attempted to unlock the tablet <xliff:g id="NUMBER">%d</xliff:g> times. The tablet will now be reset to factory default."</string>
+    <string name="kg_failed_attempts_now_wiping" product="tablet" msgid="2072996269148483637">"You have incorrectly attempted to unlock the device <xliff:g id="NUMBER">%d</xliff:g> times. The device will now be reset to factory default."</string>
     <string name="kg_failed_attempts_now_wiping" product="default" msgid="4817627474419471518">"You have incorrectly attempted to unlock the phone <xliff:g id="NUMBER">%d</xliff:g> times. The phone will now be reset to factory default."</string>
-    <string name="kg_failed_attempts_almost_at_login" product="tablet" msgid="3253575572118914370">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your tablet using an email account."\n\n" Try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
+    <string name="kg_failed_attempts_almost_at_login" product="tablet" msgid="3253575572118914370">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your device using an email account."\n\n" Try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
     <string name="kg_failed_attempts_almost_at_login" product="default" msgid="1437638152015574839">"You have incorrectly drawn your unlock pattern <xliff:g id="NUMBER_0">%d</xliff:g> times. After <xliff:g id="NUMBER_1">%d</xliff:g> more unsuccessful attempts, you will be asked to unlock your phone using an email account."\n\n" Try again in <xliff:g id="NUMBER_2">%d</xliff:g> seconds."</string>
     <string name="kg_text_message_separator" product="default" msgid="4160700433287233771">" — "</string>
     <string name="kg_reordering_delete_drop_target_text" msgid="7899202978204438708">"Remove"</string>

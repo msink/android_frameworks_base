@@ -74,28 +74,28 @@
     <dimen name="status_bar_icon_size">@*android:dimen/status_bar_icon_size</dimen>
 
     <!-- Height of a small notification in the status bar -->
-    <dimen name="notification_min_height">64dp</dimen>
+    <dimen name="notification_min_height">52dp</dimen>
 
     <!-- Height of a large notification in the status bar -->
     <dimen name="notification_max_height">256dp</dimen>
 
     <!-- Height of a small notification in the status bar plus glow, padding, etc -->
-    <dimen name="notification_row_min_height">70dp</dimen>
+    <dimen name="notification_row_min_height">55dp</dimen>
 
     <!-- Height of a large notification in the status bar plus glow, padding, etc -->
     <dimen name="notification_row_max_height">260dp</dimen>
 
     <!-- size at which Notification icons will be drawn in the status bar -->
-    <dimen name="status_bar_icon_drawing_size">18dip</dimen>
+    <dimen name="status_bar_icon_drawing_size">32dip</dimen>
 
     <!-- opacity at which Notification icons will be drawn in the status bar -->
-    <item type="dimen" name="status_bar_icon_drawing_alpha">65%</item>
+    <item type="dimen" name="status_bar_icon_drawing_alpha">100%</item>
 
     <!-- gap on either side of status bar notification icons -->
     <dimen name="status_bar_icon_padding">0dp</dimen>
 
     <!-- half the distance between notifications in the panel -->
-    <dimen name="notification_divider_height">3dp</dimen>
+    <dimen name="notification_divider_height">2dp</dimen>
 
     <!-- Notification drawer tuning parameters (phone UI) -->
     <!-- Initial velocity of the shade when expanding on its own -->
@@ -205,4 +205,12 @@
     <!-- How far to slide the panel out when you touch it -->
     <!-- For phones, this is close_handle_height + header_height -->
     <dimen name="peek_height">84dp</dimen>
+
+    <dimen name="border_stroke_width">2.0dip</dimen>
+    <dimen name="usb_dialog_margin">0.0dip</dimen>
+    <dimen name="notification_panel_header_imagebutton_size">60.0px</dimen>
+    <dimen name="ratingbar_minHeight">45.0px</dimen>
+    <dimen name="ratingbar_maxHeight">57.0dip</dimen>
+    <dimen name="menu_width">250.0dip</dimen>
+    <dimen name="menu_height">250.0dip</dimen>
 </resources>

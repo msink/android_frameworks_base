@@ -205,4 +205,10 @@
     <string name="quick_settings_brightness_dialog_auto_brightness_label" msgid="5064982743784071218">"AUTO"</string>
     <string name="status_bar_help_title" msgid="1199237744086469217">"Le notifiche vengono visualizzate qui"</string>
     <string name="status_bar_help_text" msgid="7874607155052076323">"Puoi accedervi in qualsiasi momento scorrendo verso il basso."\n"Fai scorrere di nuovo verso il basso per visualizzare i controlli del sistema."</string>
+
+    <string name="menu_dialog_menu">Menù</string>
+    <string name="menu_dialog_home">Home</string>
+    <string name="menu_dialog_settings">Impostazioni</string>
+    <string name="menu_dialog_status_bar">Barra di stato</string>
+    <string name="menu_dialog_moonlight">MoonLight</string>
 </resources>

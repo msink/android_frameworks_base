@@ -42,8 +42,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="0px"
                 android:layout_weight="1"
-                android:paddingStart="@dimen/preference_screen_header_padding_side"
-                android:paddingEnd="@dimen/preference_screen_header_padding_side"
                 android:paddingTop="@dimen/preference_screen_header_vertical_padding"
                 android:paddingBottom="@dimen/preference_screen_header_vertical_padding"
                 android:clipToPadding="false"
@@ -78,6 +76,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dip"
                     android:layout_weight="1"
+                    android:background="@color/white"
                 />
         </LinearLayout>
     </LinearLayout>

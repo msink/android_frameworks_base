@@ -149,7 +149,7 @@
         <item>"mobile_ims,11,0,2,60000,true"</item>
         <item>"mobile_cbs,12,0,2,60000,true"</item>
         <item>"wifi_p2p,13,1,0,-1,true"</item>
-        <item>"eth,9,9,4,60000,true"</item>
+        <item>eth,9,9,4,60000,true</item>
     </string-array>
 
     <!-- Array of ConnectivityManager.TYPE_xxxx constants for networks that may only
@@ -184,7 +184,7 @@
     </integer-array>
 
     <!-- The maximum duration (in milliseconds) we expect a network transition to take -->
-    <integer name="config_networkTransitionTimeout">60000</integer>
+    <integer name="config_networkTransitionTimeout">8000</integer>
 
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
          USB interfaces.  If the device doesn't want to support tething over USB this should
@@ -319,7 +319,7 @@
     <!-- XXXXXX END OF RESOURCES USING WRONG NAMING CONVENTION -->
 
     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
-    <bool name="config_unplugTurnsOnScreen">false</bool>
+    <bool name="config_unplugTurnsOnScreen">true</bool>
 
     <!-- If this is true, the screen will fade off. -->
     <bool name="config_animateScreenLights">true</bool>
@@ -547,6 +547,7 @@
          policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
     -->
     <integer name="config_longPressOnHomeBehavior">2</integer>
+    <integer name="config_longPressOnBackBehavior">1</integer>
 
     <!-- Array of light sensor LUX values to define our levels for auto backlight brightness support.
          The N entries of this array define N + 1 control points as follows:
@@ -569,6 +570,24 @@
 
          Must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLevels">
+        <item>10</item>
+        <item>160</item>
+        <item>225</item>
+        <item>320</item>
+        <item>640</item>
+        <item>1280</item>
+        <item>2600</item>
+        <item>10240</item>
+    </integer-array>
+    <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>10</item>
+        <item>45</item>
+        <item>80</item>
+        <item>115</item>
+        <item>150</item>
+        <item>185</item>
+        <item>220</item>
+        <item>255</item>
     </integer-array>
 
     <!-- Minimum screen brightness setting allowed by the power manager.
@@ -586,7 +605,7 @@
     <!-- Screen brightness used to dim the screen when the user activity
          timeout expires.  May be less than the minimum allowed brightness setting
          that can be set by the user. -->
-    <integer name="config_screenBrightnessDim">10</integer>
+    <integer name="config_screenBrightnessDim">1</integer>
 
     <!-- Array of output values for LCD backlight corresponding to the LUX values
          in the config_autoBrightnessLevels array.  This array should have size one greater
@@ -873,7 +892,7 @@
 
     <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
          autodetected from the Configuration. -->
-    <bool name="config_showNavigationBar">false</bool>
+    <bool name="config_showNavigationBar">true</bool>
 
     <!-- Whether action menu items should be displayed in ALLCAPS or not.
          Defaults to true. If this is not appropriate for specific locales

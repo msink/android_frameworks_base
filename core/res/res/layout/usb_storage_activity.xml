@@ -50,6 +50,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="18dip"
             android:paddingEnd="18dip"
+            android:textColor="@color/black"
             android:text="@string/usb_storage_button_mount"
             />
         <Button android:id="@+id/unmount_button"
@@ -58,6 +59,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="18dip"
             android:paddingEnd="18dip"
+            android:textColor="@color/black"
             android:text="@string/usb_storage_stop_button_mount"
             />
         <ProgressBar android:id="@+id/progress"

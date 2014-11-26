@@ -22,7 +22,7 @@
     <!-- the store location of screen capture by default-->
     <string name="def_screenshot_location">/mnt/sdcard</string>
     <bool name="def_dim_screen">true</bool>
-    <integer name="def_screen_off_timeout">60000</integer>
+    <integer name="def_screen_off_timeout">300000</integer>
     <bool name="def_airplane_mode_on">false</bool>
     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi,nfc,wimax</string>
@@ -38,7 +38,7 @@
     <bool name="def_haptic_feedback">true</bool>
 
     <bool name="def_bluetooth_on">false</bool>
-    <bool name="def_wifi_display_on">false</bool>
+    <bool name="def_wifi_display_on">true</bool>
     <bool name="def_install_non_market_apps">false</bool>
     <bool name="def_package_verifier_enable">true</bool>
     <!-- Comma-separated list of location providers.
@@ -53,7 +53,7 @@
     <bool name="def_usb_mass_storage_enabled">true</bool>
     <bool name="def_wifi_on">false</bool>
     <!-- 0 == never, 1 == only when plugged in, 2 == always -->
-    <integer name="def_wifi_sleep_policy">2</integer>
+    <integer name="def_wifi_sleep_policy">0</integer>
     <bool name="def_networks_available_notification_on">true</bool>
 
     <bool name="def_backup_enabled">false</bool>
@@ -69,14 +69,14 @@
     <bool name="def_mount_ums_notify_enabled">true</bool>
 
     <!-- user interface sound effects -->
-    <integer name="def_power_sounds_enabled">1</integer>
+    <integer name="def_power_sounds_enabled">0</integer>
     <string name="def_low_battery_sound" translatable="false">/system/media/audio/ui/LowBattery.ogg</string>
     <integer name="def_dock_sounds_enabled">0</integer>
     <string name="def_desk_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
     <string name="def_desk_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
     <string name="def_car_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
     <string name="def_car_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
-    <integer name="def_lockscreen_sounds_enabled">1</integer>
+    <integer name="def_lockscreen_sounds_enabled">0</integer>
     <string name="def_lock_sound" translatable="false">/system/media/audio/ui/Lock.ogg</string>
     <string name="def_unlock_sound" translatable="false">/system/media/audio/ui/Unlock.ogg</string>
     <string name="def_wireless_charging_started_sound" translatable="false">/system/media/audio/ui/WirelessChargingStarted.ogg</string>
@@ -88,7 +88,7 @@
     <bool name="def_notifications_use_ring_volume">true</bool>
 
     <!-- Default for Settings.System.VIBRATE_IN_SILENT -->
-    <bool name="def_vibrate_in_silent">true</bool>
+    <bool name="def_vibrate_in_silent">false</bool>
 
     <!-- Default for Settings.Secure.ACCESSIBILITY_SCRIPT_INJECTION -->
     <bool name="def_accessibility_script_injection">false</bool>
@@ -148,6 +148,9 @@
     <!-- Default for Settings.System.USER_ROTATION -->
     <integer name="def_user_rotation">0</integer>
 
+    <!-- Default for Settings.System.BRIGHTNESS_STATE -->
+    <integer name="def_brightness_state">1</integer>
+
     <!-- Default for Settings.Secure.DOWNLOAD_MAX_BYTES_OVER_MOBILE. <=0 if no limit -->
     <integer name="def_download_manager_max_bytes_over_mobile">-1</integer>
     <!-- Default for Settings.Secure.DOWNLOAD_RECOMMENDED_MAX_BYTES_OVER_MOBILE. <=0 if no limit -->
@@ -162,7 +165,7 @@
     <!-- Default for DTMF tones enabled -->
     <bool name="def_dtmf_tones_enabled">true</bool>
     <!-- Default for UI touch sounds enabled -->
-    <bool name="def_sound_effects_enabled">true</bool>
+    <bool name="def_sound_effects_enabled">false</bool>
 
     <!-- Development settings -->
     <bool name="def_stay_on_while_plugged_in">false</bool>
@@ -173,5 +176,15 @@
 
     <!-- Default for Settings.Secure.USER_SETUP_COMPLETE -->
     <bool name="def_user_setup_complete">false</bool>
+
     <integer name="def_hdmi_lcd_timeout">-1</integer>
+    <integer name="def_auto_poweroff_timeout">1200000</integer>
+    <integer name="def_wifi_inactivity_timeout">900000</integer>
+    <integer name="def_wifi_data_transmit_min">2000</integer>
+    <integer name="def_key_map_mode">1</integer>
+    <integer name="def_wake_up_brightness">1</integer>
+    <string name="def_default_system_font">Roboto</string>
+    <string name="def_default_input_method">com.android.inputmethod.latin/.LatinIME</string>
+    <string name="def_enabled_input_methods">com.android.inputmethod.latin/.LatinIME;-921088104;1983547218</string>
+    <string name="def_tts_default_synth" />
 </resources>

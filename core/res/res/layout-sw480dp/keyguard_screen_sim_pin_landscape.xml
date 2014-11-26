@@ -23,6 +23,7 @@
     android:background="@android:color/background_dark"
         >
 
+
     <!-- right side -->
     <!-- header text ('Enter Pin Code') -->
     <TextView android:id="@+id/headerText"

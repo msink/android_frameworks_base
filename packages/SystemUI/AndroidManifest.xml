@@ -100,6 +100,9 @@
 
         <activity android:name=".usb.UsbStorageActivity"
                   android:label="@*android:string/usb_storage_activity_title"
+                  android:theme="@*android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+                  android:icon="@drawable/ic_launcher_settings"
+                  android:taskAffinity=""
                   android:excludeFromRecents="true">
         </activity>
         <activity android:name="com.android.internal.app.ExternalMediaFormatActivity"

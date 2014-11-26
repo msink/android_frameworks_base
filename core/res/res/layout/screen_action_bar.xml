@@ -23,6 +23,7 @@ This is an optimized layout for a screen with the Action Bar enabled.
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
+    android:background="@color/action_bar_background_color"
     android:splitMotionEvents="false">
     <com.android.internal.widget.ActionBarContainer android:id="@+id/action_bar_container"
         android:layout_width="match_parent"
@@ -38,6 +39,7 @@ This is an optimized layout for a screen with the Action Bar enabled.
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
+            android:background="@color/action_bar_background_color"
             style="?android:attr/actionModeStyle" />
     </com.android.internal.widget.ActionBarContainer>
     <FrameLayout android:id="@android:id/content"
