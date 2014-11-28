@@ -268,6 +268,9 @@ public class ActivityManager {
     public static final int COMPAT_MODE_TOGGLE = 2;
 
     /** @hide */
+    public static final int COMPAT_MODE_STANDAR_SCREEN = 4;
+
+    /** @hide */
     public int getFrontActivityScreenCompatMode() {
         try {
             return ActivityManagerNative.getDefault().getFrontActivityScreenCompatMode();
@@ -1757,7 +1760,8 @@ public class ActivityManager {
         final int density = res.getDisplayMetrics().densityDpi;
         final int sw = res.getConfiguration().smallestScreenWidthDp;
 
-        if (sw < 600) {
+        if (!"tablet".equals(SystemProperties.get(
+            "ro.build.characteristics", "default")) && sw < 600) {
             // Smaller than approx 7" tablets, use the regular icon size.
             return density;
         }

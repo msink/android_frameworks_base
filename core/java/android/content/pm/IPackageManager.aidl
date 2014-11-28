@@ -385,4 +385,8 @@ interface IPackageManager {
 
     /** Reflects current DeviceStorageMonitorService state */
     boolean isStorageLow();
+
+    int getPackageHardwareAccMode(String pkgName);
+    void setPackageHardwareAccMode(String pkgName, int mode);
+    boolean shouldForceUseLcdcComposer(String pkgName);
 }
