@@ -73,7 +73,7 @@
 
     <!-- Keyguard dimensions -->
     <!-- Size of the clock font in keyguard's status view -->
-    <dimen name="kg_status_clock_font_size">188dp</dimen>
+    <dimen name="kg_status_clock_font_size">170dp</dimen>
 
     <!-- Size of the date font in keyguard's status view  -->
     <dimen name="kg_status_date_font_size">34dp</dimen>
@@ -85,7 +85,7 @@
     <dimen name="kg_clock_top_margin">0dp</dimen>
 
     <!-- Size of margin on the right of keyguard's status view -->
-    <dimen name="kg_status_line_font_right_margin">32dp</dimen>
+    <dimen name="kg_status_line_font_right_margin">16dp</dimen>
 
     <!-- Horizontal padding for the widget pager -->
     <dimen name="kg_widget_pager_horizontal_padding">80dp</dimen>

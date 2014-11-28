@@ -129,7 +129,7 @@
     <string name="contentServiceSync" msgid="8353523060269335667">"Синхр."</string>
     <string name="contentServiceSyncNotificationTitle" msgid="397743349191901458">"Синхр."</string>
     <string name="contentServiceTooManyDeletesNotificationDesc" msgid="8100981435080696431">"Слишком много удалений <xliff:g id="CONTENT_TYPE">%s</xliff:g>."</string>
-    <string name="low_memory" product="tablet" msgid="6494019234102154896">"Память планшетного ПК заполнена. Удалите какие-нибудь файлы, чтобы освободить место."</string>
+    <string name="low_memory" product="tablet" msgid="6494019234102154896">"Память MagicBook заполнена. Удалите какие-нибудь файлы, чтобы освободить место."</string>
     <string name="low_memory" product="default" msgid="3475999286680000541">"Память телефона заполнена. Удалите какие-нибудь файлы, чтобы освободить место."</string>
     <string name="me" msgid="6545696007631404292">"Я"</string>
     <string name="power_dialog" product="tablet" msgid="8545351420865202853">"Настройки планшетного ПК"</string>
@@ -143,7 +143,7 @@
     <string name="silent_mode_vibrate" msgid="7072043388581551395">"Вибросигнал"</string>
     <string name="silent_mode_ring" msgid="8592241816194074353">"Звонок включен"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Выключение..."</string>
-    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Планшетный ПК будет отключен."</string>
+    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"MagicBook будет выключен."</string>
     <string name="shutdown_confirm" product="default" msgid="649792175242821353">"Телефон будет выключен."</string>
     <string name="shutdown_confirm_question" msgid="2906544768881136183">"Завершить работу?"</string>
     <string name="reboot_safemode_title" msgid="7054509914500140361">"Переход в безопасный режим"</string>
@@ -1156,20 +1156,20 @@
     <string name="usb_storage_activity_title" msgid="4465055157209648641">"Запоминающее устройство USB"</string>
     <string name="usb_storage_title" msgid="5901459041398751495">"USB-подключение установлено"</string>
     <string name="usb_storage_message" product="nosdcard" msgid="3308538094316477839">"Устройство подключено к компьютеру через USB-порт. Нажмите кнопку ниже, чтобы скопировать файлы с компьютера на USB-накопитель Android-устройства."</string>
-    <string name="usb_storage_message" product="default" msgid="805351000446037811">"Телефон подключен к компьютеру через USB-порт. Нажмите кнопку ниже, чтобы скопировать файлы с компьютера на SD-карту Android-устройства."</string>
-    <string name="usb_storage_button_mount" msgid="1052259930369508235">"Включить USB-накопитель"</string>
+    <string name="usb_storage_message" product="default" msgid="805351000446037811">"MagicBook подключен к компьютеру через USB-порт. Нажмите кнопку \"Подключить устройство\", чтобы копировать файлы с компьютера на MagicBook."</string>
+    <string name="usb_storage_button_mount" msgid="1052259930369508235">"Подключить устройство"</string>
     <string name="usb_storage_error_message" product="nosdcard" msgid="3017045217365540658">"При подключении USB-накопителя произошла ошибка."</string>
     <string name="usb_storage_error_message" product="default" msgid="2876018512716970313">"При подключении SD-карты произошла ошибка."</string>
     <string name="usb_storage_notification_title" msgid="8175892554757216525">"USB-подключение установлено"</string>
     <string name="usb_storage_notification_message" msgid="939822783828183763">"Нажмите, чтобы скопировать файлы."</string>
-    <string name="usb_storage_stop_notification_title" msgid="2336058396663516017">"Отключить USB-накопитель"</string>
+    <string name="usb_storage_stop_notification_title" msgid="2336058396663516017">"Отключить устройство"</string>
     <string name="usb_storage_stop_notification_message" msgid="1656852098555623822">"Нажмите, чтобы отключить USB-накопитель."</string>
-    <string name="usb_storage_stop_title" msgid="660129851708775853">"USB-накопитель используется"</string>
+    <string name="usb_storage_stop_title" msgid="660129851708775853">"USB-подключение используется"</string>
     <string name="usb_storage_stop_message" product="nosdcard" msgid="4264025280777219521">"Перед отключением запоминающего устройства убедитесь, что USB-накопитель Android отключен от компьютера."</string>
-    <string name="usb_storage_stop_message" product="default" msgid="8043969782460613114">"Перед отключением USB-накопителя убедитесь, что SD-карта Android-устройства отключена от компьютера."</string>
-    <string name="usb_storage_stop_button_mount" msgid="7060218034900696029">"Отключить USB-накопитель"</string>
+    <string name="usb_storage_stop_message" product="default" msgid="8043969782460613114">"Перед отключением кабеля нажмите кнопку \"Отключить устройство\"."</string>
+    <string name="usb_storage_stop_button_mount" msgid="7060218034900696029">"Отключить устройство"</string>
     <string name="usb_storage_stop_error_message" msgid="1970374898263063836">"При отключении USB-накопителя произошла ошибка. Убедитесь, что USB-хост отключен, и повторите попытку."</string>
-    <string name="dlg_confirm_kill_storage_users_title" msgid="963039033470478697">"Включение USB-накопителя"</string>
+    <string name="dlg_confirm_kill_storage_users_title" msgid="963039033470478697">"Подключить устройство"</string>
     <string name="dlg_confirm_kill_storage_users_text" msgid="5100428757107469454">"При подключении USB-накопителя некоторые приложения могут прекратить работу и оставаться недоступными до его отключения."</string>
     <string name="dlg_error_title" msgid="7323658469626514207">"Ошибка при подключении USB"</string>
     <string name="dlg_ok" msgid="7376953167039865701">"ОК"</string>
@@ -1350,7 +1350,8 @@
     <string name="action_bar_home_description" msgid="5293600496601490216">"Перейти на главную"</string>
     <string name="action_bar_up_description" msgid="2237496562952152589">"Перейти вверх"</string>
     <string name="action_menu_overflow_description" msgid="2295659037509008453">"Ещё"</string>
-    <string name="storage_internal" msgid="4891916833657929263">"Внутренняя память"</string>
+    <string name="storage_internal" msgid="4891916833657929263">"Память для установки программ"</string>
+    <string name="storage_nand_flash">"Внутренняя память"</string>
     <string name="storage_sd_card" msgid="3282948861378286745">"SD-карта"</string>
     <string name="storage_usb" msgid="3017954059538517278">"USB-накопитель"</string>
     <string name="extract_edit_menu_button" msgid="8940478730496610137">"Изменить"</string>

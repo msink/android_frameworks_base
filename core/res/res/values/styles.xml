@@ -51,16 +51,18 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="AlertDialog">
-        <item name="fullDark">@android:drawable/popup_full_dark</item>
-        <item name="topDark">@android:drawable/popup_top_dark</item>
-        <item name="centerDark">@android:drawable/popup_center_dark</item>
-        <item name="bottomDark">@android:drawable/popup_bottom_dark</item>
+        <item name="textColor">@android:color/black</item>
+        <item name="background">@android:color/white</item>
+        <item name="fullDark">@android:drawable/popup_full_bright</item>
+        <item name="topDark">@android:drawable/popup_top_bright</item>
+        <item name="centerDark">@android:drawable/popup_center_bright</item>
+        <item name="bottomDark">@android:drawable/popup_bottom_bright</item>
         <item name="fullBright">@android:drawable/popup_full_bright</item>
         <item name="topBright">@android:drawable/popup_top_bright</item>
         <item name="centerBright">@android:drawable/popup_center_bright</item>
         <item name="bottomBright">@android:drawable/popup_bottom_bright</item>
-        <item name="bottomMedium">@android:drawable/popup_bottom_medium</item>
-        <item name="centerMedium">@android:drawable/popup_center_medium</item>
+        <item name="bottomMedium">@android:drawable/popup_bottom_bright</item>
+        <item name="centerMedium">@android:drawable/popup_center_bright</item>
         <item name="progressLayout">@android:layout/progress_dialog</item>
         <item name="horizontalProgressLayout">@android:layout/alert_dialog_progress</item>
     </style>
@@ -105,10 +107,20 @@ please see styles_device_defaults.xml.
         <item name="fragmentFadeExitAnimation">@animator/fragment_fade_exit</item>
     </style>
 
+    <style name="Animation.TranslucentLeft">
+        <item name="windowEnterAnimation">@anim/translucent_enter</item>
+        <item name="windowExitAnimation">@anim/translucent_exitleft</item>
+    </style>
+
+    <style name="Animation.TranslucentRight">
+        <item name="windowEnterAnimation">@anim/translucent_enter</item>
+        <item name="windowExitAnimation">@anim/translucent_exitright</item>
+    </style>
+
     <!-- Standard animations for a non-full-screen window or activity. -->
     <style name="Animation.Dialog">
-        <item name="windowEnterAnimation">@anim/dialog_enter</item>
-        <item name="windowExitAnimation">@anim/dialog_exit</item>
+        <item name="windowEnterAnimation">@null</item>
+        <item name="windowExitAnimation">@null</item>
     </style>
 
     <!-- Standard animations for a translucent window or activity.  This
@@ -239,28 +251,29 @@ please see styles_device_defaults.xml.
     </style>
     <!-- Notification content styles -->
     <style name="TextAppearance.StatusBar.EventContent">
-        <item name="android:textColor">#999999</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:textSize">@dimen/notification_text_size</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Title">
-        <item name="android:textColor">#ffffff</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textSize">@dimen/notification_title_text_size</item>
         <item name="android:textStyle">bold</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Line2">
         <item name="android:textSize">@dimen/notification_subtext_size</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Info">
         <item name="android:textSize">@dimen/notification_subtext_size</item>
-        <item name="android:textColor">#999999</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Time">
         <item name="android:textSize">@dimen/notification_subtext_size</item>
-        <item name="android:textColor">#999999</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
     <style name="TextAppearance.StatusBar.EventContent.Emphasis">
-        <item name="android:textColor">#CCCCCC</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
 
     <style name="TextAppearance.Small.CalendarViewWeekDayView">
@@ -292,6 +305,7 @@ please see styles_device_defaults.xml.
     <style name="Widget.AbsListView">
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
+        <item name="android:background">@android:color/white</item>
     </style>
 
     <style name="Widget.GestureOverlayView">
@@ -316,7 +330,7 @@ please see styles_device_defaults.xml.
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
-        <item name="android:textColor">@android:color/primary_text_light</item>
+        <item name="android:textColor">@android:drawable/btn_font_style</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
     </style>
 
@@ -454,6 +468,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.TextView">
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
+        <item name="android:textColor">@android:color/my_text_light</item>
         <item name="android:textSelectHandleLeft">?android:attr/textSelectHandleLeft</item>
         <item name="android:textSelectHandleRight">?android:attr/textSelectHandleRight</item>
         <item name="android:textSelectHandle">?android:attr/textSelectHandle</item>
@@ -610,7 +625,7 @@ please see styles_device_defaults.xml.
     <style name="Widget.ListView" parent="Widget.AbsListView">
         <item name="android:listSelector">@android:drawable/list_selector_background</item>
         <item name="android:cacheColorHint">?android:attr/colorBackgroundCacheHint</item>
-        <item name="android:divider">@android:drawable/divider_horizontal_dark_opaque</item>
+        <item name="android:divider">@android:drawable/divider_horizontal_bright_opaque</item>
     </style>
     
     <style name="Widget.ListView.White" parent="Widget.AbsListView">
@@ -656,6 +671,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.TabWidget">
         <item name="android:textAppearance">@style/TextAppearance.Widget.TabWidget</item>
+        <item name="android:textColor">#ffffffff</item>
         <item name="ellipsize">marquee</item>
         <item name="singleLine">true</item>
         <item name="android:tabStripLeft">@android:drawable/tab_bottom_left</item>
@@ -795,7 +811,7 @@ please see styles_device_defaults.xml.
 
     <style name="TextAppearance.Small">
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">?textColorSecondary</item>
+        <item name="android:textColor">#ff000000</item>
     </style>
 
     <style name="TextAppearance.Small.Inverse">
@@ -816,11 +832,11 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="TextAppearance.Widget.Button" parent="TextAppearance.Small.Inverse">
-        <item name="android:textColor">@android:color/primary_text_light_nodisable</item>
+        <item name="android:textColor">?textColorPrimaryInverse</item>
     </style>
 
     <style name="TextAppearance.Widget.IconMenu.Item" parent="TextAppearance.Small">
-        <item name="android:textColor">?textColorPrimary</item>
+        <item name="android:textColor">?textColorPrimaryInverse</item>
         <!-- dp is used on purpose here instead of sp; there is not space
              for larger font sizes based on the user setting. Newer apps
              should not receive the legacy icon menu panel. -->
@@ -1045,7 +1061,8 @@ please see styles_device_defaults.xml.
         <item name="android:layout_marginEnd">0dip</item>
         <item name="android:layout_marginTop">0dip</item>
         <item name="android:layout_marginBottom">0dip</item>
-        <item name="android:background">@null</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:background">@android:color/white</item>
     </style>
 
     <!-- Other Misc Styles -->
@@ -1195,7 +1212,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.ActionBar.TabText" parent="Widget">
         <item name="android:textAppearance">@style/TextAppearance.Widget.TextView.PopupMenu</item>
-        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:textSize">18sp</item>
     </style>
 
@@ -1347,11 +1364,13 @@ please see styles_device_defaults.xml.
     <style name="TextAppearance.Holo.Widget.ActionBar.Title"
            parent="TextAppearance.Holo.Medium">
         <item name="android:textSize">@android:dimen/action_bar_title_text_size</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
 
     <style name="TextAppearance.Holo.Widget.ActionBar.Subtitle"
            parent="TextAppearance.Holo.Small">
         <item name="android:textSize">@android:dimen/action_bar_subtitle_text_size</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
 
     <style name="TextAppearance.Holo.Widget.ActionBar.Title.Inverse"
@@ -1512,7 +1531,7 @@ please see styles_device_defaults.xml.
 
     <style name="TextAppearance.Holo.Light.DialogWindowTitle">
         <item name="android:textSize">22sp</item>
-        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textColor">#ff000000</item>
     </style>
 
     <style name="TextAppearance.Holo.Light.CalendarViewWeekDayView" parent="TextAppearance.Small.CalendarViewWeekDayView">
@@ -1527,9 +1546,6 @@ please see styles_device_defaults.xml.
     <style name="Holo.Light" />
 
     <style name="Widget.Holo.Button" parent="Widget.Button">
-        <item name="android:background">@android:drawable/btn_default_holo_dark</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">@android:color/primary_text_holo_dark</item>
         <item name="android:minHeight">48dip</item>
         <item name="android:minWidth">64dip</item>
     </style>
@@ -1562,7 +1578,6 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.Button.Toggle">
-        <item name="android:background">@android:drawable/btn_toggle_holo_dark</item>
         <item name="android:textOn">@android:string/capital_on</item>
         <item name="android:textOff">@android:string/capital_off</item>
         <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
@@ -1597,7 +1612,8 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.TextView.ListSeparator" parent="Widget.TextView.ListSeparator">
-        <item name="android:background">@android:drawable/list_section_divider_holo_dark</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:background">@android:color/black</item>
         <item name="android:textAllCaps">true</item>
     </style>
 
@@ -1688,8 +1704,6 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.ListView" parent="Widget.ListView">
-        <item name="android:divider">?android:attr/listDivider</item>
-        <item name="android:listSelector">?android:attr/listChoiceBackgroundIndicator</item>
     </style>
 
     <style name="Widget.Holo.ListView.White">
@@ -1912,7 +1926,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.Holo.ActionBar.TabText" parent="Widget.ActionBar.TabText">
         <item name="android:textAppearance">@style/TextAppearance.Holo.Medium</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
@@ -1972,9 +1986,6 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.Light.Button" parent="Widget.Button">
-        <item name="android:background">@android:drawable/btn_default_holo_light</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMediumInverse</item>
-        <item name="android:textColor">@android:color/primary_text_holo_light</item>
         <item name="android:minHeight">48dip</item>
         <item name="android:minWidth">64dip</item>
     </style>
@@ -1990,9 +2001,6 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.Light.Button.Small">
-        <item name="android:background">@android:drawable/btn_default_holo_light</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
-        <item name="android:textColor">@android:color/primary_text_holo_light</item>
         <item name="android:minHeight">48dip</item>
         <item name="android:minWidth">48dip</item>
     </style>
@@ -2001,7 +2009,6 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.Light.Button.Toggle">
-        <item name="android:background">@android:drawable/btn_toggle_holo_light</item>
         <item name="android:textOn">@android:string/capital_on</item>
         <item name="android:textOff">@android:string/capital_off</item>
         <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
@@ -2356,46 +2363,21 @@ please see styles_device_defaults.xml.
     <!-- Dialog styles -->
 
     <style name="AlertDialog.Holo" parent="AlertDialog">
-        <item name="fullDark">@android:drawable/dialog_full_holo_dark</item>
-        <item name="topDark">@android:drawable/dialog_top_holo_dark</item>
-        <item name="centerDark">@android:drawable/dialog_middle_holo_dark</item>
-        <item name="bottomDark">@android:drawable/dialog_bottom_holo_dark</item>
-        <item name="fullBright">@android:drawable/dialog_full_holo_dark</item>
-        <item name="topBright">@android:drawable/dialog_top_holo_dark</item>
-        <item name="centerBright">@android:drawable/dialog_middle_holo_dark</item>
-        <item name="bottomBright">@android:drawable/dialog_bottom_holo_dark</item>
-        <item name="bottomMedium">@android:drawable/dialog_bottom_holo_dark</item>
-        <item name="centerMedium">@android:drawable/dialog_middle_holo_dark</item>
-        <item name="layout">@android:layout/alert_dialog_holo</item>
-        <item name="listLayout">@android:layout/select_dialog_holo</item>
-        <item name="progressLayout">@android:layout/progress_dialog_holo</item>
-        <item name="horizontalProgressLayout">@android:layout/alert_dialog_progress_holo</item>
-        <item name="listItemLayout">@android:layout/select_dialog_item_holo</item>
-        <item name="multiChoiceItemLayout">@android:layout/select_dialog_multichoice_holo</item>
-        <item name="singleChoiceItemLayout">@android:layout/select_dialog_singlechoice_holo</item>
     </style>
 
     <style name="AlertDialog.Holo.Light">
-        <item name="fullDark">@android:drawable/dialog_full_holo_light</item>
-        <item name="topDark">@android:drawable/dialog_top_holo_light</item>
-        <item name="centerDark">@android:drawable/dialog_middle_holo_light</item>
-        <item name="bottomDark">@android:drawable/dialog_bottom_holo_light</item>
-        <item name="fullBright">@android:drawable/dialog_full_holo_light</item>
-        <item name="topBright">@android:drawable/dialog_top_holo_light</item>
-        <item name="centerBright">@android:drawable/dialog_middle_holo_light</item>
-        <item name="bottomBright">@android:drawable/dialog_bottom_holo_light</item>
-        <item name="bottomMedium">@android:drawable/dialog_bottom_holo_light</item>
-        <item name="centerMedium">@android:drawable/dialog_middle_holo_light</item>
+        <item name="textColor">@android:color/black</item>
+        <item name="background">@android:color/white</item>
     </style>
 
     <!-- Window title -->
     <style name="WindowTitleBackground.Holo">
-        <item name="android:background">@null</item>
+        <item name="android:background">@android:color/black</item>
     </style>
 
     <style name="WindowTitle.Holo">
         <item name="android:singleLine">true</item>
-        <item name="android:textAppearance">@style/TextAppearance.Holo.WindowTitle</item>
+        <item name="android:textAppearance">@android:color/black</item>
         <item name="android:shadowColor">#BB000000</item>
         <item name="android:shadowRadius">2.75</item>
     </style>
@@ -2403,13 +2385,13 @@ please see styles_device_defaults.xml.
     <style name="DialogWindowTitle.Holo">
         <item name="android:maxLines">1</item>
         <item name="android:scrollHorizontally">true</item>
-        <item name="android:textAppearance">@style/TextAppearance.Holo.DialogWindowTitle</item>
+        <item name="android:textAppearance">@android:color/black</item>
     </style>
 
     <style name="DialogWindowTitle.Holo.Light">
         <item name="android:maxLines">1</item>
         <item name="android:scrollHorizontally">true</item>
-        <item name="android:textAppearance">@style/TextAppearance.Holo.Light.DialogWindowTitle</item>
+        <item name="android:textAppearance">@android:color/black</item>
     </style>
 
     <style name="Widget.Holo.PreferenceFrameLayout">

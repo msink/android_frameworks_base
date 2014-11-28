@@ -2028,4 +2028,8 @@
   <public type="style" name="Widget.DeviceDefault.CheckedTextView" id="0x010301db" />
   <public type="style" name="Widget.DeviceDefault.Light.CheckedTextView" id="0x010301dc" />
 
+  <public type="dimen" name="ticker_panel_width" id="0x01050007" />
+  <public type="dimen" name="ticker_panel_height" id="0x01050008" />
+  <public type="style" name="Animation.TranslucentLeft" id="0x010301de" />
+  <public type="style" name="Animation.TranslucentRight" id="0x010301df" />
 </resources>

@@ -60,8 +60,8 @@ please see themes_device_defaults.xml.
         <item name="textAppearance">@android:style/TextAppearance</item>
         <item name="textAppearanceInverse">@android:style/TextAppearance.Inverse</item>
 
-        <item name="textColorPrimary">@android:color/primary_text_dark</item>
-        <item name="textColorSecondary">@android:color/secondary_text_dark</item>
+        <item name="textColorPrimary">@color/black</item>
+        <item name="textColorSecondary">@color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_dark</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_light</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_light</item>
@@ -79,7 +79,7 @@ please see themes_device_defaults.xml.
         <item name="textColorHighlightInverse">@android:color/highlighted_text_light</item>
         <item name="textColorLink">@android:color/link_text_dark</item>
         <item name="textColorLinkInverse">@android:color/link_text_light</item>
-        <item name="textColorAlertDialogListItem">@android:color/primary_text_light_disable_only</item>
+        <item name="textColorAlertDialogListItem">@android:color/black</item>
 
         <item name="textAppearanceLarge">@android:style/TextAppearance.Large</item>
         <item name="textAppearanceMedium">@android:style/TextAppearance.Medium</item>
@@ -162,7 +162,7 @@ please see themes_device_defaults.xml.
         <item name="galleryItemBackground">@android:drawable/gallery_item_background</item>
         
         <!-- Window attributes -->
-        <item name="windowBackground">@android:drawable/screen_background_selector_dark</item>
+        <item name="windowBackground">@android:drawable/screen_background_light</item>
         <item name="windowFrame">@null</item>
         <item name="windowNoTitle">false</item>
         <item name="windowFullscreen">false</item>
@@ -409,7 +409,7 @@ please see themes_device_defaults.xml.
          background will be a light color.
          <p>This is designed for API level 10 and lower.</p>-->
     <style name="Theme.Light">
-        <item name="windowBackground">@android:drawable/screen_background_selector_light</item>
+        <item name="windowBackground">@android:color/white</item>
         <item name="colorBackground">@android:color/background_light</item>
         <item name="colorForeground">@color/bright_foreground_light</item>
         <item name="colorForegroundInverse">@android:color/bright_foreground_light_inverse</item>
@@ -806,7 +806,7 @@ please see themes_device_defaults.xml.
 
     <style name="Theme.ExpandedMenu" parent="Theme.Holo">
         <!-- Menu/item attributes -->
-        <item name="android:itemTextAppearance">?android:attr/textAppearanceLarge</item>
+        <item name="android:itemTextAppearance">?android:attr/textAppearanceLargeInverse</item>
         <item name="android:listViewStyle">@android:style/Widget.ListView.Menu</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.OptionsPanel</item>
         <item name="android:background">@null</item>
@@ -829,14 +829,10 @@ please see themes_device_defaults.xml.
     </style>
 
     <!-- @hide -->
-    <style name="Theme.Dialog.AppError" parent="Theme.Holo.Dialog">
-        <item name="windowFrame">@null</item>
-        <item name="windowTitleStyle">@android:style/DialogWindowTitle</item>
-        <item name="windowBackground">@android:color/transparent</item>
-        <item name="windowIsFloating">true</item>
-        <item name="windowContentOverlay">@null</item>
-        <item name="textAppearance">@style/TextAppearance.Theme.Dialog.AppError</item>
-        <item name="android:windowCloseOnTouchOutside">false</item>
+    <style name="Theme.Dialog.AppError" parent="Theme.Dialog">
+        <item name="textAppearance">@android:color/black</item>
+        <item name="windowBackground">@android:color/white</item>
+        <item name="windowCloseOnTouchOutside">false</item>
     </style>
     
     <!-- Special theme for the recent apps dialog, to allow customization
@@ -894,10 +890,10 @@ please see themes_device_defaults.xml.
          with trailing _dark or _light specifiers if they are not shared between both light and
          dark versions of the theme. -->
     <style name="Theme.Holo">
-        <item name="colorForeground">@android:color/bright_foreground_holo_dark</item>
-        <item name="colorForegroundInverse">@android:color/bright_foreground_inverse_holo_dark</item>
-        <item name="colorBackground">@android:color/background_holo_dark</item>
-        <item name="colorBackgroundCacheHint">@android:drawable/background_cache_hint_selector_holo_dark</item>
+        <item name="colorForeground">@android:color/white</item>
+        <item name="colorForegroundInverse">@android:color/white</item>
+        <item name="colorBackground">@android:color/white</item>
+        <item name="colorBackgroundCacheHint">@android:color/white</item>
         <item name="disabledAlpha">0.5</item>
         <item name="backgroundDimAmount">0.6</item>
 
@@ -911,8 +907,8 @@ please see themes_device_defaults.xml.
         <item name="textAppearance">@android:style/TextAppearance.Holo</item>
         <item name="textAppearanceInverse">@android:style/TextAppearance.Holo.Inverse</item>
 
-        <item name="textColorPrimary">@android:color/primary_text_holo_dark</item>
-        <item name="textColorSecondary">@android:color/secondary_text_holo_dark</item>
+        <item name="textColorPrimary">@android:color/black</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_holo_dark</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_holo_light</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_holo_light</item>
@@ -930,7 +926,7 @@ please see themes_device_defaults.xml.
         <item name="textColorHighlightInverse">@android:color/highlighted_text_holo_light</item>
         <item name="textColorLink">@android:color/holo_blue_light</item>
         <item name="textColorLinkInverse">@android:color/holo_blue_light</item>
-        <item name="textColorAlertDialogListItem">@android:color/primary_text_holo_dark</item>
+        <item name="textColorAlertDialogListItem">@android:color/black</item>
 
         <item name="textAppearanceLarge">@android:style/TextAppearance.Holo.Large</item>
         <item name="textAppearanceMedium">@android:style/TextAppearance.Holo.Medium</item>
@@ -1171,7 +1167,7 @@ please see themes_device_defaults.xml.
         <item name="dividerVertical">?android:attr/listDivider</item>
         <item name="dividerHorizontal">?android:attr/listDivider</item>
         <item name="buttonBarStyle">@android:style/Holo.ButtonBar</item>
-        <item name="buttonBarButtonStyle">?android:attr/borderlessButtonStyle</item>
+        <item name="buttonBarButtonStyle">?android:attr/buttonStyle</item>
         <item name="segmentedButtonStyle">@android:style/Holo.SegmentedButton</item>
 
         <!-- SearchView attributes -->
@@ -1225,8 +1221,8 @@ please see themes_device_defaults.xml.
         <item name="textAppearance">@android:style/TextAppearance.Holo.Light</item>
         <item name="textAppearanceInverse">@android:style/TextAppearance.Holo.Light.Inverse</item>
 
-        <item name="textColorPrimary">@android:color/primary_text_holo_light</item>
-        <item name="textColorSecondary">@android:color/secondary_text_holo_light</item>
+        <item name="textColorPrimary">@android:color/black</item>
+        <item name="textColorSecondary">@android:color/black</item>
         <item name="textColorTertiary">@android:color/tertiary_text_holo_light</item>
         <item name="textColorPrimaryInverse">@android:color/primary_text_holo_dark</item>
         <item name="textColorSecondaryInverse">@android:color/secondary_text_holo_dark</item>
@@ -1244,7 +1240,7 @@ please see themes_device_defaults.xml.
         <item name="textColorHighlightInverse">@android:color/highlighted_text_holo_dark</item>
         <item name="textColorLink">@android:color/holo_blue_light</item>
         <item name="textColorLinkInverse">@android:color/holo_blue_light</item>
-        <item name="textColorAlertDialogListItem">@android:color/primary_text_holo_light</item>
+        <item name="textColorAlertDialogListItem">@android:color/black</item>
 
         <item name="textAppearanceLarge">@android:style/TextAppearance.Holo.Light.Large</item>
         <item name="textAppearanceMedium">@android:style/TextAppearance.Holo.Light.Medium</item>
@@ -1488,7 +1484,7 @@ please see themes_device_defaults.xml.
         <item name="dividerVertical">?android:attr/listDivider</item>
         <item name="dividerHorizontal">?android:attr/listDivider</item>
         <item name="buttonBarStyle">@android:style/Holo.Light.ButtonBar</item>
-        <item name="buttonBarButtonStyle">?android:attr/borderlessButtonStyle</item>
+        <item name="buttonBarButtonStyle">?android:attr/buttonStyle</item>
         <item name="segmentedButtonStyle">@android:style/Holo.Light.SegmentedButton</item>
 
         <!-- SearchView attributes -->
@@ -1561,6 +1557,7 @@ please see themes_device_defaults.xml.
     <style name="Theme.Holo.NoActionBar.Fullscreen">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:background">@android:color/white</item>
     </style>
 
     <!-- Variant of the holographic (light) theme with no action bar. -->
@@ -1625,6 +1622,7 @@ please see themes_device_defaults.xml.
     <style name="Theme.Holo.Dialog.NoActionBar">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:background">@android:color/white</item>
     </style>
 
     <!-- Variant of Theme.Holo.Dialog.NoActionBar that has a nice minimum width for
@@ -1673,6 +1671,7 @@ please see themes_device_defaults.xml.
         <item name="windowBackground">@android:color/transparent</item>
         <item name="windowTitleStyle">@android:style/DialogWindowTitle.Holo</item>
         <item name="windowContentOverlay">@null</item>
+        <item name="textColor">#ff000000</item>
         <item name="android:windowMinWidthMajor">@android:dimen/dialog_min_width_major</item>
         <item name="android:windowMinWidthMinor">@android:dimen/dialog_min_width_minor</item>
     </style>
