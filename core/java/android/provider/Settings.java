@@ -2228,6 +2228,16 @@ public final class Settings {
         public static final String LOCKSCREEN_DISABLED = "lockscreen.disabled";
 
         /**
+         * @hide
+         */
+        public static final String HDMI_LCD_TIMEOUT = "hdmi_lcd_timeout";
+
+        /**
+         * @hide
+         */
+        public static final String FULLSCREEN_FLUSH = "fullscreen_flush";
+
+        /**
          * @deprecated Use {@link android.provider.Settings.Global#LOW_BATTERY_SOUND}
          * instead
          * @hide

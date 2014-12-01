@@ -1065,4 +1065,8 @@ public final class DisplayManagerService extends IDisplayManager.Stub {
             }
         }
     }
+
+    public boolean isWfdConnect() {
+        return false;
+    }
 }

@@ -10215,4 +10215,15 @@ public class PackageManagerService extends IPackageManager.Stub {
             Binder.restoreCallingIdentity(token);
         }
     }
+
+    public int getPackageHardwareAccMode(String pkgName) {
+        return 0;
+    }
+
+    public void setPackageHardwareAccMode(String pkgName, int mode) {
+    }
+
+    public boolean shouldForceUseLcdcComposer(String pkgName) {
+        return false;
+    }
 }

@@ -931,8 +931,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                                 (1 << AudioManager.STREAM_NOTIFICATION) |
                                                 (1 << AudioManager.STREAM_SYSTEM) |
                                                 (1 << AudioManager.STREAM_SYSTEM_ENFORCED);
-                if (!mContext.getResources().getBoolean(
-                        com.android.internal.R.bool.config_voice_capable)) {
+                if (!SystemProperties.getBoolean("ro.voice.capable", false)) {
                     ringerModeAffectedStreams |= (1 << AudioManager.STREAM_MUSIC);
                 }
                 db.execSQL("DELETE FROM system WHERE name='"
@@ -1857,8 +1856,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                             (1 << AudioManager.STREAM_NOTIFICATION) |
                                             (1 << AudioManager.STREAM_SYSTEM) |
                                             (1 << AudioManager.STREAM_SYSTEM_ENFORCED);
-            if (!mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_voice_capable)) {
+            if (!SystemProperties.getBoolean("ro.voice.capable", false)) {
                 ringerModeAffectedStreams |= (1 << AudioManager.STREAM_MUSIC);
             }
             loadSetting(stmt, Settings.System.MODE_RINGER_STREAMS_AFFECTED,
@@ -1934,8 +1932,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadBooleanSetting(stmt, Settings.System.DIM_SCREEN,
                     R.bool.def_dim_screen);
-            loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
-                    R.integer.def_screen_off_timeout);
+
+            loadSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
+                    SystemProperties.getInt("persist.boeye.shortstandby", 
+                    mContext.getResources().getInteger(R.integer.def_screen_off_timeout)));
 
             // Set default cdma DTMF type
             loadSetting(stmt, Settings.System.DTMF_TONE_TYPE_WHEN_DIALING, 0);
@@ -1948,6 +1948,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadIntegerSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
                     R.integer.def_screen_brightness);
+
+            loadIntegerSetting(stmt, Settings.System.HDMI_LCD_TIMEOUT,
+                    R.integer.def_hdmi_lcd_timeout);
+
+            loadIntegerSetting(stmt, Settings.System.FULLSCREEN_FLUSH,
+                    R.integer.def_fullscreen_flush);
+
+            loadBooleanSetting(stmt, Settings.System.SCREENSHOT_BUTTON_SHOW,
+                    R.bool.def_screenshot_button_show);
+
+            int policy = SystemProperties.getInt("ro.factory.storage_policy", 0);
+            if (policy == 1) {
+                loadSetting(stmt, Settings.System.SCREENSHOT_LOCATION,
+                         "/storage/sdcard0");
+            } else {
+                loadStringSetting(stmt, Settings.System.SCREENSHOT_LOCATION,
+                        R.string.def_screenshot_location);
+            }
 
             loadBooleanSetting(stmt, Settings.System.SCREEN_BRIGHTNESS_MODE,
                     R.bool.def_screen_brightness_automatic_mode);
@@ -1966,6 +1984,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
+
+            loadSetting(stmt, Settings.System.TIME_12_24, 
+                    SystemProperties.get("persist.boeye.def_time_12_24", "24"));
+
+            if (SystemProperties.getBoolean("ro.lockscreen.disable.default", false) == true) {
+                loadSetting(stmt, Settings.System.LOCKSCREEN_DISABLED, "1");
+            } else {
+                loadBooleanSetting(stmt, Settings.System.LOCKSCREEN_DISABLED,
+                        R.bool.def_lockscreen_disabled);
+            }
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -2048,13 +2076,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadStringSetting(stmt, Settings.Secure.ACCESSIBILITY_SCREEN_READER_URL,
                     R.string.def_accessibility_screen_reader_url);
-
-            if (SystemProperties.getBoolean("ro.lockscreen.disable.default", false) == true) {
-                loadSetting(stmt, Settings.System.LOCKSCREEN_DISABLED, "1");
-            } else {
-                loadBooleanSetting(stmt, Settings.System.LOCKSCREEN_DISABLED,
-                        R.bool.def_lockscreen_disabled);
-            }
 
             loadBooleanSetting(stmt, Settings.Secure.SCREENSAVER_ENABLED,
                     com.android.internal.R.bool.config_dreamsEnabledByDefault);
