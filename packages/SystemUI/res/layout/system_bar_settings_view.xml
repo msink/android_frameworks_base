@@ -46,7 +46,6 @@
                 android:layout_marginRight="5dp"
                 />
     </LinearLayout>
-    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
 
     <!-- Network -->
     <LinearLayout
@@ -106,7 +105,6 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:layout_marginRight="2dp"
-                systemui:text="@string/status_bar_settings_auto_brightness_label"
                 />
     </LinearLayout>
     <View style="@style/SystemBarPanelSettingsPanelSeparator" />
@@ -114,7 +112,10 @@
     <!-- Notifications / Do not disturb -->
     <LinearLayout
             android:id="@+id/do_not_disturb"
-            style="@style/SystemBarPanelSettingsRow"
+            android:orientation="horizontal"
+            android:paddingRight="16dp"
+            android:layout_width="fill_parent"
+            android:layout_height="64dp"
             >
         <ImageView
                 android:id="@+id/do_not_disturb_icon"
@@ -131,9 +132,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="5dp"
+                android:textAppearance="@style/TextAppearance.Small.x"
+                android:checked="false"
                 />
     </LinearLayout>
-    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
 
     <!-- Link to settings -->
     <LinearLayout

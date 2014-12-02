@@ -516,4 +516,9 @@
     <string name="status_bar_help_title">Notifications appear here</string>
     <!-- Body of help text shown when the notification panel is pulled down for the very first time. [CHAR LIMIT=NONE] -->
     <string name="status_bar_help_text">Access them anytime by swiping down.\nSwipe down again for system controls.</string>
+
+    <string name="sdcard_unmount">internal storage is unmount</string>
+    <string name="external_sd_unmount">sd card is unmount</string>
+    <string name="usb_storage_unmount">usb storage is unmount</string>
+    <string name="compat_mode_standard_screen_on">Fill standard screen</string>
 </resources>

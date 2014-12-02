@@ -56,7 +56,7 @@
         <!-- Note: must be dp to fit in status bar -->
         <item name="android:textSize">16dp</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textColor">#ff000000</item>
     </style>
 
     <style name="TextAppearance.StatusBar.Date" parent="@*android:style/TextAppearance.StatusBar.Icon">
@@ -184,4 +184,20 @@
         <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
+    <style name="TextAppearance.Small.x" parent="@*android:style/TextAppearance.Small">
+        <item name="android:textColor">#ff000000</item>
+    </style>
+    <style name="TextAppearanceSwitch">
+        <item name="android:textSize">12dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#ff000000</item>
+    </style>
+    <style name="system_bar_switch_style">
+        <item name="android:thumb">@drawable/switch_inner_holo_light</item>
+        <item name="android:track">@drawable/switch_track_holo_light</item>
+        <item name="android:switchTextAppearance">@style/TextAppearanceSwitch</item>
+        <item name="android:switchMinWidth">105dp</item>
+        <item name="android:switchPadding">12dp</item>
+        <item name="android:thumbTextPadding">9dp</item>
+    </style>
 </resources>

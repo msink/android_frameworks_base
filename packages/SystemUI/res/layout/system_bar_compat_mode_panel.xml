@@ -39,5 +39,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/compat_mode_on" />
+        <RadioButton android:id="@+id/compat_mode_standard_screen_on_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/compat_mode_standard_screen_on" />
     </RadioGroup>
 </com.android.systemui.statusbar.tablet.CompatModePanel>
