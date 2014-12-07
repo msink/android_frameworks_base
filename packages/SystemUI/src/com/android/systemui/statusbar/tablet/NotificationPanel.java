@@ -130,6 +130,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     }
 
     public void show(boolean show, boolean animate) {
+        Slog.d("--dela--", "--NotificationPanel.java--show()--");
         if (animate) {
             if (mShowing != show) {
                 mShowing = show;
@@ -444,9 +445,14 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     }
 
     public void setSettingsEnabled(boolean settingsEnabled) {
+        Slog.d("--dela--", "--NotificationPanel.java--setSettingsEnabled == " + settingsEnabled);
         if (mSettingsButton != null) {
             mSettingsButton.setEnabled(settingsEnabled);
             mSettingsButton.setVisibility(settingsEnabled ? View.VISIBLE : View.GONE);
+        }
+        if (mNotificationButton != null) {
+            mNotificationButton.setEnabled(!settingsEnabled);
+            mNotificationButton.setVisibility(!settingsEnabled ? View.VISIBLE : View.GONE);
         }
     }
 }

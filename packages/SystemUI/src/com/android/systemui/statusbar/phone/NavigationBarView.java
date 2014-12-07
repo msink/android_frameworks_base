@@ -28,6 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.animation.AccelerateInterpolator;
@@ -52,6 +53,8 @@ import com.android.systemui.statusbar.policy.DeadZone;
 public class NavigationBarView extends LinearLayout {
     final static boolean DEBUG = false;
     final static String TAG = "PhoneStatusBar/NavigationBarView";
+
+    private String isEnableShowVoiceIcon = SystemProperties.get("ro.rk.systembar.voiceicon");
 
     final static boolean NAVBAR_ALWAYS_AT_RIGHT = true;
 
@@ -148,6 +151,10 @@ public class NavigationBarView extends LinearLayout {
         return mCurrentView.findViewById(R.id.home);
     }
 
+    public View getScreenshotButton(){
+        return mCurrentView.findViewById(R.id.screenshot);
+    }
+
     // for when home is disabled, but search isn't
     public View getSearchLight() {
         return mCurrentView.findViewById(R.id.search_light);
@@ -173,6 +180,14 @@ public class NavigationBarView extends LinearLayout {
         mBackLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_land);
         mBackAltIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
         mBackAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
+    }
+
+    public View getAddButton() {
+        return mCurrentView.findViewById(R.id.add);
+    }
+
+    public View getSubButton() {
+        return mCurrentView.findViewById(R.id.sub);
     }
 
     public void notifyScreenOn(boolean screenOn) {
@@ -260,6 +275,14 @@ public class NavigationBarView extends LinearLayout {
         getBackButton()   .setVisibility(disableBack       ? View.INVISIBLE : View.VISIBLE);
         getHomeButton()   .setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
         getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
+
+        if ("true".equals(isEnableShowVoiceIcon)) {
+            getSubButton().setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
+            getAddButton().setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
+        } else {
+            getSubButton().setVisibility(View.GONE);
+            getAddButton().setVisibility(View.GONE);
+        }
 
         getSearchLight().setVisibility((disableHome && !disableSearch) ? View.VISIBLE : View.GONE);
     }

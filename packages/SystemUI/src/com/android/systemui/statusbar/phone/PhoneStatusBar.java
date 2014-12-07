@@ -47,6 +47,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.service.dreams.DreamService;
@@ -97,6 +98,19 @@ import com.android.systemui.statusbar.policy.Prefs;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
+import android.content.ServiceConnection;
+import android.content.ComponentName;
+import android.os.Messenger;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
+ 
+import android.util.Log;
+import android.os.Handler;
+import android.provider.Settings;
+import java.io.File;
+import android.widget.Toast;
 
 public class PhoneStatusBar extends BaseStatusBar {
     static final String TAG = "PhoneStatusBar";
@@ -190,6 +204,8 @@ public class PhoneStatusBar extends BaseStatusBar {
     boolean mNotificationPanelIsFullScreenWidth;
     TextView mNotificationPanelDebugText;
 
+    //screen shot
+    ImageView mScreenshot;
     // settings
     QuickSettings mQS;
     boolean mHasSettingsPanel, mHasFlipSettings;
@@ -197,8 +213,12 @@ public class PhoneStatusBar extends BaseStatusBar {
     View mFlipSettingsView;
     QuickSettingsContainerView mSettingsContainer;
     int mSettingsPanelGravity;
+    private String isEnableShowVoiceIcon =
+        SystemProperties.get("ro.rk.systembar.voiceicon");
 
     // top bar
+    View mVolumeDownButton;
+    View mVolumeUpButton;
     View mNotificationPanelHeader;
     View mDateTimeView; 
     View mClearButton;
@@ -330,11 +350,119 @@ public class PhoneStatusBar extends BaseStatusBar {
         mIconPolicy = new PhoneStatusBarPolicy(mContext);
     }
 
+    final Object mScreenshotLock = new Object();
+    ServiceConnection mScreenshotConnection = null;
+
+    final Runnable mScreenshotTimeout = new Runnable() {
+        @Override public void run() {
+            synchronized (mScreenshotLock) {
+                if (mScreenshotConnection != null) {
+                    mContext.unbindService(mScreenshotConnection);
+                    mScreenshotConnection = null;
+                }
+            }
+        }
+    };
+ 
+    private void takeScreenshot() {
+        String imageDir = Settings.System.getString(mContext.getContentResolver(),
+                          Settings.System.SCREENSHOT_LOCATION);
+        File file = new File(imageDir+"/Screenshots");
+        String text = null;
+
+        file.mkdir();
+
+        if (!file.exists()) {
+           if (imageDir.equals("/mnt/sdcard") || imageDir.equals("/storage/sdcard0")) {
+                text = mContext.getResources().getString(R.string.sdcard_unmount);
+           } else if (imageDir.equals("/mnt/external_sd")) {
+                text = mContext.getResources().getString(R.string.external_sd_unmount);
+           } else if (imageDir.equals("/mnt/usb_storage")) {
+                text = mContext.getResources().getString(R.string.usb_storage_unmount);
+           }
+           Toast.makeText(mContext, text, 3000).show();
+           return;
+        }
+
+        synchronized (mScreenshotLock) {
+            if (mScreenshotConnection != null) {
+                return;
+            }
+            ComponentName cn = new ComponentName("com.android.systemui",
+                    "com.android.systemui.screenshot.TakeScreenshotService");
+            Intent intent = new Intent();
+            intent.setComponent(cn);
+            ServiceConnection conn = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    synchronized (mScreenshotLock) {
+                        if (mScreenshotConnection != this) {
+                            return;
+                        }
+                        Messenger messenger = new Messenger(service);
+                        Message msg = Message.obtain(null, 1);
+                        final ServiceConnection myConn = this;
+                        Handler h = new Handler(mHandler.getLooper()) {
+                            @Override
+                            public void handleMessage(Message msg) {
+                                synchronized (mScreenshotLock) {
+                                    if (mScreenshotConnection == myConn) {
+                                        mContext.unbindService(mScreenshotConnection);
+                                        mScreenshotConnection = null;
+                                        mHandler.removeCallbacks(mScreenshotTimeout);
+                                    }
+                                }
+                            }
+                        };
+                        msg.replyTo = new Messenger(h);
+                        msg.arg1 = 0;
+                        msg.arg2 = 1;
+                        try {
+                            messenger.send(msg);
+                        } catch (RemoteException e) {
+                        }
+                    }
+                }
+                @Override
+                public void onServiceDisconnected(ComponentName name) {}
+            };
+            if (mContext.bindService(intent, conn, Context.BIND_AUTO_CREATE)) {
+                mScreenshotConnection = conn;
+                mHandler.postDelayed(mScreenshotTimeout, 10000);
+            }
+        }
+    }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action=intent.getAction();
+            Log.d("screenshot",action);
+            if (action.equals("rk.android.screenshot.SHOW")){
+                boolean show=intent.getBooleanExtra("show", false);
+                if (show) {
+                    Log.d("screenshot","show screenshot button");
+                    mNavigationBarView.getScreenshotButton().setVisibility(View.VISIBLE);
+                } else {
+                    Log.d("screenshot","disable screenshot button");
+                    mNavigationBarView.getScreenshotButton().setVisibility(View.GONE);
+                }
+            } else {
+                takeScreenshot();
+            }
+        }
+    };
+
     // ================================================================================
     // Constructing the view
     // ================================================================================
     protected PhoneStatusBarView makeStatusBarView() {
         final Context context = mContext;
+
+        IntentFilter intentfilter=new IntentFilter();
+        intentfilter.addAction("rk.android.screenshot.SHOW");
+        intentfilter.addAction("rk.android.screenshot.ACTION");
+        context.registerReceiver(receiver, intentfilter);
 
         Resources res = context.getResources();
 
@@ -761,11 +889,37 @@ public class PhoneStatusBar extends BaseStatusBar {
         mNavigationBarView.reorient();
 
         mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
+        boolean show=Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.SCREENSHOT_BUTTON_SHOW, 0)==1;
+        Log.d("dzy"," "+show);
+        if(show){
+                     mNavigationBarView.getScreenshotButton().setVisibility(View.VISIBLE);
+                }else{
+                     mNavigationBarView.getScreenshotButton().setVisibility(View.GONE);
+                }
+        mNavigationBarView.getScreenshotButton().setOnTouchListener(mScreenshotPreloadOnTouchListener);
         mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPreloadOnTouchListener);
         mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
         mNavigationBarView.getSearchLight().setOnTouchListener(mHomeSearchActionListener);
         updateSearchPanel();
     }
+
+    private View.OnTouchListener mScreenshotPreloadOnTouchListener = new View.OnTouchListener() {
+        // additional optimization when we have software system buttons - start loading the recent
+        // tasks on touch down
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int action = event.getAction() & MotionEvent.ACTION_MASK;
+            if (action == MotionEvent.ACTION_DOWN) {
+                Log.d("dzy","onTouch screenshot ");
+                takeScreenshot();
+            } else if (action == MotionEvent.ACTION_CANCEL) {
+            } else if (action == MotionEvent.ACTION_UP) {
+
+            }
+            return false;
+        }
+    };
 
     // For small-screen devices (read: phones) that lack hardware navigation buttons
     private void addNavigationBar() {
@@ -1797,7 +1951,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         final int diff = newVal ^ oldVal;
 
         if (diff != 0) {
-            mSystemUiVisibility = newVal;
+            mSystemUiVisibility = vis;
 
             if (0 != (diff & View.SYSTEM_UI_FLAG_LOW_PROFILE)) {
                 final boolean lightsOut = (0 != (vis & View.SYSTEM_UI_FLAG_LOW_PROFILE));
@@ -1813,6 +1967,13 @@ public class PhoneStatusBar extends BaseStatusBar {
                 }
 
                 setStatusBarLowProfile(lightsOut);
+            }
+
+            int fs = vis & View.GONE;
+            if (fs != 0) {
+                mNavigationBarView.setVisibility(View.GONE);
+            } else {
+                mNavigationBarView.setVisibility(View.VISIBLE);
             }
 
             notifyUiVisibilityChanged();

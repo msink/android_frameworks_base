@@ -25,6 +25,7 @@ import android.content.res.Resources;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.storage.StorageEventListener;
 import android.os.storage.StorageManager;
@@ -129,8 +130,13 @@ public class StorageNotification extends StorageEventListener {
     }
 
     private void onStorageStateChangedAsync(String path, String oldState, String newState) {
-        if (DEBUG) Slog.i(TAG, String.format(
-                "Media {%s} state changed from {%s} -> {%s}", path, oldState, newState));
+        boolean usbConnected = "true".equals(SystemProperties.get("sys.usb.umsavailible", "false"));
+        Slog.i(TAG, String.format(
+                "Media {%s} state changed from {%s} -> {%s}, usbConnected=%b, mUmsAvailable=%b",
+                path, oldState, newState, usbConnected, mUmsAvailable));
+      if (mUmsAvailable == usbConnected && oldState.equals(newState)) {
+      } else {
+        mUmsAvailable = usbConnected;
         if (newState.equals(Environment.MEDIA_SHARED)) {
             /*
              * Storage is now shared. Modify the UMS notification
@@ -252,6 +258,7 @@ public class StorageNotification extends StorageEventListener {
         } else {
             Slog.w(TAG, String.format("Ignoring unknown state {%s}", newState));
         }
+      }
     }
 
     /**

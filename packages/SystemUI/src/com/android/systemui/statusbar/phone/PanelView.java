@@ -370,16 +370,12 @@ public class PanelView extends FrameLayout {
                             break;
 
                         case MotionEvent.ACTION_MOVE:
-                            final float h = rawY - mAbsPos[1] - mTouchOffset;
-                            if (h > mPeekHeight) {
+                            final float h = rawY - mAbsPos[1];
+                            if (h > 0) {
                                 if (mPeekAnimator != null && mPeekAnimator.isRunning()) {
                                     mPeekAnimator.cancel();
                                 }
                                 mJustPeeked = false;
-                            }
-                            if (!mJustPeeked) {
-                                PanelView.this.setExpandedHeightInternal(h);
-                                mBar.panelExpansionChanged(PanelView.this, mExpandedFraction);
                             }
 
                             trackMovement(event);

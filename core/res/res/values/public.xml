@@ -2032,4 +2032,5 @@
   <public type="dimen" name="ticker_panel_height" id="0x01050008" />
   <public type="style" name="Animation.TranslucentLeft" id="0x010301de" />
   <public type="style" name="Animation.TranslucentRight" id="0x010301df" />
+  <public type="string" name="usb_storage_stop_error_message" id="0x01040443" />
 </resources>

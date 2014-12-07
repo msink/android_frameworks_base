@@ -41,10 +41,12 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageEventListener;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -68,10 +70,13 @@ public class UsbStorageActivity extends Activity
     private TextView mMessage;
     private ImageView mIcon;
     private StorageManager mStorageManager = null;
+    private static Context mCtx = null;
     private static final int DLG_CONFIRM_KILL_STORAGE_USERS = 1;
     private static final int DLG_ERROR_SHARING = 2;
     static final boolean localLOGV = false;
     private boolean mDestroyed;
+    private boolean mFlag = false;
+    private HandlerThread thr;
 
     // UI thread
     private Handler mUIHandler;
@@ -92,14 +97,53 @@ public class UsbStorageActivity extends Activity
     private StorageEventListener mStorageListener = new StorageEventListener() {
         @Override
         public void onStorageStateChanged(String path, String oldState, String newState) {
-            final boolean on = newState.equals(Environment.MEDIA_SHARED);
-            switchDisplay(on);
+            boolean hasSdcard = 
+                !"removed".equals(mStorageManager.getVolumeState("/mnt/external_sd")) &&
+                !"bad_removal".equals(mStorageManager.getVolumeState("/mnt/external_sd")) &&
+                !"unmountable".equals(mStorageManager.getVolumeState("/mnt/external_sd"));
+            boolean flashShared = "shared".equals(mStorageManager.getVolumeState("/mnt/sdcard"));
+            boolean sdcardShared = "shared".equals(mStorageManager.getVolumeState("/mnt/external_sd"));
+            boolean flashMounted = "mounted".equals(mStorageManager.getVolumeState("/mnt/sdcard"));
+            boolean sdcardMounted = "mounted".equals(mStorageManager.getVolumeState("/mnt/external_sd"));
+            if (!hasSdcard) {
+                switchDisplay(flashShared, flashMounted);
+            } else {
+                switchDisplay(flashShared && sdcardShared,
+                              flashMounted && sdcardMounted);
+            }
         }
     };
     
+    private boolean isMountServiceBusy() {
+        try {
+            IMountService ims = getMountService();
+            if (ims == null) {
+                // Display error dialog
+                scheduleShowDialog(DLG_ERROR_SHARING);
+                return true;
+            }
+            if (ims.getUmsRecoverying()) {
+                Log.d(TAG, "-----------MountService is busy,still try to remount flash and sdcard---------");
+            } else {
+                return false;
+            }
+        } catch (RemoteException e) {
+        }
+        return true;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+
+        boolean usbConnected = "true".equals(SystemProperties.get(
+                               "sys.usb.umsavailible", "false"));
+        Log.d(TAG, "-onCreate while usb connection state is " + usbConnected);
+        if (!usbConnected) {
+            finish();
+            return;
+        }
 
         if (mStorageManager == null) {
             mStorageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
@@ -110,16 +154,23 @@ public class UsbStorageActivity extends Activity
         
         mUIHandler = new Handler();
 
-        HandlerThread thr = new HandlerThread("SystemUI UsbStorageActivity");
+        thr = new HandlerThread("SystemUI UsbStorageActivity");
         thr.start();
         mAsyncStorageHandler = new Handler(thr.getLooper());
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         if (Environment.isExternalStorageRemovable()) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         }
 
+        getWindow().getDecorView().setSystemUiVisibility(View.GONE |
+                             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         setContentView(com.android.internal.R.layout.usb_storage_activity);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         mIcon = (ImageView) findViewById(com.android.internal.R.id.icon);
         mBanner = (TextView) findViewById(com.android.internal.R.id.banner);
@@ -130,24 +181,36 @@ public class UsbStorageActivity extends Activity
         mUnmountButton = (Button) findViewById(com.android.internal.R.id.unmount_button);
         mUnmountButton.setOnClickListener(this);
         mProgressBar = (ProgressBar) findViewById(com.android.internal.R.id.progress);
+
+        mCtx = this;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mDestroyed = true;
+        try {
+            thr.quit();
+            thr.interrupt();
+        } catch (Exception e) {
+        }
     }
 
-    private void switchDisplay(final boolean usbStorageInUse) {
+    private void switchDisplay(final boolean usbStorageInUse, final boolean flashMount) {
         mUIHandler.post(new Runnable() {
             @Override
             public void run() {
-                switchDisplayAsync(usbStorageInUse);
+                switchDisplayAsync(usbStorageInUse, flashMount);
             }
         });
     }
 
-    private void switchDisplayAsync(boolean usbStorageInUse) {
+    private void switchDisplayAsync(boolean usbStorageInUse, boolean flashMount) {
+        boolean usbConnected = "true".equals(SystemProperties.get(
+                               "sys.usb.umsavailible", "false"));
+        if (!usbConnected)
+            return;
+
         if (usbStorageInUse) {
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.VISIBLE);
@@ -155,7 +218,7 @@ public class UsbStorageActivity extends Activity
             mIcon.setImageResource(com.android.internal.R.drawable.usb_android_connected);
             mBanner.setText(com.android.internal.R.string.usb_storage_stop_title);
             mMessage.setText(com.android.internal.R.string.usb_storage_stop_message);
-        } else {
+        } else if (flashMount) {
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.GONE);
             mMountButton.setVisibility(View.VISIBLE);
@@ -171,13 +234,30 @@ public class UsbStorageActivity extends Activity
 
         mStorageManager.registerListener(mStorageListener);
         registerReceiver(mUsbStateReceiver, new IntentFilter(UsbManager.ACTION_USB_STATE));
+
+        final boolean flashMount = "mounted".equals(mStorageManager.getVolumeState("/mnt/sdcard"));
         try {
             mAsyncStorageHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    switchDisplay(mStorageManager.isUsbMassStorageEnabled());
+                    switchDisplay(mStorageManager.isUsbMassStorageEnabled(), flashMount);
                 }
             });
+            mUIHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mFlag) return;
+                    if (isMountServiceBusy()) {
+                        Toast.makeText(mCtx, com.android.internal.R.string.
+                             usb_storage_stop_error_message,
+                             Toast.LENGTH_LONG).show();
+                    } else {
+                        mMountButton.setVisibility(View.GONE);
+                        mProgressBar.setVisibility(View.VISIBLE);
+                        checkStorageUsers();
+                    }
+                }
+            }, 1000);
         } catch (Exception ex) {
             Log.e(TAG, "Failed to read UMS enable state", ex);
         }
@@ -194,9 +274,28 @@ public class UsbStorageActivity extends Activity
     }
 
     private void handleUsbStateChanged(Intent intent) {
-        boolean connected = intent.getExtras().getBoolean(UsbManager.USB_CONNECTED);
+        boolean connected = intent.getBooleanExtra(UsbManager.USB_CONNECTED, false) &&
+                intent.getBooleanExtra(UsbManager.USB_FUNCTION_MASS_STORAGE, false);
         if (!connected) {
             // It was disconnected from the plug, so finish
+            Log.i(TAG, "-----finish UsbStorageActivity because usb disconnect-----");
+            if (mFlag) {
+                mUnmountButton.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.VISIBLE);
+                switchUsbMassStorage(false);
+            }
+            do {
+                try {
+                    Thread.sleep(2);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while(mFlag);
+            try {
+                thr.quit();
+                thr.interrupt();
+            } catch (Exception e) {
+            }
             finish();
         }
     }
@@ -219,7 +318,11 @@ public class UsbStorageActivity extends Activity
                         public void onClick(DialogInterface dialog, int which) {
                             switchUsbMassStorage(true);
                         }})
-                    .setNegativeButton(R.string.cancel, null)
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            mMountButton.setVisibility(View.VISIBLE);
+                            mProgressBar.setVisibility(View.GONE);
+                        }})
                     .setMessage(R.string.dlg_confirm_kill_storage_users_text)
                     .setOnCancelListener(this)
                     .create();
@@ -268,6 +371,7 @@ public class UsbStorageActivity extends Activity
                 } else {
                     mStorageManager.disableUsbMassStorage();
                 }
+                mFlag = on;
             }
         });
     }
@@ -317,14 +421,43 @@ public class UsbStorageActivity extends Activity
     public void onClick(View v) {
         if (v == mMountButton) {
            // Check for list of storage users and display dialog if needed.
-            checkStorageUsers();
+            if (isMountServiceBusy()) {
+                Toast.makeText(this, com.android.internal.R.string.
+                     usb_storage_stop_error_message,
+                     Toast.LENGTH_LONG).show();
+            } else {
+                mMountButton.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.VISIBLE);
+                checkStorageUsers();
+            }
         } else if (v == mUnmountButton) {
             if (localLOGV) Log.i(TAG, "Disabling UMS");
+            mUnmountButton.setVisibility(View.GONE);
+            mProgressBar.setVisibility(View.VISIBLE);
             switchUsbMassStorage(false);
+            do {
+                try {
+                    Thread.sleep(2);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while(mFlag);
+            SystemProperties.set("sys.usb.umsavailible", "false");
+            try {
+                thr.quit();
+                thr.interrupt();
+            } catch (Exception e) {
+            }
+            finish();
         }
     }
 
     public void onCancel(DialogInterface dialog) {
+        try {
+            thr.quit();
+            thr.interrupt();
+        } catch (Exception e) {
+        }
         finish();
     }
 

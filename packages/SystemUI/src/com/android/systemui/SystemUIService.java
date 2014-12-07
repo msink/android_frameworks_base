@@ -23,6 +23,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Binder;
@@ -37,6 +38,9 @@ import android.view.accessibility.AccessibilityManager;
 public class SystemUIService extends Service {
     static final String TAG = "SystemUIService";
 
+    public static final String ACTION_DISPLAY_STATUS_BAR = "boyue.show.status.bar";
+    public static final String ACTION_HIDE_STATUS_BAR    = "boyue.hide.status.bar";
+
     /**
      * The class names of the stuff to start.
      */
@@ -50,6 +54,17 @@ public class SystemUIService extends Service {
      * Hold a reference on the stuff we start.
      */
     SystemUI[] mServices;
+
+    BroadcastReceiver mStatusBarReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && !intent.getAction().isEmpty()) {
+                for (int i = 0; i < SERVICES.length; i++) {
+                    mServices[i].onReceive(intent.getAction());
+                }
+            }
+        }
+    };
 
     private Class chooseClass(Object o) {
         if (o instanceof Integer) {
@@ -98,6 +113,11 @@ public class SystemUIService extends Service {
             Slog.d(TAG, "running: " + mServices[i]);
             mServices[i].start();
         }
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_DISPLAY_STATUS_BAR);
+        intentFilter.addAction(ACTION_HIDE_STATUS_BAR);
+        registerReceiver(mStatusBarReceiver, intentFilter);
     }
 
     @Override

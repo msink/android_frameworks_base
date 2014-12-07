@@ -24,6 +24,8 @@ import android.graphics.drawable.Drawable;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.hardware.input.InputManager;
+import android.media.AudioManager;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.ServiceManager;
@@ -57,6 +59,11 @@ public class KeyButtonView extends ImageView {
     boolean mSupportsLongpress = true;
     RectF mRect = new RectF(0f,0f,0f,0f);
     AnimatorSet mPressedAnim;
+
+    private static int VOLUME_ADD = 24;
+    private static int VOLUME_SUB = 25;
+    boolean isDown = false;
+    private final int ADJUST_VOLUME_DELAY = 250;
 
     Runnable mCheckLongPress = new Runnable() {
         public void run() {
@@ -102,22 +109,6 @@ public class KeyButtonView extends ImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mGlowBG != null) {
-            canvas.save();
-            final int w = getWidth();
-            final int h = getHeight();
-            final float aspect = (float)mGlowWidth / mGlowHeight;
-            final int drawW = (int)(h*aspect);
-            final int drawH = h;
-            final int margin = (drawW-w)/2;
-            canvas.scale(mGlowScale, mGlowScale, w*0.5f, h*0.5f);
-            mGlowBG.setBounds(-margin, 0, drawW-margin, drawH);
-            mGlowBG.setAlpha((int)(mDrawingAlpha * mGlowAlpha * 255));
-            mGlowBG.draw(canvas);
-            canvas.restore();
-            mRect.right = w;
-            mRect.bottom = h;
-        }
         super.onDraw(canvas);
     }
 
@@ -283,6 +274,50 @@ public class KeyButtonView extends ImageView {
         InputManager.getInstance().injectInputEvent(ev,
                 InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
     }
+
+    public void ajustVolume(boolean opition) { 
+        AudioManager audioManager = (AudioManager)
+            getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager != null) {
+            if (opition) {
+                audioManager.adjustSuggestedStreamVolume(
+                    AudioManager.ADJUST_RAISE,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            } else {
+                audioManager.adjustSuggestedStreamVolume(
+                    AudioManager.ADJUST_LOWER,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE,
+                    AudioManager.FLAG_SHOW_UI |
+                    AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            }
+        }
+    }
+
+    private Handler mAddHandler = new Handler();
+    private Runnable mAddRun = new Runnable() {
+        @Override
+        public void run() {
+            mAddHandler.removeCallbacks(mAddRun);
+            if (isDown) {
+                ajustVolume(true);
+                mAddHandler.postDelayed(mAddRun, ADJUST_VOLUME_DELAY);
+            }
+        }
+    };
+
+    private Handler mSubHandler = new Handler();
+    private Runnable mSubRun = new Runnable() {
+        @Override
+        public void run() {
+            mSubHandler.removeCallbacks(mSubRun);
+            if (isDown) {
+                ajustVolume(false);
+                mSubHandler.postDelayed(mSubRun, ADJUST_VOLUME_DELAY);
+            }
+        }
+    };
 }
 
 

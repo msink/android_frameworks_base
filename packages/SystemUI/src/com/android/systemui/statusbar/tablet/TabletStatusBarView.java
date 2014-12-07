@@ -22,6 +22,7 @@ import com.android.systemui.statusbar.DelegateViewHelper;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.SystemProperties;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.View;
@@ -36,6 +37,7 @@ public class TabletStatusBarView extends FrameLayout {
     private final View[] mPanels = new View[MAX_PANELS];
     private final int[] mPos = new int[2];
     private DelegateViewHelper mDelegateHelper;
+    private NotificationPanel mNotificationPanel;
 
     public TabletStatusBarView(Context context) {
         this(context, null);
@@ -56,6 +58,13 @@ public class TabletStatusBarView extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (SystemProperties.getBoolean("persist.boeye.notification", false) &&
+                event.getAction() == MotionEvent.ACTION_DOWN &&
+                500 <= (int)event.getX() && 50 >= (int)event.getY() &&
+                !mNotificationPanel.isShowing()) {
+             mHandler.removeMessages(1000);
+             mHandler.sendEmptyMessage(1000);
+         }
         if (mDelegateHelper != null) {
             mDelegateHelper.onInterceptTouchEvent(event);
         }
@@ -73,7 +82,10 @@ public class TabletStatusBarView extends FrameLayout {
             view = findViewById(R.id.nav_buttons);
         }
         mDelegateHelper.setSourceView(view);
-        mDelegateHelper.setInitialTouchRegion(view);
+        View mBackButton = view.findViewById(R.id.back);
+        View mHomeButton = view.findViewById(R.id.home);
+        View mRecentsButton = view.findViewById(R.id.recent_apps);
+        mDelegateHelper.setInitialTouchRegion(mBackButton, mHomeButton, mRecentsButton);
     }
 
     @Override
@@ -85,8 +97,8 @@ public class TabletStatusBarView extends FrameLayout {
             // do not close the recents panel here- the intended behavior is that recents is dismissed
             // on touch up when clicking on status bar buttons
             // TODO: should we be closing the notification panel and input methods panel?
-            mHandler.removeMessages(TabletStatusBar.MSG_CLOSE_NOTIFICATION_PANEL);
-            mHandler.sendEmptyMessage(TabletStatusBar.MSG_CLOSE_NOTIFICATION_PANEL);
+            //mHandler.removeMessages(TabletStatusBar.MSG_CLOSE_NOTIFICATION_PANEL);
+            //mHandler.sendEmptyMessage(TabletStatusBar.MSG_CLOSE_NOTIFICATION_PANEL);
             mHandler.removeMessages(TabletStatusBar.MSG_CLOSE_INPUT_METHODS_PANEL);
             mHandler.sendEmptyMessage(TabletStatusBar.MSG_CLOSE_INPUT_METHODS_PANEL);
             mHandler.removeMessages(TabletStatusBar.MSG_STOP_TICKER);
@@ -142,5 +154,9 @@ public class TabletStatusBarView extends FrameLayout {
     public void setIgnoreChildren(int index, View ignore, View panel) {
         mIgnoreChildren[index] = ignore;
         mPanels[index] = panel;
+    }
+
+    public void setNotificationPanel(NotificationPanel panel) {
+        mNotificationPanel = panel;
     }
 }

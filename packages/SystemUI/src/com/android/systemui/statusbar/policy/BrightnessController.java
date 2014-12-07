@@ -16,13 +16,20 @@
 
 package com.android.systemui.statusbar.policy;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.IPowerManager;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Slog;
@@ -47,6 +54,8 @@ public class BrightnessController implements ToggleSlider.Listener {
     private final IPowerManager mPower;
     private final CurrentUserTracker mUserTracker;
 
+    private BroadcastReceiver flushBroadcastReceiver = null;
+
     private ArrayList<BrightnessStateChangeCallback> mChangeCallbacks =
             new ArrayList<BrightnessStateChangeCallback>();
 
@@ -69,6 +78,56 @@ public class BrightnessController implements ToggleSlider.Listener {
         mPower = IPowerManager.Stub.asInterface(ServiceManager.getService("power"));
 
         control.setOnChangedListener(this);
+
+        mSettingsObserver = new BrightSettingsObserver(null);
+        mContext.getContentResolver().registerContentObserver(
+            Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
+            false, mSettingsObserver, -1);
+        if (flushBroadcastReceiver == null) {
+            flushBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent != null) {
+                        String action = intent.getAction();
+                        if (action != null && action.equals("reflush_light_ui")) {
+                            if (SystemProperties.getBoolean("persist.sys.isLightOn", false)) {
+                                int value = 0;
+                                try {
+                                    value = Settings.System.getIntForUser(
+                                        mContext.getContentResolver(),
+                                        Settings.System.SCREEN_BRIGHTNESS,
+                                        mUserTracker.getCurrentUserId());
+                                } catch (SettingNotFoundException ex) {
+                                    value = mMinimumBacklight;
+                                }
+                                mControl.setValue(value - mMinimumBacklight);
+                            } else {
+                                mControl.setValue(0);
+                            }
+                        }
+                    }
+                }
+            };
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("reflush_light_ui");
+            mContext.registerReceiver(flushBroadcastReceiver, filter);
+        }
+    }
+
+    private BrightSettingsObserver mSettingsObserver;
+    final class BrightSettingsObserver extends ContentObserver {
+        public BrightSettingsObserver(Handler h) {
+            super(h);
+        }
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            int brightValue = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS,
+                mMinimumBacklight,
+                mUserTracker.getCurrentUserId());
+            mControl.setValue(brightValue - mMinimumBacklight);
+        }
     }
 
     public void addStateChangedCallback(BrightnessStateChangeCallback cb) {

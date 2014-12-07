@@ -197,6 +197,8 @@ class MountService extends IMountService.Stub
     private PackageManagerService                 mPms;
     private boolean                               mUmsEnabling;
     private boolean                               mUmsAvailable = false;
+    // Indicate that MountService is trying to remount volumes
+    private boolean                               mUmsRecoverying = false;
     // Used as a lock for methods that register/unregister listeners.
     final private ArrayList<MountServiceBinderListener> mListeners =
             new ArrayList<MountServiceBinderListener>();
@@ -1421,6 +1423,14 @@ class MountService extends IMountService.Stub
         synchronized (mListeners) {
             mUmsEnabling = enable;
         }
+    }
+
+    public boolean getUmsRecoverying() {
+        return mUmsRecoverying;
+    }
+
+    private boolean setUmsRecoverying(boolean status) {
+        return mUmsRecoverying = status;
     }
 
     public boolean isUsbMassStorageConnected() {
