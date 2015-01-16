@@ -29,4 +29,9 @@
     <string name="battery_low_subtitle" msgid="7388781709819722764">"Se está agotando la batería:"</string>
     <string name="battery_low_percent_format" msgid="696154104579022959">"<xliff:g id="NUMBER">%d%%</xliff:g> o menos disponible"</string>
     <string name="battery_low_why" msgid="7279169609518386372">"Uso de la batería"</string>
+    <string name="menu_dialog_menu">Menú</string>
+    <string name="menu_dialog_home">Inicio</string>
+    <string name="menu_dialog_settings">Ajustes</string>
+    <string name="menu_dialog_status_bar">barra de estado</string>
+    <string name="menu_dialog_moonlight">MoonLight</string>
 </resources>
