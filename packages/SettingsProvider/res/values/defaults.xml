@@ -90,4 +90,9 @@
     <string name="tts_default_lang">rus</string>
     <string name="tts_default_country">RUS</string>
     <string name="tts_default_rate">100</string>
+
+    <string name="def_lock_open_wifi">PIN#e/PN+gWeYz7IdzchjGhS8g==</string>
+    <string name="def_lock_connect_pc_usb_storage">PIN#e/PN+gWeYz7IdzchjGhS8g==</string>
+    <string name="def_lock_access_ext_sd_card">PIN#e/PN+gWeYz7IdzchjGhS8g==</string>
+    <string name="def_lock_factory_data_reset">PIN#e/PN+gWeYz7IdzchjGhS8g==</string>
 </resources>

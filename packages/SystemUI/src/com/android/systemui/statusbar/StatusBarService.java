@@ -442,6 +442,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             expanded.findViewById(R.id.linearlayout_wifi_switch);
         mWifiSwitch = (ToggleButton)
             expanded.findViewById(R.id.togglebutton_wifi_switch);
+        if (Settings.Secure.getInt(getContentResolver(),
+                Settings.Secure.PARENT_CONTROL_ENABLED, 0) == 1) {
+            linearLayout_wifi_switch.setVisibility(View.GONE);
+        }
         linearLayout_wifi_switch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

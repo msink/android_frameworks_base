@@ -1145,12 +1145,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             SystemProperties.get("ro.com.android.dataroaming",
                                     "false")) ? 1 : 0);
     
+            loadSetting(stmt, Settings.Secure.PARENT_CONTROL_ENABLED,
+                    Integer.valueOf(SystemProperties.getInt("ro.onyx.parentcontrol", 0)));
+
             loadBooleanSetting(stmt, Settings.Secure.INSTALL_NON_MARKET_APPS,
                     R.bool.def_install_non_market_apps);
-    
+
             loadStringSetting(stmt, Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
                     R.string.def_location_providers_allowed);
     
+            loadStringSetting(stmt, Settings.Secure.LOCK_OPEN_WIFI,
+                    R.string.def_lock_open_wifi);
+
+            loadStringSetting(stmt, Settings.Secure.LOCK_CONNECT_USB_STORAGE,
+                    R.string.def_lock_connect_pc_usb_storage);
+
+            loadStringSetting(stmt, Settings.Secure.LOCK_ACCESS_EXT_SD_CARD,
+                    R.string.def_lock_access_ext_sd_card);
+
+            loadStringSetting(stmt, Settings.Secure.LOCK_FACTORY_DATA_RESET,
+                    R.string.def_lock_factory_data_reset);
+
             loadBooleanSetting(stmt, Settings.Secure.ASSISTED_GPS_ENABLED,
                     R.bool.assisted_gps_enabled);
     

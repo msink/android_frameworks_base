@@ -45,6 +45,7 @@ import android.os.storage.IMountShutdownObserver;
 import android.os.storage.IObbActionListener;
 import android.os.storage.OnObbStateChangeListener;
 import android.os.storage.StorageResultCode;
+import android.provider.Settings.Secure;
 import android.util.Slog;
 
 import java.io.FileDescriptor;
@@ -704,9 +705,22 @@ class MountService extends IMountService.Stub
              * Format: "NNN Volume <label> <path> state changed
              * from <old_#> (<old_str>) to <new_#> (<new_str>)"
              */
+            int newState = Integer.parseInt(cooked[10]);
+            boolean parentControlEnabled = Secure.getInt(mContext.getContentResolver(),
+                Secure.PARENT_CONTROL_ENABLED, 0) > 0;
+            String path = cooked[3];
+            if (parentControlEnabled && path.contains("/mnt/storage/sdcard") &&
+                    newState == VolumeState.Mounted && mContext != null) {
+                Intent intent = new Intent();
+                intent.setClassName("com.android.settings",
+                    "com.android.settings.parentcontrol.ParentControlSettings");
+                intent.putExtra("LOCK_LIST", "LOCK_ACCESS_EXT_SD_CARD");
+                intent.putExtra("UNMOUND_SDCARD_IF_PASSWORD_ERROR", true);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(intent);
+            }
             notifyVolumeStateChange(
-                    cooked[2], cooked[3], Integer.parseInt(cooked[7]),
-                            Integer.parseInt(cooked[10]));
+                    cooked[2], path, Integer.parseInt(cooked[7]), newState);
         } else if (code == VoldResponseCode.ShareAvailabilityChange) {
             // FMT: NNN Share method <method> now <available|unavailable>
             boolean avail = false;

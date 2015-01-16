@@ -42,6 +42,7 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageEventListener;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.provider.Settings.Secure;
 import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -54,6 +55,7 @@ import android.view.WindowManager;
 import android.util.Log;
 
 import java.util.List;
+import com.android.systemui.parentcontrol.data.LockList;
 
 /**
  * This activity is shown to the user for him/her to enable USB mass storage
@@ -122,6 +124,14 @@ public class UsbStorageActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (Secure.getInt(getContentResolver(), Secure.PARENT_CONTROL_ENABLED, 0) == 1) {
+            Intent intent = new Intent();
+            intent.setClassName("com.android.settings",
+                "com.android.settings.parentcontrol.ParentControlSettings");
+            intent.putExtra("LOCK_LIST", LockList.LOCK_CONNECT_USB_STORAGE.toString());
+            startActivityForResult(intent, 1);
+        }
+
         if (savedInstanceState != null && savedInstanceState.containsKey("killstorageusers")) {
             showDialog(1);
             ad.onRestoreInstanceState(savedInstanceState.getBundle("killstorageusers"));
@@ -161,6 +171,13 @@ public class UsbStorageActivity extends Activity
         mUnmountButton.setOnClickListener(this);
         mProgressBar = (ProgressBar) findViewById(com.android.internal.R.id.progress);
         switchDisplay(false, true);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_CANCELED) {
+            finish();
+        }
     }
 
     private void switchDisplay(final boolean usbStorageInUse) {

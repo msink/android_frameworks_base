@@ -3490,6 +3490,17 @@ public final class Settings {
         public static final String INET_CONDITION_DEBOUNCE_DOWN_DELAY =
                 "inet_condition_debounce_down_delay";
 
+        public static final String LOCK_OPEN_WIFI =
+                "LOCK_OPEN_WIFI";
+        public static final String LOCK_CONNECT_USB_STORAGE =
+                "LOCK_CONNECT_USB_STORAGE";
+        public static final String LOCK_ACCESS_EXT_SD_CARD =
+                "LOCK_ACCESS_EXT_SD_CARD";
+        public static final String LOCK_FACTORY_DATA_RESET =
+                "LOCK_FACTORY_DATA_RESET";
+        public static final String PARENT_CONTROL_ENABLED =
+                "PARENT_CONTROL_ENABLED";
+
         /**
          * @hide
          */
@@ -3506,6 +3517,11 @@ public final class Settings {
             TTS_DEFAULT_RATE,
             TTS_DEFAULT_PITCH,
             TTS_DEFAULT_SYNTH,
+            LOCK_OPEN_WIFI,
+            LOCK_CONNECT_USB_STORAGE,
+            LOCK_ACCESS_EXT_SD_CARD,
+            LOCK_FACTORY_DATA_RESET,
+            PARENT_CONTROL_ENABLED,
             TTS_DEFAULT_LANG,
             TTS_DEFAULT_COUNTRY,
             TTS_DEFAULT_VARIANT,

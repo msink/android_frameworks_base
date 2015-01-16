@@ -81,12 +81,16 @@ public class StorageNotification extends StorageEventListener {
     View dataTransferDialogView;
     private boolean isMountDialogShow = false;
     private boolean isDataTransferDialogShow = false;
+    private boolean mParentControlEnabled = false;
     AlertDialog mDataTransferDialog;
     AlertDialog mMountDialog;
     View mountDialogView;
 
     public StorageNotification(Context context) {
         mContext = context;
+
+        mParentControlEnabled = (Settings.Secure.getInt(mContext.getContentResolver(),
+            Settings.Secure.PARENT_CONTROL_ENABLED, 0) > 0);
 
         mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
         final boolean connected = mStorageManager.isUsbMassStorageConnected();
@@ -135,6 +139,8 @@ public class StorageNotification extends StorageEventListener {
             connected = false;
         }
         updateUsbMassStorageNotification(connected);
+        if (isParentControlEnabled())
+            return;
         if (connected) {
             Log.d(TAG, "open USB connected");
             updateMountDialogState(true);
@@ -172,7 +178,9 @@ public class StorageNotification extends StorageEventListener {
                     com.android.internal.R.string.usb_storage_stop_notification_message,
                     com.android.internal.R.drawable.stat_sys_warning, false, true, pi);
             Log.d(TAG, "  1 MEDIA_SHARED");
-            updateDataTransferDialogState(true);
+            if (!isParentControlEnabled()) {
+                updateDataTransferDialogState(true);
+            }
         } else if (newState.equals(Environment.MEDIA_CHECKING)) {
             /*
              * Storage is now checking. Update media notification and disable
@@ -274,7 +282,9 @@ public class StorageNotification extends StorageEventListener {
                 updateUsbMassStorageNotification(false);
               }
             }
-            updateDataTransferDialogState(false);
+            if (!isParentControlEnabled()) {
+                updateDataTransferDialogState(false);
+            }
             Log.d(TAG, "  4 MEDIA_UNMOUNTED");
         } else if (newState.equals(Environment.MEDIA_NOFS)) {
             /*
@@ -404,6 +414,10 @@ public class StorageNotification extends StorageEventListener {
         }
     }
 
+    private boolean isParentControlEnabled() {
+        return mParentControlEnabled;
+    }
+
     /**
      * Sets the USB storage notification.
      */
@@ -447,21 +461,11 @@ public class StorageNotification extends StorageEventListener {
             }
 
             mUsbStorageNotification.setLatestEventInfo(mContext, title, message, pi);
-            final boolean adbOn = 1 == Settings.Secure.getInt(
-                mContext.getContentResolver(),
-                Settings.Secure.ADB_ENABLED,
-                0);
+            final boolean adbOn = false;
 
-            if (POP_UMS_ACTIVITY_ON_CONNECT) {
-                // Pop up a full-screen alert to coach the user through enabling UMS. The average
-                // user has attached the device to USB either to charge the phone (in which case
-                // this is harmless) or transfer files, and in the latter case this alert saves
-                // several steps (as well as subtly indicates that you shouldn't mix UMS with other
-                // activities on the device).
-                //
-                // If ADB is enabled, however, we suppress this dialog (under the assumption that a
-                // developer (a) knows how to enable UMS, and (b) is probably using USB to install
-                // builds or use adb commands.
+            if (isParentControlEnabled()) {
+                mUsbStorageNotification.fullScreenIntent = pi;
+            } else {
                 mUsbStorageNotification.fullScreenIntent = null;
             }
         }

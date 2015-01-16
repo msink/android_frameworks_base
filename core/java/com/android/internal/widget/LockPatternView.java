@@ -152,6 +152,10 @@ public class LockPatternView extends View {
             this.column = column;
         }
 
+        public int getPositionNumberByRowColumn(int row, int column) {
+            return (row * 3 + column);
+        }
+
         public int getRow() {
             return row;
         }
@@ -257,7 +261,7 @@ public class LockPatternView extends View {
 
         mPathPaint.setAntiAlias(true);
         mPathPaint.setDither(true);
-        mPathPaint.setColor(Color.WHITE);   // TODO this should be from the style
+        mPathPaint.setColor(0xff000000);   // TODO this should be from the style
         mPathPaint.setAlpha(128);
         mPathPaint.setStyle(Paint.Style.STROKE);
         mPathPaint.setStrokeJoin(Paint.Join.ROUND);
