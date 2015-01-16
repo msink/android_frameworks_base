@@ -1501,7 +1501,7 @@ class PowerManagerService extends IPowerManager.Stub
             PhoneWindowManager.standbyImageShow(!mScreenOn);
             nativeIsShowingStandbyImage(!mScreenOn);
             nativeStopSurfaceFlingerAnimation();
-            if (isWakeUpBrightness() && getBrightnessState() == BRIGHTNESS_OPENED) {
+            if (isWakeUpBrightness()) {
                 writeBrightnessFile(getFrontLightValue());
             }
             if (getWifiState() == WIFI_OPENED) {

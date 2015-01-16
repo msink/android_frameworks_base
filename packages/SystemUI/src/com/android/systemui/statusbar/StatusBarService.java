@@ -81,8 +81,11 @@ import android.widget.FrameLayout;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import com.android.systemui.R;
@@ -103,6 +106,20 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
     static final int EXPANDED_LEAVE_ALONE = -10000;
     static final int EXPANDED_FULL_OPEN = -10001;
+
+    public static int BRIGHTNESS_ON = DeviceController.BRIGHTNESS_MAXIMUM;
+    private Integer[] mFrontLightValue = {
+          0,   5,  10,  15,  20,  25,  30,  35,  40,  45,
+         50,  55,  60,  65,  70,  75,  80,  85,  90,  95,
+        100, 105, 110, 115, 120, 125, 130, 135, 140, 145,
+        150, 155, 160,           175, 180, 185, 190, 195,
+        200, 205, 210, 215, 220, 225, 230, 235, 240, 245,
+        250 };
+    private List<Integer> mLightSteps = new ArrayList();
+    private boolean isLongClickOpenAndCloseFrontLight = false;
+    private IntentFilter filter = null;
+    private BroadcastReceiver mOpenAndCloseFrontLightReceiver = null;
+    private Context mContext = null;
 
     StatusBarPolicy mIconPolicy;
 
@@ -199,6 +216,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     private class ExpandedDialog extends Dialog {
         ExpandedDialog(Context context) {
             super(context, com.android.internal.R.style.Theme_Light_NoTitleBar);
+            mContext = context;
         }
 
         @Override
@@ -246,6 +264,32 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             }
         }
 
+        mOpenAndCloseFrontLightReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                if (intent != null && intent.getAction() != null &&
+                        (DeviceController.ACTION_OPEN_FRONT_LIGHT.equals(intent.getAction()) ||
+                        DeviceController.ACTION_CLOSE_FRONT_LIGHT.equals(intent.getAction()))) {
+                    isLongClickOpenAndCloseFrontLight = true;
+                    int front_light_value = intent.getIntExtra(DeviceController.INTENT_FRONT_LIGHT_VALUE, 0);
+                    mRatingBarLightSettings.setProgress(getIndex(front_light_value));
+                }
+            }
+        };
+        filter = new IntentFilter();
+        filter.addAction(DeviceController.ACTION_OPEN_FRONT_LIGHT);
+        filter.addAction(DeviceController.ACTION_CLOSE_FRONT_LIGHT);
+        mContext.registerReceiver(mOpenAndCloseFrontLightReceiver, filter);
+
+        mLightSteps = Arrays.asList(mFrontLightValue);
+        if (mLightSteps != null) {
+            mRatingBarLightSettings.setNumStars(mLightSteps.size() - 1);
+            mRatingBarLightSettings.setMax(mLightSteps.size() - 1);
+        } else {
+            int numStarts = mRatingBarLightSettings.getNumStars();
+            mLightSteps = initRangeArray(numStarts);
+        }
+        Collections.sort(mLightSteps);
+
         // Set up the initial notification state
         N = notificationKeys.size();
         if (N == notifications.size()) {
@@ -268,7 +312,9 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
     @Override
     public void onDestroy() {
-        // we're never destroyed
+        if (mOpenAndCloseFrontLightReceiver != null) {
+            mContext.unregisterReceiver(mOpenAndCloseFrontLightReceiver);
+        }
     }
 
     /**
@@ -277,6 +323,28 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private List<Integer> initRangeArray(int numStarts) {
+        List<Integer> brightnessList = new ArrayList(numStarts);
+        for (int i = 0; i <= numStarts; i++) {
+            brightnessList.add((BRIGHTNESS_ON * i) / numStarts);
+        }
+        return brightnessList;
+    }
+
+    private int getIndex(int val) {
+        int index = Collections.binarySearch(mLightSteps, val);
+        if (index == -1) {
+            index = 0;
+        } else if (index < 0) {
+            if (Math.abs(index) <= mLightSteps.size()) {
+                index = Math.abs(index) - 2;
+            } else {
+                index = mLightSteps.size() - 1;
+            }
+        }
+        return index;
     }
 
     // ================================================================================
@@ -332,7 +400,11 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating,
                     boolean fromUser) {
-                setLightRatingBarProgress();
+                if (!isLongClickOpenAndCloseFrontLight) {
+                    setFrontLightValue();
+                }
+                updateLightSwitch();
+                isLongClickOpenAndCloseFrontLight = false;
             }
         });
         mRatingBarLightSettings.setOnTouchListener(new View.OnTouchListener() {
@@ -533,6 +605,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         if (!mDev.hasFrontLight()) {
             linearlayout_light_panel.setVisibility(View.GONE);
         }
+        updateLightSwitch();
     }
 
     protected void addStatusBarView() {
@@ -1348,8 +1421,10 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             if (Intent.ACTION_HOME_MENU.equals(action) && !isHomeMenuDialogShow) {
                 createHomeMenuDialog();
                 mHomeMenuDialog.show();
+                int menu_width = (int)(getResources().getDimension(R.dimen.menu_width));
+                int menu_height = (int)(getResources().getDimension(R.dimen.menu_height));
                 mHomeMenuDialog.setContentView(homeMenuDialogView,
-                    new ViewGroup.LayoutParams(300, 300));
+                    new ViewGroup.LayoutParams(menu_width, menu_height));
             }
 
             if (Intent.ACTION_CHANGE_LIGHT_STATE.equals(action)) {
@@ -1546,6 +1621,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             @Override
             public void onShow(DialogInterface dialog) {
                 isHomeMenuDialogShow = true;
+                homeMenuDialogView.requestEpdMode(View.EPD_FULL);
             }
         });
     }
@@ -1801,26 +1877,16 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
         return ((value - 10) * big_interval) + LOW_BRIGHTNESS_MAX;
     }
 
-    private int getRatingOfBrightness(int value){
-        if (value <= LOW_BRIGHTNESS_MAX)
-            return (value - 0) / 2;
-
-        int big_interval = (255 - LOW_BRIGHTNESS_MAX)
-                         / (mRatingBarLightSettings.getNumStars() - 10);
-        return ((value - LOW_BRIGHTNESS_MAX) / big_interval) + 10;
-    }
-
     private void setLightRatingBarDefaultProgress() {
-        int bright;
+        int value;
         try {
-            bright = Settings.System.getInt(
-                        mStatusBarView.getContext().getContentResolver(),
-                        Settings.System.SCREEN_BRIGHTNESS);
-        } catch (Settings.SettingNotFoundException e) {
-            bright = DeviceController.BRIGHTNESS_DEFAULT;
+            value = Settings.System.getInt(mStatusBarView.getContext().getContentResolver(),
+                 Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException snfe) {
+            value = DeviceController.BRIGHTNESS_DEFAULT;
         }
-        int rating = getRatingOfBrightness(bright);
-        mRatingBarLightSettings.setProgress(rating);
+        int index = getIndex(value);
+        mRatingBarLightSettings.setProgress(index);
     }
 
     private void setLightRatingBarProgress() {
@@ -1835,6 +1901,29 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
             mLightSwitch.setChecked(false);
         } else {
             mLightSwitch.setChecked(true);
+        }
+    }
+
+    private void setFrontLightValue() {
+        if (mLightSteps.size() <= 0) return;
+        int value = ((Integer)(mLightSteps.get(mRatingBarLightSettings
+                                          .getProgress()))).intValue();
+        mDev.setFrontLightValue(value);
+        setFrontLightConfigValue(mContext, value);
+    }
+
+    public boolean setFrontLightConfigValue(Context context, int value) {
+        return Settings.System.putInt(context.getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS, value);
+    }
+
+    private void updateLightSwitch() {
+        if (mLightSwitch != null) {
+            if (mRatingBarLightSettings.getProgress() != 0 && !mLightSwitch.isChecked()) {
+                mLightSwitch.setChecked(true);
+            } else if (mRatingBarLightSettings.getProgress() == 0 && mLightSwitch.isChecked()) {
+                mLightSwitch.setChecked(false);
+            }
         }
     }
 }
