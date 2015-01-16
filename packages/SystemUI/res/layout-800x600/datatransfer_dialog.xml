@@ -24,6 +24,7 @@
         android:layout_below="@id/usb_connect_image"
         android:layout_centerHorizontal="true"
         android:padding="10dip"
+        android:textSize="18sp"
         android:text="@string/datatransfer_button_disable"
         />
 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2006 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!--
+This is an optimized layout for a screen, with the minimum set of features
+enabled.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="53dip"
+        android:layout_gravity="center_vertical"
+        android:background="@color/title_background_color"
+        style="?android:attr/windowTitleBackgroundStyle">
+        <RelativeLayout android:id="@+id/title_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="53dip"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:background="@drawable/border_bg">
+            <TextView android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/title_setting_imageview"
+                android:layout_marginLeft="1dip"
+                android:textSize="@dimen/screen_title_text_size"
+                android:gravity="center_vertical"
+                android:background="@null"
+                android:fadingEdge="horizontal"
+                style="?android:attr/windowTitleStyle" />
+            <Button android:id="@+id/button_back"
+                android:layout_width="24dip"
+                android:layout_height="36dip"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="20dip"
+                android:layout_marginTop="6dip"
+                android:layout_marginRight="5dip"
+                android:layout_marginBottom="3dip"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/back_settings" />
+            <ImageView android:id="@+id/title_setting_imageview"
+                android:layout_width="36dip"
+                android:layout_height="36dip"
+                android:layout_toRightOf="@id/button_back"
+                android:layout_marginTop="6dip"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                android:src="@drawable/settings_title" />
+        </RelativeLayout>
+    </RelativeLayout>
+    <FrameLayout android:id="@android:id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:foregroundGravity="fill_horizontal|top"
+        android:foreground="?android:attr/windowContentOverlay" />
+</LinearLayout>

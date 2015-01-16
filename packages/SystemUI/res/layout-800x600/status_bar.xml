@@ -175,7 +175,7 @@
 
         <Button android:id="@+id/status_bar_a2"
             android:layout_width="55dip"
-            android:layout_height="match_parent"
+            android:layout_height="45dip"
             android:gravity="center"
             android:background="@drawable/refresh"
             android:textColor="#ff000000"
