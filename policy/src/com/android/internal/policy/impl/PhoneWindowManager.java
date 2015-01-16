@@ -520,19 +520,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mHandler.post(new Runnable() {
                     public void run() {
                         if (Build.DEVICE.contentEquals("C63SM") ||
-                                Build.DEVICE.contentEquals("C65S")) {
+                                Build.DEVICE.contentEquals("C65S") ||
+                                Build.DEVICE.contentEquals("C65S_ARTATECH") ||
+                                Build.DEVICE.contentEquals("C65S_GRAMMATA") ||
+                                Build.DEVICE.contentEquals("C65S_DATASOFT")) {
                             if (getKeyOption() == 1) {
-                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                                sendMenuKeyEvent();
                             } else if (getKeyOption() == 2) {
                             } else if (getKeyOption() == 3) {
-                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                                sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                                sendMenuKeyEvent();
                             } else if (getKeyOption() == 4) {
                             }
                         } else {
-                            sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                            sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                            Intent intent = new Intent("android.intent.action.CHANGE_LIGHT_STATE");
+                            mContext.sendOrderedBroadcast(intent, null);
                         }
                     }
                 });
@@ -546,6 +547,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     Runnable mDpadCenterLongPress = new Runnable() {
         public void run() {
             mDpadCenterPressed = false;
+            if ("C65S_ARTATECH".equals(Build.DEVICE)) {
+                int KEY_CODE_SHOW_MENU = 202;
+                sendKeyEvent(KEY_CODE_SHOW_MENU, 202, true);
+                sendKeyEvent(KEY_CODE_SHOW_MENU, 202, false);
+                return;
+            }
             Intent intent = new Intent(Intent.ACTION_CHANGE_LIGHT_STATE);
             mContext.sendOrderedBroadcast(intent, null);
         }
@@ -555,7 +562,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         public void run() {
             mPageUpPressed = false;
             if (Build.DEVICE.contentEquals("C63SM") ||
-                    Build.DEVICE.contentEquals("C65S")) {
+                    Build.DEVICE.contentEquals("C65S") ||
+                    Build.DEVICE.contentEquals("C65S_ARTATECH") ||
+                    Build.DEVICE.contentEquals("C65S_GRAMMATA") ||
+                    Build.DEVICE.contentEquals("C65S_DATASOFT")) {
                 if (getKeyOption() == 1) {
                 } else if (getKeyOption() == 2) {
                     sendKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
@@ -576,19 +586,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         public void run() {
             mPageDownPressed = false;
             if (Build.DEVICE.contentEquals("C63SM") ||
-                    Build.DEVICE.contentEquals("C65S")) {
+                    Build.DEVICE.contentEquals("C65S") ||
+                    Build.DEVICE.contentEquals("C65S_ARTATECH") ||
+                    Build.DEVICE.contentEquals("C65S_GRAMMATA") ||
+                    Build.DEVICE.contentEquals("C65S_DATASOFT")) {
                 if (getKeyOption() == 1) {
                     sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
                     sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
                 } else if (getKeyOption() == 2) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                    sendMenuKeyEvent();
                 } else if (getKeyOption() == 3) {
                     sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
                     sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
                 } else if (getKeyOption() == 4) {
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, true);
-                    sendKeyEvent(KeyEvent.KEYCODE_MENU, 59, false);
+                    sendMenuKeyEvent();
                 }
             } else {
                 sendKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
@@ -596,6 +607,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
     };
+
+    private void sendMenuKeyEvent() {
+        if (!mDev.has5WayButton() || Build.DEVICE.contentEquals("C65S_ARTATECH"))
+            return;
+        Intent intent = new Intent("android.intent.action.HOME_MENU");
+        mContext.sendOrderedBroadcast(intent, null);
+    }
 
     int getKeyOption() {
         int keyOption = Settings.System.getInt(mContext.getContentResolver(), "key_map_mode", 1);

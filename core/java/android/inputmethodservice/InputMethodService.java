@@ -1344,8 +1344,10 @@ public class InputMethodService extends AbstractInputMethodService {
             if (DEBUG) Log.v(TAG, "showWindow: showing!");
             mEpdModeStored = SystemProperties.getInt("rk.epd.mode", -1);
             if (mEpdModeStored != View.EPD_A2) {
+              if (mInputView != null) {
                 mInputView.requestEpdMode(View.EPD_A2, true);
                 mIsForcedA2 = true;
+              }
             } else {
                 mIsForcedA2 = false;
             }
