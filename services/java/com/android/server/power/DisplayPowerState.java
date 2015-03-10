@@ -398,9 +398,6 @@ final class DisplayPowerState {
                     if (onChanged && on) {
                         mDisplayBlanker.unblankAllDisplays();
                     }
-                    if (backlightChanged) {
-                        mBacklight.setBrightness(backlight);
-                    }
                     if (onChanged && !on) {
                         mDisplayBlanker.blankAllDisplays();
                     }

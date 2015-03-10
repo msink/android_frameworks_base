@@ -15,11 +15,11 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="400px"
+    android:layout_width="@dimen/usb_connect_dialog_width"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/border"
-    android:padding="30dp"
+    android:padding="@dimen/usb_connect_padding"
     >
     <ImageView
         android:layout_gravity="center_horizontal"

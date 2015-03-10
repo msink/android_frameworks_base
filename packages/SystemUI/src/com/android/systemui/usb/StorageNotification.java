@@ -512,9 +512,8 @@ public class StorageNotification extends StorageEventListener {
     private void createDataTransferDialog() {
         LayoutInflater factory = LayoutInflater.from(mContext);
         dataTransferDialogView = factory.inflate(R.layout.datatransfer_dialog, null);
-        dataTransferDialogView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         Button disableStorageButton = (Button) dataTransferDialogView.findViewById(R.id.button_turn_off_storage);
-        AlertDialog.Builder usbBuilder = new AlertDialog.Builder(mContext, R.style.FullScreenDialog);
+        AlertDialog.Builder usbBuilder = new AlertDialog.Builder(mContext);
         mDataTransferDialog = usbBuilder.create();
         disableStorageButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

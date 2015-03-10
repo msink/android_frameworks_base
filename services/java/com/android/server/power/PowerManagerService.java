@@ -39,6 +39,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.hardware.DeviceController;
 import android.hardware.SensorManager;
 import android.hardware.SystemSensorManager;
 import android.hardware.display.DisplayManager;
@@ -409,7 +410,7 @@ public final class PowerManagerService extends IPowerManager.Stub
     private int last_system_pm_state = 0;
     private boolean mWifiDisabledByStandby = false;
 
-    private final String AUTO_POWEROFF_ACTION = "auto_poweroff_action";
+    private static final String AUTO_POWEROFF_ACTION = "auto_poweroff_action";
     private static final int SYSTEM_PM_STATE_RUNNING = 0;
     private static final int SYSTEM_PM_STATE_IDLE = 1;
     private static final int SYSTEM_PM_STATE_STANDBY = 2;
@@ -417,11 +418,18 @@ public final class PowerManagerService extends IPowerManager.Stub
     private static final int DEFAULT_IDLE_TIMEOUT = 3 * 1000;
     private static final int DEFAULT_AUTO_POWER_OFF_TIMEOUT = -1;
 
+    private static final String CHECK_BATTERY_LOW_ACTION = "check_battery_low_action";
+    private static final String BATTERY_VOLTAGE_FILE_PATH = "/sys/class/power_supply/battery/voltage_now";
+    private static final int CHECK_BATTERY_LOW_RTC_INTERVAL = 3*60*60*1000;
+    private static final int MIN_BATTERY_VOLTAGE_TO_SHUTDOWN = 3450;
+    private static final int TIME_OUT_SETTING_OPTION_NEVER = -1;
+
     private int mUserActionTimeoutCount = 0;
     private int mScreenSaverIndex = 0;
 
     private boolean mWifiOnAfterWakeup = true;
 
+    private DeviceController mDev = null;
 
     class RtcAlarmHelper {
         private String mAction;
@@ -476,13 +484,22 @@ public final class PowerManagerService extends IPowerManager.Stub
         mUserTimeoutAlarmHelper.cancel();
     }
 
-    private void setAutoPoweroffAlarm() {
+    private void setRelatedAlarmsForSleep() {
         if (mAutoPoweroffDelay > 0) {
             cancelAlarms();
             SystemClock.sleep(200);
             long wakeTime = System.currentTimeMillis() + mAutoPoweroffDelay;
             mAutoPoweroffAlarmHelper.setAlarm(wakeTime);
+        } else if (mAutoPoweroffDelay == TIME_OUT_SETTING_OPTION_NEVER) {
+            setCheckBatteryLowAlarm();
         }
+    }
+
+    private void setCheckBatteryLowAlarm() {
+        mCheckBatteryLowAlarmHelper.cancel();
+        long checkBatteryLowWakeTime =
+            System.currentTimeMillis() + CHECK_BATTERY_LOW_RTC_INTERVAL;
+        mCheckBatteryLowAlarmHelper.setAlarm(checkBatteryLowWakeTime);
     }
 
     private boolean hasFullWakeLocks() {
@@ -494,7 +511,7 @@ public final class PowerManagerService extends IPowerManager.Stub
         return false;
     }
 
-    private void setPowerOffAlarmAndGoToSleep(int reason) {
+    private void doGoToSleep(int reason) {
         if (mWifiManager.isWifiEnabled() || hasFullWakeLocks()) {
             return;
         }
@@ -508,8 +525,11 @@ public final class PowerManagerService extends IPowerManager.Stub
                 if (!mAlarmHelperWakeLock.isHeld()) {
                     mAlarmHelperWakeLock.acquire(500);
                 }
-                setPowerOffAlarmAndGoToSleep(1);
+                doGoToSleep(1);
                 return;
+            }
+            if (mScreenOffTimeoutSetting == TIME_OUT_SETTING_OPTION_NEVER) {
+                setCheckBatteryLowAlarm();
             }
             nativeIdle();
         }
@@ -522,6 +542,58 @@ public final class PowerManagerService extends IPowerManager.Stub
         if (reset) {
             nativeWake();
             mHandler.postDelayed(mIdleTimer, mIdleDelay);
+        }
+    }
+
+    private int mBatteryVoltage;
+    private RtcAlarmHelper mCheckBatteryLowAlarmHelper;
+    private BroadcastReceiver mExtraRtcReceiver;
+    private PowerManager.WakeLock mCheckBatteryLowWakeLock;
+
+    private Runnable mCheckBatteryLowRunnable = new Runnable() {
+        public void run() {
+            if (mSpew) Slog.d(TAG, "mCheckBatteryLowRunnable, set next alarm and check battery low");
+            checkBatteryLow();
+            setCheckBatteryLowAlarm();
+        }
+    };
+
+    private int readBatteryVoltage() {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(BATTERY_VOLTAGE_FILE_PATH));
+            String line = reader.readLine();
+            if (line != null) {
+            }
+            if (line != null && !line.isEmpty()) {
+                return Integer.valueOf(line).intValue() / 1000;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return 0;
+    }
+
+    private void checkBatteryLow() {
+        mBatteryVoltage = readBatteryVoltage();
+        if (mBatteryVoltage <= MIN_BATTERY_VOLTAGE_TO_SHUTDOWN) {
+            SystemClock.sleep(1000);
+            int voltage2 = readBatteryVoltage();
+            SystemClock.sleep(1000);
+            int voltage3 = readBatteryVoltage();
+            SystemClock.sleep(1000);
+            int voltage4 = readBatteryVoltage();
+            if (voltage2 <= MIN_BATTERY_VOLTAGE_TO_SHUTDOWN
+             && voltage3 <= MIN_BATTERY_VOLTAGE_TO_SHUTDOWN
+             && voltage4 <= MIN_BATTERY_VOLTAGE_TO_SHUTDOWN) {
+                ShutdownThread.shutdown(mContext, false);
+            }
         }
     }
 
@@ -589,13 +661,13 @@ public final class PowerManagerService extends IPowerManager.Stub
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                if (mSpew) Slog.d(TAG, "onReceive:" + action + ", now:" + System.currentTimeMillis());
+                if (mSpew) Slog.d(TAG, "onReceive: " + action + ", now: " + System.currentTimeMillis());
                 resetIdle(true);
                 if (action.equals(IDLE_WAKE_ACTION)) {
                     if (mSpew) Slog.d(TAG, "IDLE_WAKE_ACTION:");
                 } else if (action.equals(USER_TIMEOUT_ACTION)) {
-                    if (mSpew) Slog.d(TAG, "mUserTimeoutAlarmHelper timeout,now:" + System.currentTimeMillis()
-                                       + ", uptimeMillis:" + SystemClock.uptimeMillis());
+                    if (mSpew) Slog.d(TAG, "mUserTimeoutAlarmHelper timeout, now: " + System.currentTimeMillis()
+                                       + ", uptimeMillis: " + SystemClock.uptimeMillis());
                     mHandler.removeMessages(1);
                     Message msg = mHandler.obtainMessage(1);
                     msg.setAsynchronous(true);
@@ -603,16 +675,32 @@ public final class PowerManagerService extends IPowerManager.Stub
                     mUserActionTimeoutCount++;
                     if (mUserActionTimeoutCount == 2) {
                         mUserActionTimeoutCount = 0;
-                        setPowerOffAlarmAndGoToSleep(2);
+                        doGoToSleep(2);
                     }
                 } else if (action.equals(Intent.ACTION_TIME_CHANGED)) {
                     if (mSpew) Slog.d(TAG, "ACTION_TIME_CHANGED:");
                     cancelAlarms();
                     userActivityNoUpdateLocked(SystemClock.uptimeMillis(), 0, 0, 1000);
                 } else if (action.equals(AUTO_POWEROFF_ACTION)) {
-                    if (mSpew) Slog.d(TAG, "mAutoPoweroffTask timeout, now:" + System.currentTimeMillis());
+                    if (mSpew) Slog.d(TAG, "mAutoPoweroffTask timeout, now: " + System.currentTimeMillis());
                     userActivityNoUpdateLocked(SystemClock.uptimeMillis(), 0, 0, 1000);
                     ShutdownThread.shutdown(mContext, false);
+                }
+            }
+        };
+
+        mExtraRtcReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (mSpew) Slog.d(TAG, "extra rtc receiver, onReceive:" + action +
+                                       ", now: " + System.currentTimeMillis());
+                if (action.equals(CHECK_BATTERY_LOW_ACTION)) {
+                    if (mSpew) {
+                        Slog.d(TAG, "mCheckBatteryLowAlarmHelper timeout");
+                        Slog.d(TAG, "set check battery low wakelock acquired");
+                    }
+                    mCheckBatteryLowWakeLock.acquire(12000);
+                    mHandler.postDelayed(mCheckBatteryLowRunnable, 5000);
                 }
             }
         };
@@ -628,6 +716,10 @@ public final class PowerManagerService extends IPowerManager.Stub
             mUserTimeoutAlarmHelper = new RtcAlarmHelper(USER_TIMEOUT_ACTION);
         }
 
+        IntentFilter extraFilter = new IntentFilter();
+        extraFilter.addAction(CHECK_BATTERY_LOW_ACTION);
+        mContext.registerReceiver(mExtraRtcReceiver, extraFilter);
+
         synchronized (mLock) {
             mSystemReady = true;
             mDreamManager = dreamManager;
@@ -639,6 +731,9 @@ public final class PowerManagerService extends IPowerManager.Stub
             mScreenBrightnessSettingDefault = pm.getDefaultScreenBrightnessSetting();
             mWifiOnOffWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "wifi_onoff");
             mAutoPoweroffAlarmHelper = new RtcAlarmHelper("auto_poweroff_action");
+
+            mCheckBatteryLowWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "check_battery_low_wakelock");
+            mCheckBatteryLowAlarmHelper = new RtcAlarmHelper(CHECK_BATTERY_LOW_ACTION);
 
             SensorManager sensorManager = new SystemSensorManager(mHandler.getLooper());
 
@@ -709,6 +804,9 @@ public final class PowerManagerService extends IPowerManager.Stub
                     Settings.System.SCREEN_BRIGHTNESS),
                     false, mSettingsObserver, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.WAKE_UP_BRIGHTNESS),
+                    false, mSettingsObserver, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SCREEN_BRIGHTNESS_MODE),
                     false, mSettingsObserver, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -720,6 +818,13 @@ public final class PowerManagerService extends IPowerManager.Stub
             updateSettingsLocked();
             mDirty |= DIRTY_BATTERY_STATE;
             updatePowerStateLocked();
+
+            mDev = new DeviceController(mContext);
+            if (isWakeUpBrightness()) {
+                mDev.openFrontLight();
+            } else {
+                mDev.closeFrontLight();
+            }
         }
     }
 
@@ -1261,8 +1366,14 @@ public final class PowerManagerService extends IPowerManager.Stub
                 mSendWakeUpFinishedNotificationWhenReady = true;
                 mHandler.removeCallbacks(mDisableWifiCompletelyRunnable);
                 mAutoPoweroffAlarmHelper.cancel();
+                mCheckBatteryLowAlarmHelper.cancel();
                 reopenWifi();
                 mScreenSaverIndex = MultiScreenSaversHelper.nextScreenSaver(mScreenSaverIndex);
+                if (isWakeUpBrightness()) {
+                    mDev.openFrontLight();
+                } else {
+                    mDev.closeFrontLight();
+                }
                 break;
             case WAKEFULNESS_DREAMING:
                 Slog.i(TAG, "Waking up from dream...");
@@ -1360,9 +1471,10 @@ public final class PowerManagerService extends IPowerManager.Stub
 
         resetIdle(false);
         cancelAlarms();
+        mCheckBatteryLowAlarmHelper.cancel();
 
-        Slog.i(TAG, "setAutoPoweroffAlarm");
-        setAutoPoweroffAlarm();
+        Slog.i(TAG, "setRelatedAlarmsForSleep");
+        setRelatedAlarmsForSleep();
 
         switch (reason) {
             case PowerManager.GO_TO_SLEEP_REASON_DEVICE_ADMIN:
@@ -2020,11 +2132,7 @@ public final class PowerManagerService extends IPowerManager.Stub
                     mScreenBrightnessSettingMaximum), mScreenBrightnessSettingMinimum);
             screenAutoBrightnessAdjustment = Math.max(Math.min(
                     screenAutoBrightnessAdjustment, 1.0f), -1.0f);
-          if (isWakeUpBrightness()) {
             mDisplayPowerRequest.screenBrightness = screenBrightness;
-          } else {
-            mDisplayPowerRequest.screenBrightness = 0;
-          }
             mDisplayPowerRequest.screenAutoBrightnessAdjustment =
                     screenAutoBrightnessAdjustment;
             mDisplayPowerRequest.useAutoBrightness = autoBrightness;

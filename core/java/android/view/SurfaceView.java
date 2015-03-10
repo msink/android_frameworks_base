@@ -27,8 +27,11 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Parcel;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.ParcelFileDescriptor;
 import android.util.AttributeSet;
@@ -109,6 +112,8 @@ public class SurfaceView extends View {
     static final int KEEP_SCREEN_ON_MSG = 1;
     static final int GET_NEW_SURFACE_MSG = 2;
     static final int UPDATE_WINDOW_MSG = 3;
+
+    public static final int SURFACE_VIEW_SF_REGION = 1201;
     
     int mWindowType = WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA;
     
@@ -194,6 +199,7 @@ public class SurfaceView extends View {
 
     private void init() {
         setWillNotDraw(true);
+        getHolder().setBindView(this);
     }
     
     /**
@@ -689,14 +695,41 @@ public class SurfaceView extends View {
         int mCurHeight = -1;
     }
 
+    private void applyEpdA2() {
+        Rect rect = new Rect();
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null && mSurface != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                data.writeInt(1);
+                getGlobalVisibleRect(rect);
+                data.writeInt(rect.left);
+                data.writeInt(rect.top);
+                data.writeInt(rect.right);
+                data.writeInt(rect.bottom);
+                surfaceFlinger.transact(SURFACE_VIEW_SF_REGION, data, null, 0);
+                data.recycle();
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "failed to transact SF_UNION.", ex);
+        }
+    }
+
     private SurfaceHolder mSurfaceHolder = new SurfaceHolder() {
         
         private static final String LOG_TAG = "SurfaceHolder";
+
+        private SurfaceView mBindView;
         
+        public void setBindView(SurfaceView view) {
+            mBindView = view;
+        }
+
         public boolean isCreating() {
             return mIsCreating;
         }
-
         public void addCallback(Callback callback) {
             synchronized (mCallbacks) {
                 // This is a linear search, but in practice we'll 
@@ -809,6 +842,7 @@ public class SurfaceView extends View {
         }
 
         public void unlockCanvasAndPost(Canvas canvas) {
+            mBindView.applyEpdA2();
             mSurface.unlockCanvasAndPost(canvas);
             mSurfaceLock.unlock();
         }

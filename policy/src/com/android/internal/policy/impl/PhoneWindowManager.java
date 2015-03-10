@@ -1863,63 +1863,61 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         public void run() {
             mBackPressed = false;
             if (mDev.has5WayButton()) {
-                mHandler.post(new Runnable() {
-                    public void run() {
-                        if (getKeyOption() == 1) {
-                            sendMenuKeyEvent();
-                        } else if (getKeyOption() == 2) {
-                        } else if (getKeyOption() == 3) {
-                            sendMenuKeyEvent();
-                        } else if (getKeyOption() == 4) {
-                        }
-                    }
-                });
-                return;
+                if (getKeyOption() == 1) {
+                    sendMenuKeyEvent();
+                } else if (getKeyOption() == 2) {
+                } else if (getKeyOption() == 3) {
+                    sendMenuKeyEvent();
+                } else if (getKeyOption() == 4) {
+                }
+            } else {
+                handleLongPressOnBack();
             }
-            handleLongPressOnBack();
         }
     };
 
     Runnable mPageDownLongPress = new Runnable() {
         public void run() {
             mPageDownPressed = false;
-            mHandler.post(new Runnable() {
-                public void run() {
-                    if (getKeyOption() == 1) {
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
-                    } else if (getKeyOption() == 2) {
-                        sendMenuKeyEvent();
-                    } else if (getKeyOption() == 3) {
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
-                    } else if (getKeyOption() == 4) {
-                        sendMenuKeyEvent();
-                    }
-                }
-            });
+            if (getKeyOption() == 1) {
+                sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+            } else if (getKeyOption() == 2) {
+                sendMenuKeyEvent();
+            } else if (getKeyOption() == 3) {
+                sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, true);
+                sendDownAndUpKeyEvent(KeyEvent.KEYCODE_PAGE_UP, 109, false);
+            } else if (getKeyOption() == 4) {
+                sendMenuKeyEvent();
+            }
         }
     };
 
     Runnable mPageUpLongPress = new Runnable() {
         public void run() {
             mPageUpPressed = false;
-            mHandler.post(new Runnable() {
-                public void run() {
-                    if (getKeyOption() == 1) {
-                        sendMenuKeyEvent();
-                    } else if (getKeyOption() == 2) {
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
-                    } else if (getKeyOption() == 3) {
-                    } else if (getKeyOption() == 4) {
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
-                        sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
-                    }
+            if (!mDev.isTouchable()) {
+                if (getKeyOption() == 1) {
+                    sendMenuKeyEvent();
+                } else if (getKeyOption() == 2) {
+                    sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                    sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
+                } else if (getKeyOption() == 3) {
+                } else if (getKeyOption() == 4) {
+                    sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, true);
+                    sendDownAndUpKeyEvent(KeyEvent.KEYCODE_BACK, 158, false);
                 }
-            });
+            } else {
+                fullRefresh();
+            }
         }
     };
+
+    private void fullRefresh() {
+        Intent intent = new Intent("refresh_screen");
+        mContext.sendOrderedBroadcastAsUser(intent, UserHandle.CURRENT,
+            null, null, null, 0, null, null);
+    }
 
     /** {@inheritDoc} */
     @Override

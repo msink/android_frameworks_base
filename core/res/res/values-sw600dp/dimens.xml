@@ -70,6 +70,9 @@
          (the screen is in landscape). This may be either a fraction or a dimension.-->
     <item type="dimen" name="dialog_fixed_height_minor">90%</item>
 
+    <!-- Height of the status bar -->
+    <dimen name="status_bar_height">52dp</dimen>
+
     <!-- Height of the bottom navigation bar in portrait; on sw600dp devices
          this is a bit taller -->
     <dimen name="navigation_bar_height_portrait">56dp</dimen>
@@ -112,5 +115,4 @@
 
     <!-- Margin around the various security views -->
     <dimen name="keyguard_muliuser_selector_margin">12dp</dimen>
-
 </resources>

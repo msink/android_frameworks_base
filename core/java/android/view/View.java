@@ -18510,4 +18510,10 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
         return false;
     }
+
+    public void forceEpdA2(boolean enabled) {
+        if (mParent != null) {
+            mParent.forceEpdA2(enabled);
+        }
+    }
 }

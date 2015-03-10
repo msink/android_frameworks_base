@@ -213,4 +213,9 @@
     <dimen name="ratingbar_maxHeight">57.0dip</dimen>
     <dimen name="menu_width">250.0dip</dimen>
     <dimen name="menu_height">250.0dip</dimen>
+
+    <dimen name="status_bar_margin_left_or_right">2dip</dimen>
+    <dimen name="usb_connect_dialog_width">400px</dimen>
+    <dimen name="usb_connect_padding">30dip</dimen>
+    <dimen name="status_bar_expanded_date_text_size">15sp</dimen>
 </resources>

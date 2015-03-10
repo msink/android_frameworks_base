@@ -301,4 +301,6 @@ public interface ViewParent {
     public boolean requestEpdUnion(View child);
 
     public boolean requestFullWhenHidden();
+
+    public void forceEpdA2(boolean enabled);
 }

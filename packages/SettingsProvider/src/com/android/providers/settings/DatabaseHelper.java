@@ -2007,6 +2007,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.WAKE_UP_BRIGHTNESS,
                     R.integer.def_wake_up_brightness);
 
+            loadIntegerSetting(stmt, Settings.System.KEY_MAP_MODE,
+                    R.integer.def_key_map_mode);
+
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -2260,8 +2263,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.string.def_car_undock_sound);
             loadStringSetting(stmt, Settings.Global.WIRELESS_CHARGING_STARTED_SOUND,
                     R.string.def_wireless_charging_started_sound);
-            loadIntegerSetting(stmt, Settings.System.KEY_MAP_MODE,
-                    R.integer.def_key_map_mode);
 
             loadSetting(stmt, Settings.Global.SET_INSTALL_LOCATION, 0);
             loadSetting(stmt, Settings.Global.DEFAULT_INSTALL_LOCATION,

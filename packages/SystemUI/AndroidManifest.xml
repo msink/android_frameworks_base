@@ -100,7 +100,7 @@
 
         <activity android:name=".usb.UsbStorageActivity"
                   android:label="@*android:string/usb_storage_activity_title"
-                  android:theme="@*android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+                  android:theme="@*android:style/Theme.Holo.Light"
                   android:icon="@drawable/ic_launcher_settings"
                   android:taskAffinity=""
                   android:excludeFromRecents="true">

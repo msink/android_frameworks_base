@@ -27,6 +27,7 @@ import android.content.res.Resources.NotFoundException;
 import android.hardware.DeviceController;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
+import android.os.Handler;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -71,6 +72,15 @@ public class PhoneStatusBarView extends PanelBar {
     private TimerTask mTask = null;
 
     public static boolean isA2Mode = false;
+
+    private Runnable mForceEpdA2Runnable = new Runnable() {
+        public void run() {
+            forceEpdA2(true);
+            requestEpdMode(View.EINK_MODE.EPD_A2, true);
+        }
+    };
+
+    private Handler mHandler = new Handler();
 
     public PhoneStatusBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -169,39 +179,14 @@ public class PhoneStatusBarView extends PanelBar {
         mbut_a2mode.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (!isA2Mode) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setTitle(R.string.a2_select_dialog_title);
-                    builder.setCancelable(true);
-                    builder.setSingleChoiceItems(R.array.a2mode, 0,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which){
-                                if (which == 0) {
-                                    requestEpdMode(View.EINK_MODE.EPD_BLACK_WHITE);
-                                    mbut_a2mode.setImageResource(R.drawable.refresh_a2);
-                                    isA2Mode = true;
-                                    dialog.cancel();
-                                } else {
-                                    requestEpdMode(View.EINK_MODE.EPD_A2);
-                                    mbut_a2mode.setImageResource(R.drawable.refresh_a2);
-                                    isA2Mode = true;
-                                    dialog.cancel();
-                                }
-                            }
-                        });
-                    builder.setPositiveButton(R.string.datatransfer_button_cancel,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-                    AlertDialog alert = builder.create();
-                    alert.getWindow().setType(WindowManager
-                        .LayoutParams.TYPE_SYSTEM_ALERT);
-                    alert.show();
+                    isA2Mode = true;
+                    mbut_a2mode.setImageResource(R.drawable.refresh_a2);
+                    mHandler.postDelayed(mForceEpdA2Runnable, 500);
                 } else {
                     isA2Mode = false;
                     mbut_a2mode.setImageResource(R.drawable.refresh);
-                    requestEpdMode(View.EINK_MODE.EPD_FULL);
+                    forceEpdA2(false);
+                    requestEpdMode(View.EINK_MODE.EPD_NULL, true);
                 }
                 invalidate();
             }

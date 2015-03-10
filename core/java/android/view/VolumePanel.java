@@ -21,6 +21,7 @@ import com.android.internal.R;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface.OnDismissListener;
+import android.content.DialogInterface.OnShowListener;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -35,6 +36,7 @@ import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.util.Log;
@@ -245,6 +247,7 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         }
     }
 
+    private PowerManager.WakeLock mWakeLock;
 
     public VolumePanel(final Context context, AudioService volumeService) {
         mContext = context;
@@ -275,6 +278,10 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         mMoreButton = (ImageView) mView.findViewById(R.id.expand_button);
         mDivider = (ImageView) mView.findViewById(R.id.expand_button_divider);
 
+        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
+                                 | PowerManager.ON_AFTER_RELEASE, "VolumePanel");
+
         mDialog = new Dialog(context, R.style.Theme_Panel_Volume) {
             public boolean onTouchEvent(MotionEvent event) {
                 if (isShowing() && event.getAction() == MotionEvent.ACTION_OUTSIDE) {
@@ -286,10 +293,16 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         };
         mDialog.setTitle("Volume control"); // No need to localize
         mDialog.setContentView(mView);
+        mDialog.setOnShowListener(new OnShowListener() {
+            public void onShow(DialogInterface dialog) {
+                acquireWakeLock();
+            }
+        });
         mDialog.setOnDismissListener(new OnDismissListener() {
             public void onDismiss(DialogInterface dialog) {
                 mActiveStreamType = -1;
                 mAudioManager.forceVolumeControlStream(mActiveStreamType);
+                releaseWakeLock();
             }
         });
         // Change some window properties
@@ -1031,5 +1044,17 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
             expand();
         }
         resetTimeout();
+    }
+
+    private void acquireWakeLock() {
+        if (mWakeLock != null) {
+            mWakeLock.acquire();
+        }
+    }
+
+    private void releaseWakeLock() {
+        if (mWakeLock != null) {
+            mWakeLock.release();
+        }
     }
 }

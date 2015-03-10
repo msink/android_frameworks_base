@@ -151,7 +151,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     private static final int LOW_BRIGHTNESS_MAX =
         Math.min(DeviceController.BRIGHTNESS_DEFAULT,
-                 DeviceController.BRIGHTNESS_MAXIMUM);
+                 150);
 
     private boolean isLongClickOpenAndCloseFrontLight = false;
     private ToggleButton mWifiSwitch = null;
@@ -160,12 +160,12 @@ public class PhoneStatusBar extends BaseStatusBar {
     private View homeMenuDialogView = null;
 
     private Integer[] mFrontLightValue = {
-          0,   5,  10,  15,  20,  25,  30,  35,  40,  45,
-         50,  55,  60,  65,  70,  75,  80,  85,  90,  95,
-        100, 105, 110, 115, 120, 125, 130, 135, 140, 145,
-        150, 155, 160,           175, 180, 185, 190, 195,
-        200, 205, 210, 215, 220, 225, 230, 235, 240, 245,
-        250 };
+          0,   3,   6,   9,  12,  15,  18,  21,  24,  27,
+         30,  33,  36,  39,  42,  45,  48,  51,  54,  57,
+         60,  63,  66,  69,  72,  75,  78,  81,  84,  87,
+         90,  93,  96,  99, 102, 105, 108, 111, 114, 117,
+        120, 123, 126, 129, 132, 135, 138, 141, 144, 147,
+        150 };
 
     // fling gesture tuning parameters, scaled to display density
     private float mSelfExpandVelocityPx; // classic value: 2000px/s
@@ -501,6 +501,11 @@ public class PhoneStatusBar extends BaseStatusBar {
                     mDev.openFrontLight();
                     mLightSwitch.setChecked(true);
                 }
+            } else if ("refresh_screen".equals(action)) {
+                if (mStatusBarView != null) {
+                    mStatusBarView.requestEpdMode(View.EINK_MODE.EPD_FULL);
+                    mStatusBarView.invalidate();
+                }
             } else {
                 takeScreenshot();
             }
@@ -611,6 +616,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         intentfilter.addAction("rk.android.screenshot.ACTION");
         intentfilter.addAction(Intent.ACTION_CHANGE_LIGHT_STATE);
         intentfilter.addAction(Intent.ACTION_HOME_MENU);
+        intentfilter.addAction("refresh_screen");
         context.registerReceiver(receiver, intentfilter);
 
         Resources res = context.getResources();
@@ -1045,7 +1051,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     private List<Integer> initRangeArray(int numStarts) {
         List<Integer> brightnessList = new ArrayList(numStarts);
         for (int i = 0; i <= numStarts; i++) {
-            brightnessList.add((DeviceController.BRIGHTNESS_MAXIMUM * i) / numStarts);
+            brightnessList.add((150 * i) / numStarts);
         }
         return brightnessList;
     }
@@ -1204,8 +1210,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (value <= 10)
             return (value * 2) + 0;
         if (value == mRatingBarLightSettings.getMax())
-            return DeviceController.BRIGHTNESS_MAXIMUM;
-        int big_interval = (DeviceController.BRIGHTNESS_MAXIMUM - LOW_BRIGHTNESS_MAX)
+            return 150;
+        int big_interval = (150 - LOW_BRIGHTNESS_MAX)
                          / (mRatingBarLightSettings.getNumStars() - 10);
         return ((value - 10) * big_interval) + LOW_BRIGHTNESS_MAX;
     }

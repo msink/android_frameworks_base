@@ -23,6 +23,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
@@ -229,5 +230,8 @@ public abstract class BaseSurfaceHolder implements SurfaceHolder {
         mSurfaceFrame.left = 0;
         mSurfaceFrame.right = width;
         mSurfaceFrame.bottom = height;
+    }
+
+    public void setBindView(SurfaceView view) {
     }
 };

@@ -75,7 +75,7 @@
     </style>
 
     <style name="TextAppearance.StatusBar.Expanded.Date">
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">@dimen/status_bar_expanded_date_text_size</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">#cccccc</item>
         <item name="android:textAllCaps">true</item>

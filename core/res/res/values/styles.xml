@@ -1199,7 +1199,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.ActionBar.TabText" parent="Widget">
         <item name="android:textAppearance">@style/TextAppearance.Widget.TextView.PopupMenu</item>
-        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textColor">@android:drawable/btn_font_style</item>
         <item name="android:textSize">18sp</item>
     </style>
 
@@ -1914,7 +1914,7 @@ please see styles_device_defaults.xml.
 
     <style name="Widget.Holo.ActionBar.TabText" parent="Widget.ActionBar.TabText">
         <item name="android:textAppearance">@style/TextAppearance.Holo.Medium</item>
-        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textColor">@android:drawable/btn_font_style</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
@@ -2280,7 +2280,7 @@ please see styles_device_defaults.xml.
     </style>
 
     <style name="Widget.Holo.Light.ActionBar.TabText.Inverse">
-        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textColor">@android:drawable/btn_font_style</item>
     </style>
 
     <style name="Widget.Holo.Light.ActionMode" parent="Widget.Holo.ActionMode">

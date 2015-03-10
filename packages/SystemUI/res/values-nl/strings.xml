@@ -203,4 +203,16 @@
     <string name="quick_settings_brightness_dialog_auto_brightness_label" msgid="5064982743784071218">"AUTOMATISCH"</string>
     <string name="status_bar_help_title" msgid="1199237744086469217">"Meldingen worden hier weergegeven"</string>
     <string name="status_bar_help_text" msgid="7874607155052076323">"U kunt de meldingen op elk gewenst moment openen door met uw vinger omlaag te vegen."\n"Veeg nogmaals met uw vinger omlaag om de systeembesturingselementen weer te geven."</string>
+
+    <string name="sdcard_unmount">interne opslag is niet gekoppeld</string>
+    <string name="external_sd_unmount">sd kaart is los gekoppeld</string>
+    <string name="usb_storage_unmount">usb opslag is los gekoppeld</string>
+    <string name="datatransfer_button_cancel">annuleer</string>
+    <string name="datatransfer_info">Verbind apperaat naar computer voor USB opslag?</string>
+    <string name="datatransfer_button_disable">USB opslag uitzetten</string>
+    <string name="a2_select_dialog_title">A2 mode</string>
+    <string-array name="a2mode">
+        <item>Eerste kwaliteit</item>
+        <item>Eerste opstart</item>
+    </string-array>
 </resources>

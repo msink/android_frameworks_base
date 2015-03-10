@@ -1169,6 +1169,7 @@ public final class ViewRootImpl implements ViewParent,
     final public static int SF_UNION = 1024;
     final public static int SF_DIRTY = 1025;
     final public static int SF_HIDDEN_FULL_ONYX = 1101;
+    final public static int SF_FORCE_EPD_A2 = 1102;
 
     public boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force) {
         boolean needFullRedraw = false;
@@ -1202,6 +1203,22 @@ public final class ViewRootImpl implements ViewParent,
             applyEinkMode(force);
         }
         return true;
+    }
+
+    private void forceUseEPDA2(boolean enable) {
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mSurface.getSurfaceToken());
+                data.writeInt(enable ? 1 : 0);
+                surfaceFlinger.transact(SF_FORCE_EPD_A2, data, null, 0);
+                data.recycle();
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "failed to transact SF_FORCE_EPD_A2.", ex);
+        }
     }
 
     public boolean requestEpdUnion(View child) {
@@ -1329,6 +1346,13 @@ public final class ViewRootImpl implements ViewParent,
             Log.e(TAG, "failed to transact SF_HIDDEN_FULL_ONYX.", ex);
         }
         return true;
+    }
+
+    public void forceEpdA2(boolean enabled) {
+        if (mSurface == null || !mSurface.isValid()) {
+            return;
+        }
+        forceUseEPDA2(enabled);
     }
 
     private void performTraversals() {
@@ -5517,6 +5541,9 @@ public final class ViewRootImpl implements ViewParent,
         }
         public Rect getSurfaceFrame() {
             return null;
+        }
+
+        public void setBindView(SurfaceView view) {
         }
     };
 
