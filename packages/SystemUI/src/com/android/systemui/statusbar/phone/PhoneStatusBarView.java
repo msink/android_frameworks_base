@@ -30,6 +30,7 @@ import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Slog;
@@ -38,7 +39,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.Clock;
@@ -61,17 +62,19 @@ public class PhoneStatusBarView extends PanelBar {
     PanelView mNotificationPanel, mSettingsPanel;
     private boolean mShouldFade;
 
-    Button mbut_home;
-    Button mbut_menu;
+    ImageButton mbut_home;
+    ImageButton mbut_menu;
     ImageView line_image;
     ImageView mbut_sync;
     ImageView mbut_a2mode;
+    ImageView mbut_switch_key;
 
     private long delay;
     private Timer timer = null;
     private TimerTask mTask = null;
 
     public static boolean isA2Mode = false;
+    public static boolean isPageKey = true;
 
     private Runnable mForceEpdA2Runnable = new Runnable() {
         public void run() {
@@ -103,12 +106,14 @@ public class PhoneStatusBarView extends PanelBar {
             mbut_menu.setVisibility(View.VISIBLE);
             line_image.setVisibility(View.VISIBLE);
             mbut_a2mode.setVisibility(View.VISIBLE);
+            mbut_switch_key.setVisibility(View.VISIBLE);
             mbut_home.setVisibility(View.VISIBLE);
         } else {
             mbut_sync.setVisibility(View.GONE);
             mbut_menu.setVisibility(View.GONE);
             line_image.setVisibility(View.GONE);
             mbut_a2mode.setVisibility(View.GONE);
+            mbut_switch_key.setVisibility(View.GONE);
             mbut_home.setVisibility(View.GONE);
         }
     }
@@ -116,12 +121,13 @@ public class PhoneStatusBarView extends PanelBar {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
-        mbut_home = (Button) findViewById(R.id.status_bar_home);
-        mbut_menu = (Button) findViewById(R.id.status_bar_menu);
+        mbut_home = (ImageButton) findViewById(R.id.status_bar_home);
+        mbut_menu = (ImageButton) findViewById(R.id.status_bar_menu);
         mbut_sync = (ImageView) findViewById(R.id.status_bar_sync);
         line_image = (ImageView) findViewById(R.id.line_status_bar);
         Clock clock = (Clock) findViewById(R.id.clock);
         mbut_a2mode = (ImageView) findViewById(R.id.status_bar_a2);
+        mbut_switch_key = (ImageView) findViewById(R.id.status_bar_switch_key);
 
         updateUI();
 
@@ -155,6 +161,7 @@ public class PhoneStatusBarView extends PanelBar {
 
         if (Build.BRAND.equalsIgnoreCase("Tagus")) {
             mbut_a2mode.setVisibility(View.GONE);
+            mbut_switch_key.setVisibility(View.GONE);
             mbut_sync.setVisibility(View.VISIBLE);
         } else {
             mbut_sync.setVisibility(View.GONE);
@@ -189,6 +196,19 @@ public class PhoneStatusBarView extends PanelBar {
                     requestEpdMode(View.EINK_MODE.EPD_NULL, true);
                 }
                 invalidate();
+            }
+        });
+
+        mbut_switch_key.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (isPageKey) {
+                    mbut_switch_key.setImageResource(R.drawable.volume_adjust);
+                    Settings.System.putInt(mContext.getContentResolver(), "switch_key", 1);
+                } else {
+                    mbut_switch_key.setImageResource(R.drawable.page_flip);
+                    Settings.System.putInt(mContext.getContentResolver(), "switch_key", 0);
+                }
+                isPageKey = !isPageKey;
             }
         });
     }

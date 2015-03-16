@@ -25,6 +25,7 @@
     <ImageView android:id="@+id/icon"
         android:layout_width="@dimen/notification_large_icon_width"
         android:layout_height="@dimen/notification_large_icon_height"
+        android:layout_marginTop="4dip"
         android:background="@android:drawable/notification_template_icon_bg"
         android:scaleType="center"
         />

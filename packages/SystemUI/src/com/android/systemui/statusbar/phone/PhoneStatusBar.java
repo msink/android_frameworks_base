@@ -315,7 +315,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     DisplayMetrics mDisplayMetrics = new DisplayMetrics();
 
-    private List<Integer> mLightSteps = new ArrayList();
+    private List<Integer> mLightSteps;
     private RatingBar mRatingBarLightSettings = null;
     private ToggleButton mLightSwitch;
     private int currentKeyCode;
@@ -512,6 +512,24 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     };
 
+    private BroadcastReceiver mStatusBarStateReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if ("show_status_bar".equals(action)) {
+                setStatusBarVisibility(View.VISIBLE);
+            }
+            if ("hide_status_bar".equals(action)) {
+                setStatusBarVisibility(View.GONE);
+            }
+        }
+    };
+
+    public void setStatusBarVisibility(int visibility) {
+        if (mStatusBarWindow != null) {
+            mStatusBarWindow.setVisibility(visibility);
+        }
+    }
+
     private void createHomeMenuDialog() {
         LayoutInflater factory = LayoutInflater.from(mStatusBarView.getContext());
         mHomeMenuDialog = null;
@@ -663,7 +681,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 });
 
         if (hasFrontLight()) {
-            handleLightControl();
+            handleLightControl(context);
         } else {
             mStatusBarWindow.findViewById(R.id.layout_light_control).setVisibility(View.GONE);
         }
@@ -940,6 +958,10 @@ public class PhoneStatusBar extends BaseStatusBar {
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         context.registerReceiver(mBroadcastReceiver, filter);
+        filter = new IntentFilter();
+        filter.addAction("show_status_bar");
+        filter.addAction("hide_status_bar");
+        context.registerReceiver(mStatusBarStateReceiver, filter);
 
         // listen for USER_SETUP_COMPLETE setting (per-user)
         resetUserSetupObserver();
@@ -966,11 +988,11 @@ public class PhoneStatusBar extends BaseStatusBar {
         });
     }
 
-    private void handleLightControl() {
+    private void handleLightControl(Context context) {
         mRatingBarLightSettings = (RatingBar)
             mStatusBarWindow.findViewById(R.id.ratingbar_light_settings);
 
-        mLightSteps = Arrays.asList(mFrontLightValue);
+        mLightSteps = DeviceController.getFrontLightValues(context);
         if (mLightSteps != null) {
             mRatingBarLightSettings.setNumStars(mLightSteps.size() - 1);
             mRatingBarLightSettings.setMax(mLightSteps.size() - 1);

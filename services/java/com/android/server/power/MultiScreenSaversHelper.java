@@ -15,8 +15,13 @@ public class MultiScreenSaversHelper {
     private static final String SCREEN_SAVER_PREFIX = "standby";
     private static final String SCREEN_SAVER_SUFFIX = ".png";
     private static final int FIRST_INDEX = 0;
+    private static final String EXTERNAL_SCREEN_SAVERS_PATH = "/mnt/sdcard/screensavers/";
 
     private static String getAbsolutePath(String name) {
+        File screenSaverFile = new File(EXTERNAL_SCREEN_SAVERS_PATH + name);
+        if (screenSaverFile.exists()) {
+            return EXTERNAL_SCREEN_SAVERS_PATH + name;
+        }
         return PATH + name;
     }
 

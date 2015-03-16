@@ -8,9 +8,15 @@ import android.os.IOnyxWifiLockManagerService;
 import android.provider.Settings;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -39,6 +45,8 @@ public class DeviceController {
 
     private static final int BRIGHTNESS_CLOSED = 0;
     private static final int BRIGHTNESS_OPENED = 1;
+
+    private static final String mSystemConfigFile = "/data/keep/";
 
     private Context mContext;
 
@@ -285,5 +293,86 @@ public class DeviceController {
     }
 
     public void setWifiLockTimeout(long ms) {
+    }
+
+    public static List<Integer> getFrontLightValues(Context context) {
+        return DeviceConfig.sharedInstance(context).getFrontLightValues();
+    }
+
+    private static void do_exec(String command) {
+        try {
+            Runtime.getRuntime().exec(command);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String readSystemConfig(String key) {
+        String path = mSystemConfigFile + key;
+        if (new File(path).exists()) {
+            return String.valueOf(readContentFromFile(path));
+        }
+        return "";
+    }
+
+    public static boolean saveSystemConfig(String key, String value) {
+        return writeStringValueToFile(mSystemConfigFile + key, value);
+    }
+
+    private static boolean writeStringValueToFile(String path, String value) {
+        FileOutputStream fout = null;
+        try {
+            File file = new File(path);
+            if (!file.exists()) {
+                String command = "touch " + path;
+                do_exec(command);
+            }
+            fout = new FileOutputStream(file);
+            byte[] bytes = value.getBytes();
+            fout.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (fout != null) try {
+                fout.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    public static String readContentFromFile(String path) {
+        File fileForRead = new File(path);
+        FileInputStream in = null;
+        InputStreamReader reader = null;
+        BufferedReader breader = null;
+        try {
+            in = new FileInputStream(fileForRead);
+            reader = new InputStreamReader(in, "utf-8");
+            breader = new BufferedReader(reader);
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = breader.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeQuietly(breader);
+            closeQuietly(reader);
+            closeQuietly(in);
+        }
+        return null;
+    }
+
+    static void closeQuietly(Closeable closeable) {
+        if (closeable != null) try {
+            closeable.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

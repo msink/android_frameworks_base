@@ -58,7 +58,7 @@
             android:orientation="horizontal"
             android:gravity="center"
             >
-            <Button
+            <ImageButton
                 android:id="@+id/status_bar_home"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -70,8 +70,8 @@
             <ImageView
                 android:id="@+id/line_status_bar"
                 android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_marginLeft="-5.0dip"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="-1dip"
                 android:src="@drawable/line_status_bar"
                 />
         </LinearLayout>
@@ -157,10 +157,6 @@
         android:orientation="horizontal"
         android:layout_marginRight="@dimen/status_bar_margin_left_or_right"
         >
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            >
             <ImageView
                 android:id="@+id/status_bar_sync"
                 android:layout_width="wrap_content"
@@ -170,7 +166,16 @@
                 android:gravity="center_vertical"
                 android:visibility="gone"
                 android:src="@drawable/icon_sync"
-                android:layout_toLeftOf="@id/button_layout_Menu"
+                />
+            <ImageView
+                android:id="@+id/status_bar_switch_key"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff000000"
+                android:gravity="center_vertical"
+                android:src="@drawable/page_flip"
+                android:focusable="true"
+                android:visibility="gone"
                 />
             <ImageView
                 android:id="@+id/status_bar_a2"
@@ -181,17 +186,15 @@
                 android:gravity="center_vertical"
                 android:focusable="true"
                 android:visibility="gone"
-                android:layout_toLeftOf="@id/button_layout_Menu"
                 />
-        </FrameLayout>
         <ImageView
             android:id="@+id/line_status_bar"
             android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_marginRight="-5dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="-1dip"
             android:src="@drawable/line_status_bar"
             />
-        <Button
+        <ImageButton
             android:id="@+id/status_bar_menu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

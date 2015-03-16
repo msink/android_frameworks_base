@@ -204,12 +204,10 @@ public class UsbStorageActivity extends Activity
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.VISIBLE);
             mMountButton.setVisibility(View.GONE);
-            mUnmountButton.requestFocus();
         } else if (flashMount) {
             mProgressBar.setVisibility(View.GONE);
             mUnmountButton.setVisibility(View.GONE);
             mMountButton.setVisibility(View.VISIBLE);
-            mMountButton.requestFocus();
         }
     }
 
@@ -280,7 +278,6 @@ public class UsbStorageActivity extends Activity
                         public void onClick(DialogInterface dialog, int which) {
                             mMountButton.setVisibility(View.VISIBLE);
                             mProgressBar.setVisibility(View.GONE);
-                            mMountButton.requestFocus();
                         }})
                     .setMessage(R.string.dlg_confirm_kill_storage_users_text)
                     .setOnCancelListener(this)

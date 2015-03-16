@@ -1711,6 +1711,13 @@ public class Editor {
     }
 
     void makeBlink() {
+        boolean enableBlink = false;
+        if (enableBlink) {
+            wrapMakeBlink();
+        }
+    }
+
+    void wrapMakeBlink() {
         if (shouldBlink()) {
             mShowCursor = SystemClock.uptimeMillis();
             if (mBlink == null) mBlink = new Blink();

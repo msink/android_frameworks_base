@@ -131,6 +131,7 @@ public final class ShutdownThread extends Thread {
     public static void shutdown(final Context context, boolean confirm) {
         mReboot = false;
         mRebootSafeMode = false;
+        SystemProperties.set("ctl.start", "copy_data");
         mHasAnimation = (new File("/system/media/shutdownanimation.zip").exists()
                             || new File("/data/local/shutdownanimation.zip").exists());
         shutdownInner(context, confirm);

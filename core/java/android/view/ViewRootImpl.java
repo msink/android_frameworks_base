@@ -1170,6 +1170,7 @@ public final class ViewRootImpl implements ViewParent,
     final public static int SF_DIRTY = 1025;
     final public static int SF_HIDDEN_FULL_ONYX = 1101;
     final public static int SF_FORCE_EPD_A2 = 1102;
+    final public static int SF_STOP_BOOT_ANI = 1103;
 
     public boolean requestEpdMode(View child, View.EINK_MODE mode, boolean force) {
         boolean needFullRedraw = false;
@@ -1353,6 +1354,21 @@ public final class ViewRootImpl implements ViewParent,
             return;
         }
         forceUseEPDA2(enabled);
+    }
+
+    public static boolean requestStopBootAnimation() {
+        try {
+            IBinder flinger = ServiceManager.getService("SurfaceFlinger");
+            if (flinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                flinger.transact(SF_STOP_BOOT_ANI, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+            Log.e(TAG, "failed to transact SF_STOP_BOOT_ANI.", ex);
+        }
+        return true;
     }
 
     private void performTraversals() {

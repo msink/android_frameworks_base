@@ -1462,8 +1462,6 @@ public class InputMethodService extends AbstractInputMethodService {
             mImm.setImeWindowStatus(mToken, IME_ACTIVE, mBackDisposition);
             onWindowShown();
             mWindow.show();
-            if (mInputView != null) {
-            }
         }
     }
 

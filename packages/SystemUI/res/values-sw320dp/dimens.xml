@@ -17,7 +17,15 @@
 -->
 <resources>
     <dimen name="quick_settings_cell_height">124dip</dimen>
-    <dimen name="status_bar_margin_left_or_right">1dip</dimen>
+    <dimen name="status_bar_margin_left_or_right">0dip</dimen>
     <dimen name="usb_connect_padding">5dip</dimen>
     <dimen name="status_bar_expanded_date_text_size">14sp</dimen>
+
+    <dimen name="notification_panel_wifi_settings_margin_left">10dip</dimen>
+    <dimen name="notification_panel_wifi_switch_margin_left">6dip</dimen>
+    <dimen name="notification_panel_volume_add_margin_right">6dip</dimen>
+    <dimen name="notification_panel_volume_down_margin_right">10dip</dimen>
+    <dimen name="notification_panel_light_switch_separator_margin_left">6dip</dimen>
+    <dimen name="notification_panel_light_switch_margin_left">6dip</dimen>
+    <dimen name="notification_panel_light_control_button_margin">6dip</dimen>
 </resources>

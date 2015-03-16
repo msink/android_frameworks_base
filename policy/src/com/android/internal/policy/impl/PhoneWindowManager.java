@@ -482,6 +482,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mPageUpPressed = false;
     boolean mDpadCenterPressed = false;
 
+    private static final String HIDE_STATUS_BAR_ACTION = "hide_status_bar";
+    private static final String SHOW_STATUS_BAR_ACTION = "show_status_bar";
+
+    public static final int SWITCH_FRONT_LIGHT = 1;
+    public static final int SWITCH_FULL_SCREEN = 2;
+
+    public static final int PAGE_KEY = 0;
+    public static final int VOLUME_KEY = 1;
+
     // Screenshot trigger states
     // Time to volume and power must be pressed within this interval of each other.
     private static final long SCREENSHOT_CHORD_DEBOUNCE_DELAY_MILLIS = 150;
@@ -855,6 +864,23 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (!mDev.isTouchable()) {
             Intent intent = new Intent(Intent.ACTION_HOME_MENU);
             mContext.sendOrderedBroadcast(intent, null);
+        }
+    }
+
+    private void sendBrodcastToShowHideStatusbar(String action) {
+        Intent intent = new Intent(action);
+        mContext.sendBroadcast(intent);
+    }
+
+    private void showHideStatusbar() {
+        boolean isFullScreen = false;
+        if (mStatusBar != null) {
+            isFullScreen = mStatusBar.isVisibleLw();
+        }
+        if (isFullScreen) {
+            sendBrodcastToShowHideStatusbar(HIDE_STATUS_BAR_ACTION);
+        } else {
+            sendBrodcastToShowHideStatusbar(SHOW_STATUS_BAR_ACTION);
         }
     }
 
@@ -1852,10 +1878,25 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
         };
 
+    private int getLongPressFeature() {
+        int long_press_feature = 1;
+        try {
+            long_press_feature = Settings.System.getInt(mContext.getContentResolver(),
+                                 Settings.System.LONG_PRESS_FEATURE);
+        } catch (Settings.SettingNotFoundException snfe) {
+            Slog.e(TAG, "Settings.System.LONG_PRESS_FEATURE -- SettingNotFoundException", snfe);
+        }
+        return long_press_feature;
+    }
+
     Runnable mDpadCenterLongPress = new Runnable() {
         public void run() {
             mDpadCenterPressed = false;
-            handleLongPressOnBack();
+            if (getLongPressFeature() == 1) {
+                handleLongPressOnBack();
+            } else {
+                showHideStatusbar();
+            }
         }
     };
 
@@ -1930,6 +1971,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         final boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         final boolean canceled = event.isCanceled();
 
+        int key_type = 0;
+        try {
+            key_type = Settings.System.getInt(mContext.getContentResolver(),
+                       Settings.System.SWITCH_KEY);
+        } catch (Settings.SettingNotFoundException snfe) {
+        }
+
         if (DEBUG_INPUT) {
             Log.d(TAG, "interceptKeyTi keyCode=" + keyCode + " down=" + down + " repeatCount="
                     + repeatCount + " keyguardOn=" + keyguardOn + " mHomePressed=" + mHomePressed
@@ -1989,6 +2037,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
 
+        if ((keyCode == KeyEvent.KEYCODE_PAGE_UP) && key_type == 1) {
+            if (!down) {
+                sendKeyEvent(KeyEvent.KEYCODE_VOLUME_UP, 109, true);
+                sendKeyEvent(KeyEvent.KEYCODE_VOLUME_UP, 109, false);
+            }
+            return -1;
+        }
+
+        if ((keyCode == KeyEvent.KEYCODE_PAGE_DOWN) && key_type == 1) {
+            if (!down) {
+                sendKeyEvent(KeyEvent.KEYCODE_VOLUME_DOWN, 104, true);
+                sendKeyEvent(KeyEvent.KEYCODE_VOLUME_DOWN, 104, false);
+            }
+            return -1;
+        }
+
         if (mPageUpPressed) {
             if ((keyCode == KeyEvent.KEYCODE_PAGE_UP) && !down) {
                 mPageUpPressed = false;
@@ -2019,8 +2083,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     } else {
                         mLockOnKeyUp = false;
                         mLockOnKeyDown = false;
-                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, true);
-                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 104, false);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 109, true);
+                        sendKeyEvent(KeyEvent.KEYCODE_PAGE_DOWN, 109, false);
                         return -1;
                     }
                 } else {

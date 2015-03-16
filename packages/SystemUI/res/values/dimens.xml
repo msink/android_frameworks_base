@@ -95,7 +95,7 @@
     <dimen name="status_bar_icon_padding">0dp</dimen>
 
     <!-- half the distance between notifications in the panel -->
-    <dimen name="notification_divider_height">2dp</dimen>
+    <dimen name="notification_divider_height">0dp</dimen>
 
     <!-- Notification drawer tuning parameters (phone UI) -->
     <!-- Initial velocity of the shade when expanding on its own -->
@@ -218,4 +218,12 @@
     <dimen name="usb_connect_dialog_width">400px</dimen>
     <dimen name="usb_connect_padding">30dip</dimen>
     <dimen name="status_bar_expanded_date_text_size">15sp</dimen>
+
+    <dimen name="notification_panel_wifi_settings_margin_left">30dip</dimen>
+    <dimen name="notification_panel_wifi_switch_margin_left">10dip</dimen>
+    <dimen name="notification_panel_volume_add_margin_right">40dip</dimen>
+    <dimen name="notification_panel_volume_down_margin_right">30dip</dimen>
+    <dimen name="notification_panel_light_switch_separator_margin_left">15dip</dimen>
+    <dimen name="notification_panel_light_switch_margin_left">15dip</dimen>
+    <dimen name="notification_panel_light_control_button_margin">15dip</dimen>
 </resources>

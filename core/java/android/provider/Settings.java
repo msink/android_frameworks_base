@@ -1778,6 +1778,16 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String SWITCH_KEY = "switch_key";
+
+        /**
+         * @hide
+         */
+        public static final String LONG_PRESS_FEATURE = "long_press_feature";
+
+        /**
+         * @hide
+         */
         public static final String DEFAULT_SYSTEM_FONT = "default_system_font";
 
         /**
@@ -2405,7 +2415,9 @@ public final class Settings {
             BLUETOOTH_DISCOVERABILITY,
             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
             KEY_MAP_MODE,
+            SWITCH_KEY,
             DIM_SCREEN,
+            LONG_PRESS_FEATURE,
             SCREEN_OFF_TIMEOUT,
             AUTO_POWEROFF_TIMEOUT,
             WIFI_ON_AFTER_WAKEUP,

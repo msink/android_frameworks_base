@@ -178,7 +178,9 @@ public class StorageNotification extends StorageEventListener {
                     com.android.internal.R.string.usb_storage_stop_notification_title,
                     com.android.internal.R.string.usb_storage_stop_notification_message,
                     com.android.internal.R.drawable.stat_sys_warning, false, true, pi);
-            updateDataTransferDialogState(true);
+            if (path.equals("/mnt/sdcard")) {
+                updateDataTransferDialogState(true);
+            }
         } else if (newState.equals(Environment.MEDIA_CHECKING)) {
             /*
              * Storage is now checking. Update media notification and disable
@@ -235,7 +237,9 @@ public class StorageNotification extends StorageEventListener {
                 setMediaStorageNotification(0, 0, 0, false, false, null);
                 updateUsbMassStorageNotification(false);
             }
-            updateDataTransferDialogState(false);
+            if (path.equals("/mnt/sdcard")) {
+                updateDataTransferDialogState(false);
+            }
         } else if (newState.equals(Environment.MEDIA_NOFS)) {
             /*
              * Storage has no filesystem. Show blank media notification,

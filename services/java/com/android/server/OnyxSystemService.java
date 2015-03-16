@@ -1,5 +1,6 @@
 package com.android.server;
 
+import android.app.AlarmManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContentResolver;
@@ -9,15 +10,15 @@ import android.database.ContentObserver;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.os.IOnyxWifiLockManagerService;
+import android.os.IOnyxSystemService;
 import android.provider.Settings;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.*;
 
-class OnyxWifiLockManagerService extends IOnyxWifiLockManagerService.Stub {
-    final private static String TAG = "OnyxWifiLockManagerService";
+class OnyxSystemService extends IOnyxSystemService.Stub {
+    final private static String TAG = "OnyxSystemService";
     private boolean debug = false;
 
     private Context mContext;
@@ -34,6 +35,48 @@ class OnyxWifiLockManagerService extends IOnyxWifiLockManagerService.Stub {
     private Long mMiniTransmit = new Long(2000);
     private static final String MINI_TRANSMIT_FILE = "/vendor/mini_transmit_num";
 
+    private static final String REQUEST_SET_SYSTEM_TIME = "request_set_system_time";
+    private static final String REQUEST_CHANGE_AUTO_TIME_SETTING = "request_change_auto_time_setting";
+    private static final String REQUEST_CHANGE_AUTO_TIMEZONE_SETTING = "request_change_auto_timezone_setting";
+
+    private static final String TAG_SYSTEM_TIME_TO_SET = "system_time_to_set";
+    private static final String TAG_AUTO_TIMEZONE_CHECKED = "auto_timezone_checked";
+    private static final String TAG_AUTO_TIME_CHECKED = "auto_time_checked";
+    private static final String TAG_SYSTEM_TIME_ZONE_TO_SET = "system_time_zone_to_set";
+
+    private void setSystemTime(Context context, Intent intent) {
+        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        long systemTime = intent.getLongExtra(TAG_SYSTEM_TIME_TO_SET, 0);
+        if (systemTime <= 0) {
+            Log.e(TAG, "Error! System time is invalid");
+        } else {
+            Log.d(TAG, "system time is, millis: " + systemTime + ", date is: " + new Date(systemTime).toString());
+            if ((systemTime / 1000) < Integer.MAX_VALUE) {
+                alarm.setTime(systemTime);
+            }
+        }
+        String timeZoneID = intent.getStringExtra(TAG_SYSTEM_TIME_ZONE_TO_SET);
+        if (timeZoneID == null || timeZoneID.isEmpty()) {
+            Log.e(TAG, "Error! Time zone is invalid!");
+        } else {
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneID);
+            Log.d(TAG, "time zone is: " + timeZone.getDisplayName());
+            alarm.setTimeZone(timeZone.getID());
+        }
+    }
+
+    private void changeAutoTimeSetting(Context context, Intent intent) {
+        boolean checked = intent.getBooleanExtra("auto_time_checked", true);
+        Log.d(TAG, "auto time enabled? " + checked);
+        Settings.Global.putInt(context.getContentResolver(), "auto_time", checked ? 1 : 0);
+    }
+
+    private void changeAutoTimeZoneSetting(Context context, Intent intent) {
+        boolean checked = intent.getBooleanExtra("auto_timezone_checked", true);
+        Log.d(TAG, "auto timezone enabled? " + checked);
+        Settings.Global.putInt(context.getContentResolver(), "auto_time_zone", checked ? 1 : 0);
+    }
+
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -46,6 +89,15 @@ class OnyxWifiLockManagerService extends IOnyxWifiLockManagerService.Stub {
                 } else {
                     stopCheckWlan();
                 }
+            } else if (action.equals(REQUEST_SET_SYSTEM_TIME)) {
+                Log.d(TAG, "request set system time");
+                setSystemTime(context, intent);
+            } else if (action.equals(REQUEST_CHANGE_AUTO_TIME_SETTING)) {
+                Log.d(TAG, "request change auto time setting");
+                changeAutoTimeSetting(context, intent);
+            } else if (action.equals(REQUEST_CHANGE_AUTO_TIMEZONE_SETTING)) {
+                Log.d(TAG, "request change auto timezone setting");
+                changeAutoTimeZoneSetting(context, intent);
             }
         }
     };
@@ -73,12 +125,15 @@ class OnyxWifiLockManagerService extends IOnyxWifiLockManagerService.Stub {
         }
     }
 
-    public OnyxWifiLockManagerService(Context context) {
+    public OnyxSystemService(Context context) {
         mContext = context;
         mHandler = new Handler();
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(REQUEST_SET_SYSTEM_TIME);
+        filter.addAction(REQUEST_CHANGE_AUTO_TIME_SETTING);
+        filter.addAction(REQUEST_CHANGE_AUTO_TIMEZONE_SETTING);
         mContext.registerReceiver(mReceiver, filter);
 
         Long mini_num = Long.valueOf(Settings.System.getInt(
@@ -125,9 +180,9 @@ class OnyxWifiLockManagerService extends IOnyxWifiLockManagerService.Stub {
                 if (SysClassNet.isUp("wlan0")) try {
                     mNewTransmit =  Long.valueOf(SysClassNet.getTxBytes("wlan0"));
                     if (debug) Log.d(TAG, "============" +
-                            "  mOldTransmit : " + mOldTransmit +
-                            "  mNewTransmit : " + mNewTransmit +
-                          "   mMiniTransmit : " + mMiniTransmit);
+                            "  mOldTransmit: " + mOldTransmit +
+                            ", mNewTransmit: " + mNewTransmit +
+                            ", mMiniTransmit: " + mMiniTransmit);
                     if (mOldTransmit != null &&
                             mNewTransmit.longValue() - mOldTransmit.longValue() < mMiniTransmit.longValue()) {
                         if (mTimerNum == 0) {

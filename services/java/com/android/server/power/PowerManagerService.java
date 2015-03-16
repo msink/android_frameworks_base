@@ -2832,6 +2832,7 @@ public final class PowerManagerService extends IPowerManager.Stub
             // We do this so that the screen does not start to dim prematurely before
             // the user has actually had a chance to interact with the device.
             startWatchingForBootAnimationFinished();
+            SystemProperties.set("ctl.start", "backup_data:restore");
         }
     }
 

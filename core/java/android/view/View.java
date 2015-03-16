@@ -18516,4 +18516,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             mParent.forceEpdA2(enabled);
         }
     }
+
+    public static boolean requestStopBootAnimation() {
+        return ViewRootImpl.requestStopBootAnimation();
+    }
 }
