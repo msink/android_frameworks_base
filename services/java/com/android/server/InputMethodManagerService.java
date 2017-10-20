@@ -74,6 +74,7 @@ import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
@@ -2472,6 +2473,11 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
         list.clear();
         map.clear();
 
+        String default_ime_id = SystemProperties.get("persist.boeye.inputMethod", "");
+        if (!default_ime_id.isEmpty()) {
+            Secure.putString(mContext.getContentResolver(), "default_input_method", default_ime_id);
+        }
+
         // Use for queryIntentServicesAsUser
         final PackageManager pm = mContext.getPackageManager();
         final Configuration config = mRes.getConfiguration();
@@ -2558,6 +2564,7 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
     }
 
     private void showConfigureInputMethods() {
+        Slog.v("--dela--", "showConfigureInputMethods()--InputMethodManagerService.java--");
         Intent intent = new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
@@ -2676,6 +2683,8 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                                             || (subtypeId >= im.getSubtypeCount())) {
                                         subtypeId = NOT_A_SUBTYPE_ID;
                                     }
+                                    Slog.d("--dela--", "--showInputMethodMenuInternal()--InputMethodManagerService.java-- ime == " + im.getId());
+                                    SystemProperties.set("persist.boeye.inputMethod", im.getId());
                                     setInputMethodLocked(im.getId(), subtypeId);
                                 }
                             }
@@ -2803,6 +2812,7 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
     }
 
     void hideInputMethodMenu() {
+        Slog.v("--dela--", "--hideInputMethodMenu()--InputMethodManagerService.java--");
         synchronized (mMethodMap) {
             hideInputMethodMenuLocked();
         }

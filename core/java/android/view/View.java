@@ -46,6 +46,7 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.text.TextUtils;
@@ -10303,6 +10304,39 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @param b the bottom position of the dirty region
      */
     public void invalidate(int l, int t, int r, int b) {
+        int nl = l;
+        int nt = t;
+        int nr = r;
+        int nb = b;
+        if (1 == SystemProperties.getInt("persist.sys.A2Flush", 0) &&
+                (2020 == nl || 2021 == nl || 2023 == nl) &&
+                nl == nt && nl == nr && nl == nb) {
+            nl = -2022;
+            nt = nl;
+            nr = nl;
+            nb = nl;
+        }
+        if (nl == -1010 && nl == nt) {
+            requestEpdFullMode(1, 1);
+            return;
+        }
+        if (nl == -2020 && nl == nt) {
+            requestEpdFullMode(3, 1);
+            return;
+        }
+        if (nl == -2021 && nl == nt) {
+            requestEpdFullMode(0, 1);
+            return;
+        }
+        if (nl == -2022 && nl == nt) {
+            requestEpdFullMode(2, 1);
+            return;
+        }
+        if (nl == -2023 && nl == nt) {
+            requestEpdFullMode(2, 0);
+            return;
+        }
+
         if (skipInvalidate()) {
             return;
         }
@@ -10323,11 +10357,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                     return;
                 }
             }
-            if (p != null && ai != null && l < r && t < b) {
+            if (p != null && ai != null && nl < nr && nt < nb) {
                 final int scrollX = mScrollX;
                 final int scrollY = mScrollY;
                 final Rect tmpr = ai.mTmpInvalRect;
-                tmpr.set(l - scrollX, t - scrollY, r - scrollX, b - scrollY);
+                tmpr.set(nl - scrollX, nt - scrollY, nr - scrollX, nb - scrollY);
                 p.invalidateChild(this, tmpr);
             }
         }
@@ -18445,6 +18479,21 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
     };
 
+    public void requestEpdFullMode(int mode, int flag) {
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(mode);
+                data.writeInt(flag);
+                surfaceFlinger.transact(1018, data, null, 0);
+                data.recycle();
+            }
+        } catch (Exception e) {
+        }
+    }
+
     public boolean requestEpdMode(EINK_MODE mode) {
         return requestEpdMode(mode, false);
     }
@@ -18457,6 +18506,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if (mParent != null) {
             return mParent.requestEpdMode(child, mode, force);
         }
+        Log.e(VIEW_LOG_TAG, "too early to call this, it has't got a parent yet.", new Throwable());
         return false;
     }
 
@@ -18468,6 +18518,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if (mParent != null) {
             return mParent.requestEpdUnion(child);
         }
+        Log.e(VIEW_LOG_TAG, "too early to call this, it has't got a parent yet.", new Throwable());
         return false;
     }
 

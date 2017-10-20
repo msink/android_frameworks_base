@@ -6915,11 +6915,6 @@ public class WindowManagerService extends IWindowManager.Stub
                         config.navigation = Configuration.NAVIGATION_DPAD;
                         navigationPresence |= presenceFlag;
                     }
-
-                    if (device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC) {
-                        config.keyboard = Configuration.KEYBOARD_QWERTY;
-                        keyboardPresence |= presenceFlag;
-                    }
                 }
             }
 

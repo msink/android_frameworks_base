@@ -17,6 +17,8 @@
  
 package com.android.server.power;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -33,6 +35,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -43,14 +46,19 @@ import android.os.Vibrator;
 import android.os.SystemVibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
+import android.provider.Settings;
 
 import com.android.internal.telephony.ITelephony;
 
 import android.util.Log;
+import android.util.Slog;
 import android.view.IWindowManager;
 import android.view.WindowManager;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -93,6 +101,9 @@ public final class ShutdownThread extends Thread {
 
     private static AlertDialog sConfirmDialog;
     
+    private static HandlerThread mHT = null;
+    private static Handler mH = null;
+
     private ShutdownThread() {
     }
  
@@ -244,6 +255,32 @@ public final class ShutdownThread extends Thread {
         shutdownInner(context, confirm);
     }
 
+    private static void execShutdownAnimation() {
+        try {
+            Slog.d("---dela-----", "--slog.d ---shutdown thread------------end----");
+            Process process = Runtime.getRuntime().exec("/system/bin/bootanimation -shutdown");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            char[] buffer = new char[4096];
+            StringBuffer output = new StringBuffer();
+            int read;
+            while ((read = reader.read(buffer)) > 0) {
+                output.append(buffer, 0, read);
+            }
+            reader.close();
+            process.waitFor();
+       } catch (IOException e) {
+            throw new RuntimeException(e);
+       } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+       }
+    }
+
+    private static Runnable mRunnableShutdown = new Runnable() {
+        public void run() {
+            execShutdownAnimation();
+        }
+    };
+
     private static void beginShutdownSequence(Context context) {
         synchronized (sIsStartedGuard) {
             if (sIsStarted) {
@@ -261,6 +298,53 @@ public final class ShutdownThread extends Thread {
                 am.killPids(pids, "Shutdown system", true);
             } catch (RemoteException e) {
             }
+        }
+
+        int isFirst = android.provider.Settings.System.getInt(context.getContentResolver(), "isFShutdown", 1);
+
+        boolean mShowShutdownAnim = new File("/system/media/shutdownanimation.zip").exists()
+                                 || new File("/data/local/shutdownanimation.zip").exists();
+        boolean mShowShutdownAnim2 = new File("/system/media/shutdownanimation2.zip").exists()
+                                  || new File("/data/local/shutdownanimation2.zip").exists();
+        String mBattryLowLevelState = SystemProperties.get("sys.shutdown.nopower");
+
+        if (mShowShutdownAnim && mShowShutdownAnim2) {
+            if (!mBattryLowLevelState.equals("1")) {
+                boolean mFirstShutdown = new File("/system/media/fshutdown.zip").exists();
+                if (mFirstShutdown && isFirst != 0) {
+                    Settings.System.putInt(context.getContentResolver(), "isFShutdown", 0);
+                    SystemProperties.set("persist.service.fsd.enable", "1");
+                    SystemProperties.set("ctl.start", "fsd");
+                } else {
+                    SystemProperties.set("ctl.start", "shutdownanim");
+                }
+            } else {
+                SystemProperties.set("ctl.start", "shutdownanim2");
+            }
+
+        } else {
+            mHT = new HandlerThread("shutdownanimation", 5);
+            mHT.start();
+            mH = new Handler(mHT.getLooper());
+            mH.post(mRunnableShutdown);
+            ActivityManager activityManger = (ActivityManager)context.getSystemService("activity");
+            List<RunningAppProcessInfo> list = activityManger.getRunningAppProcesses();
+            if (list != null) {
+                for (int i = 0; i < list.size(); i++) {
+                    RunningAppProcessInfo apinfo = list.get(i);
+                    String[] pkgList = apinfo.pkgList;
+                    if (apinfo.importance > 300) {
+                        for (int j = 0; j < pkgList.length; j++) {
+                            activityManger.killBackgroundProcesses(pkgList[j]);
+                        }
+                    }
+                }
+            }
+        }
+
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
         }
 
         sInstance.mContext = context;

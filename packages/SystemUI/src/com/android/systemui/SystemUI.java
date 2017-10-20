@@ -27,6 +27,8 @@ public abstract class SystemUI {
 
     public abstract void start();
     
+    public abstract void onReceive(String action);
+
     protected void onConfigurationChanged(Configuration newConfig) {
     }
 

@@ -145,22 +145,14 @@ public class StorageNotification extends StorageEventListener {
              * Storage is now shared. Modify the UMS notification
              * for stopping UMS.
              */
-            Intent intent = new Intent();
-            intent.setClass(mContext, com.android.systemui.usb.UsbStorageActivity.class);
-            PendingIntent pi = PendingIntent.getActivity(mContext, 0, intent, 0);
-            setUsbStorageNotification(
-                    com.android.internal.R.string.usb_storage_stop_notification_title,
-                    com.android.internal.R.string.usb_storage_stop_notification_message,
-                    com.android.internal.R.drawable.stat_sys_warning, false, true, pi);
+            if (usbConnected) {
+                return;
+            }
         } else if (newState.equals(Environment.MEDIA_CHECKING)) {
             /*
              * Storage is now checking. Update media notification and disable
              * UMS notification.
              */
-            setMediaStorageNotification(
-                    com.android.internal.R.string.ext_media_checking_notification_title,
-                    com.android.internal.R.string.ext_media_checking_notification_message,
-                    com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, false, null);
             updateUsbMassStorageNotification(false);
         } else if (newState.equals(Environment.MEDIA_MOUNTED)) {
             /*
@@ -292,13 +284,7 @@ public class StorageNotification extends StorageEventListener {
             Intent intent = new Intent();
             intent.setClass(mContext, com.android.systemui.usb.UsbStorageActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            PendingIntent pi = PendingIntent.getActivity(mContext, 0, intent, 0);
-            setUsbStorageNotification(
-                    com.android.internal.R.string.usb_storage_notification_title,
-                    com.android.internal.R.string.usb_storage_notification_message,
-                    com.android.internal.R.drawable.stat_sys_data_usb,
-                    false, true, pi);
+            mContext.startActivity(intent);
         } else {
             setUsbStorageNotification(0, 0, 0, false, false, null);
         }

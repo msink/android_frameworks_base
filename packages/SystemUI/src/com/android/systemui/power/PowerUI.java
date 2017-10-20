@@ -176,6 +176,9 @@ public class PowerUI extends SystemUI {
         }
     }
 
+    public void onReceive(String action) {
+    }
+
     void showLowBatteryWarning() {
         Slog.i(TAG,
                 ((mBatteryLevelTextView == null) ? "showing" : "updating")

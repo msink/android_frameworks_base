@@ -422,20 +422,9 @@ public class AlertController {
             mWindow.findViewById(R.id.customPanel).setVisibility(View.GONE);
         }
         
-        /* Only display the divider if we have a title and a 
-         * custom view or a message.
-         */
-        if (hasTitle) {
-            View divider = null;
-            if (mMessage != null || mView != null || mListView != null) {
-                divider = mWindow.findViewById(R.id.titleDivider);
-            } else {
-                divider = mWindow.findViewById(R.id.titleDividerTop);
-            }
-
-            if (divider != null) {
-                divider.setVisibility(View.VISIBLE);
-            }
+        if (!hasTitle) {
+            View divider = mWindow.findViewById(R.id.titleDivider);
+            divider.setVisibility(View.GONE);
         }
         
         setBackground(topPanel, contentPanel, customPanel, hasButtons, a, hasTitle, buttonPanel);
@@ -529,6 +518,10 @@ public class AlertController {
         int BIT_BUTTON_NEGATIVE = 2;
         int BIT_BUTTON_NEUTRAL = 4;
         int whichButtons = 0;
+        boolean hasButtonPositive = false;
+        boolean hasButtonNegative = false;
+        boolean hasButtonNeutral = false;
+
         mButtonPositive = (Button) mWindow.findViewById(R.id.button1);
         mButtonPositive.setOnClickListener(mButtonHandler);
 
@@ -538,6 +531,7 @@ public class AlertController {
             mButtonPositive.setText(mButtonPositiveText);
             mButtonPositive.setVisibility(View.VISIBLE);
             whichButtons = whichButtons | BIT_BUTTON_POSITIVE;
+            hasButtonPositive = true;
         }
 
         mButtonNegative = (Button) mWindow.findViewById(R.id.button2);
@@ -550,6 +544,7 @@ public class AlertController {
             mButtonNegative.setVisibility(View.VISIBLE);
 
             whichButtons = whichButtons | BIT_BUTTON_NEGATIVE;
+            hasButtonNegative = true;
         }
 
         mButtonNeutral = (Button) mWindow.findViewById(R.id.button3);
@@ -562,6 +557,34 @@ public class AlertController {
             mButtonNeutral.setVisibility(View.VISIBLE);
 
             whichButtons = whichButtons | BIT_BUTTON_NEUTRAL;
+            hasButtonNeutral = true;
+        }
+
+        if (hasButtonPositive && hasButtonNegative && !hasButtonNeutral) {
+            View centerSpacer = mWindow.findViewById(R.id.centerSpacer);
+            if (centerSpacer != null) centerSpacer.setVisibility(View.VISIBLE);
+            LinearLayout.LayoutParams params =
+                (LinearLayout.LayoutParams) mButtonPositive.getLayoutParams();
+            params.weight = 1;
+            mButtonPositive.setLayoutParams(params);
+            params = (LinearLayout.LayoutParams) mButtonNegative.getLayoutParams();
+            params.weight = 1;
+            mButtonNegative.setLayoutParams(params);
+        } else if (hasButtonPositive && hasButtonNegative && hasButtonNeutral) {
+            View leftSpacer = mWindow.findViewById(R.id.leftSpacer);
+            leftSpacer.setVisibility(View.GONE);
+            View rightSpacer = mWindow.findViewById(R.id.rightSpacer);
+            rightSpacer.setVisibility(View.GONE);
+        } else if (hasButtonPositive && !hasButtonNegative && hasButtonNeutral) {
+            View centerSpacer = mWindow.findViewById(R.id.centerSpacer);
+            if (centerSpacer != null) centerSpacer.setVisibility(View.VISIBLE);
+            LinearLayout.LayoutParams params =
+                (LinearLayout.LayoutParams) mButtonPositive.getLayoutParams();
+            params.weight = 1;
+            mButtonPositive.setLayoutParams(params);
+            params = (LinearLayout.LayoutParams) mButtonNeutral.getLayoutParams();
+            params.weight = 1;
+            mButtonNeutral.setLayoutParams(params);
         }
 
         if (shouldCenterSingleButton(mContext)) {
@@ -586,14 +609,6 @@ public class AlertController {
         params.gravity = Gravity.CENTER_HORIZONTAL;
         params.weight = 0.5f;
         button.setLayoutParams(params);
-        View leftSpacer = mWindow.findViewById(R.id.leftSpacer);
-        if (leftSpacer != null) {
-            leftSpacer.setVisibility(View.VISIBLE);
-        }
-        View rightSpacer = mWindow.findViewById(R.id.rightSpacer);
-        if (rightSpacer != null) {
-            rightSpacer.setVisibility(View.VISIBLE);
-        }
     }
 
     private void setBackground(LinearLayout topPanel, LinearLayout contentPanel,

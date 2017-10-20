@@ -203,6 +203,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final int SYSTEM_UI_CHANGING_LAYOUT =
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
 
+    boolean isUp = true;
+    boolean isFlush = true;
+    Timer timer = null;
+
     /* Table of Application Launch keys.  Maps from key codes to intent categories.
      *
      * These are special keys that are used to launch particular kinds of applications,
@@ -1056,6 +1060,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         } else {
             mCanHideNavigationBar = false;
         }
+        mCanHideNavigationBar = true;
 
         // For demo purposes, allow the rotation of the HDMI display to be controlled.
         // By default, HDMI locks rotation to landscape.
@@ -3366,6 +3371,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         final boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         final boolean canceled = event.isCanceled();
         final int keyCode = event.getKeyCode();
+        final int repeatCount = event.getRepeatCount();
 
         final boolean isInjected = (policyFlags & WindowManagerPolicy.FLAG_INJECTED) != 0;
 
@@ -3630,6 +3636,71 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             Log.w(TAG, "ITelephony threw RemoteException", ex);
                         }
                     }
+                }
+                break;
+            }
+
+            case KeyEvent.KEYCODE_F5: {
+                if (down) {
+                    isUp = false;
+                    isFlush = true;
+                    if (timer == null) {
+                        timer = new Timer(true);
+                        timer.schedule(new TimerTask() {
+                            @Override public void run() {
+                                if (!isUp) {
+                                    PowerManager pm = (PowerManager)
+                                        mContext.getSystemService(Context.POWER_SERVICE);
+                                    int min = pm.getMinimumScreenBrightnessSetting();
+                                    int max = pm.getMaximumScreenBrightnessSetting();
+                                    ContentResolver resolver = mContext.getContentResolver();
+                                    int current = Settings.System.getInt(resolver, Settings.System.SCREEN_BRIGHTNESS, min);
+                                    boolean isLightOn = SystemProperties.getBoolean("persist.sys.isLightOn", false);
+                                    if (isLightOn) {
+                                        SystemProperties.set("persist.sys.isLightOn", "false");
+                                        isLightOn = false;
+                                        current = min;
+                                    } else {
+                                        SystemProperties.set("persist.sys.isLightOn", "true");
+                                        isLightOn = true;
+                                        if (current <= min) {
+                                            current = (min + max) / 2;
+                                        } else if (current > max) {
+                                            current = max;
+                                        }
+                                        Settings.System.putInt(resolver, Settings.System.SCREEN_BRIGHTNESS, current);
+                                    }
+                                    try {
+                                        IPowerManager power = IPowerManager.Stub.asInterface(
+                                                ServiceManager.getService("power"));
+                                        if (power != null) {
+                                            power.setTemporaryScreenBrightnessSettingOverride(current);
+                                            if (mContext != null) {
+                                                Intent intent = new Intent("reflush_light_ui");
+                                                mContext.sendBroadcast(intent);
+                                            }
+                                        }
+                                    } catch (RemoteException e) {
+                                    }
+                                    isFlush = false;
+                                }
+                            }
+                        }, 1200);
+                    }
+                } else {
+                    isUp = true;
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
+                    if (isFlush) {
+                        PhoneWindow.handleRefreshKey();
+                    }
+                }
+                result &= ~ACTION_PASS_TO_USER;
+                if (mContext != null) {
+                    Intent intent = new Intent("flush_key_f5");
+                    mContext.sendBroadcast(intent);
                 }
                 break;
             }

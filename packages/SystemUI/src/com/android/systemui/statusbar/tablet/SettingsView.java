@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.android.systemui.R;
@@ -44,8 +45,10 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
     AutoRotateController mRotate;
     BrightnessController mBrightness;
     DoNotDisturbController mDoNotDisturb;
+    Switch mDoNotDisturbSwitch;
     View mRotationLockContainer;
     View mRotationLockSeparator;
+    View mAirplaneLayout;
 
     public SettingsView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -61,6 +64,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
         final Context context = getContext();
 
+        mAirplaneLayout = findViewById(R.id.airplane);
+        mAirplaneLayout.setVisibility(View.GONE);
         mAirplane = new AirplaneModeController(context,
                 (CompoundButton)findViewById(R.id.airplane_checkbox));
         findViewById(R.id.network).setOnClickListener(this);
@@ -80,8 +85,16 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         mBrightness = new BrightnessController(context,
                 (ImageView)findViewById(R.id.brightness_icon),
                 (ToggleSlider)findViewById(R.id.brightness));
+
         mDoNotDisturb = new DoNotDisturbController(context,
-                (CompoundButton)findViewById(R.id.do_not_disturb_checkbox));
+        mDoNotDisturbSwitch = (Switch)findViewById(R.id.do_not_disturb_checkbox));
+        mDoNotDisturbSwitch.setSwitchTextAppearance(context, R.style.TextAppearanceSwitch);
+        mDoNotDisturbSwitch.setTrackResource(R.drawable.switch_track_holo_light);
+        mDoNotDisturbSwitch.setThumbResource(R.drawable.switch_inner_holo_light);
+        mDoNotDisturbSwitch.setThumbTextPadding(9);
+        mDoNotDisturbSwitch.setSwitchMinWidth(100);
+        mDoNotDisturbSwitch.setSwitchPadding(12);
+
         findViewById(R.id.settings).setOnClickListener(this);
     }
 

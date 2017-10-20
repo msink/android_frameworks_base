@@ -2003,6 +2003,10 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             }
 
             for (TouchTarget target = mFirstTouchTarget; target != null; target = target.next) {
+                if (target.child == null) {
+                    Log.e(TAG, "[fzq]==============target.child===null==============");
+                    continue;
+                }
                 resetCancelNextUpFlag(target.child);
                 dispatchTransformedTouchEvent(event, true, target.child, target.pointerIdBits);
             }

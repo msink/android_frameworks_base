@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Slog;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
 import android.view.View;
@@ -33,6 +34,7 @@ public class NotificationPanelTitle extends RelativeLayout implements View.OnCli
     private NotificationPanel mPanel;
     private ArrayList<View> buttons;
     private View mSettingsButton;
+    private View mNotificationButton;
 
     public NotificationPanelTitle(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -46,13 +48,15 @@ public class NotificationPanelTitle extends RelativeLayout implements View.OnCli
 
     @Override
     public void onFinishInflate() {
+        Slog.d("--dela--", "--NotificationPanelTitle.java--onFinishInflate()--");
         super.onFinishInflate();
         buttons.add(mSettingsButton = findViewById(R.id.settings_button));
-        buttons.add(findViewById(R.id.notification_button));
+        buttons.add(mNotificationButton = findViewById(R.id.notification_button));
     }
 
     @Override
     public void setPressed(boolean pressed) {
+        Slog.d("--dela--", "--NotificationPanelTitle.java--setPressed()--");
         super.setPressed(pressed);
         for (View button : buttons) {
             if (button != null) {
@@ -63,6 +67,7 @@ public class NotificationPanelTitle extends RelativeLayout implements View.OnCli
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
+        Slog.d("--dela--", "--NotificationPanelTitle.java--onTouchEvent()--");
         if (!mSettingsButton.isEnabled())
             return false;
         switch (e.getAction()) {

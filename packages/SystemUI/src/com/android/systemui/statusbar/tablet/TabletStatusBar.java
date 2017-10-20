@@ -150,6 +150,11 @@ public class TabletStatusBar extends BaseStatusBar implements
     View mScreenShotButton;
     View mVolumeDownButton;
     View mVolumeUpButton;
+    View mBrightnessButton;
+
+    private View mStatusBar;
+    private boolean isStatusBarAdded = true;
+    private WindowManager.LayoutParams mStatusBarLayoutParams;
     private String isEnableShowVoiceIcon =
             SystemProperties.get("ro.rk.systembar.voiceicon");
     private boolean mAltBackButtonEnabledForIme;
@@ -191,7 +196,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     View mCompatibilityHelpDialog = null;
 
     // for disabling the status bar
-    int mDisabled = 0;
+    int mDisabled = 1;
 
     private InputMethodsPanel mInputMethodsPanel;
     private CompatModePanel mCompatModePanel;
@@ -235,6 +240,16 @@ public class TabletStatusBar extends BaseStatusBar implements
         addPanelWindows();
     }
 
+    public void onReceive(String action) {
+        Slog.d("--dela--", "--TabletStatusBar.java--onReceive()--action == " + action);
+        if ("boyue.show.status.bar".equals(action)) {
+            mWindowManager.addView(mStatusBar, mStatusBarLayoutParams);
+            mWindowManager.updateViewLayout(mStatusBar, mStatusBarLayoutParams);
+        } else if ("boyue.hide.status.bar".equals(action)) {
+            mWindowManager.removeView(mStatusBar);
+        }
+    }
+
     private void addStatusBarWindow() {
         final View sb = makeStatusBarView();
 
@@ -255,7 +270,11 @@ public class TabletStatusBar extends BaseStatusBar implements
         lp.gravity = getStatusBarGravity();
         lp.setTitle("SystemBar");
         lp.packageName = mContext.getPackageName();
-        mWindowManager.addView(sb, lp);
+        mStatusBarLayoutParams = lp;
+        mStatusBar = sb;
+        if (1 == SystemProperties.getInt("persist.boeye.statusbar", 1)) {
+            mWindowManager.addView(sb, lp);
+        }
     }
 
     protected void addPanelWindows() {
@@ -269,6 +288,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         mNotificationPanel.show(false, false);
         mNotificationPanel.setOnTouchListener(
                 new TouchOutsideListener(MSG_CLOSE_NOTIFICATION_PANEL, mNotificationPanel));
+        mStatusBarView.setNotificationPanel(mNotificationPanel);
 
         // the battery icon
         mBatteryController.addIconView((ImageView)mNotificationPanel.findViewById(R.id.battery));
@@ -429,6 +449,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         mShowSearchHoldoff = mContext.getResources().getInteger(
                 R.integer.config_show_search_delay);
         updateSearchPanel();
+      if (1 == SystemProperties.getInt("persist.boeye.statusbar", 1)) {
         WindowManager.LayoutParams lp =
             (android.view.WindowManager.LayoutParams)
             mStatusBarView.getLayoutParams();
@@ -436,6 +457,7 @@ public class TabletStatusBar extends BaseStatusBar implements
             mStatusBarView.invalidate();
             mWindowManager.updateViewLayout(mStatusBarView, lp);
         }
+      }
     }
 
     protected void loadDimens() {
@@ -459,6 +481,7 @@ public class TabletStatusBar extends BaseStatusBar implements
             mBackButton.setLayoutParams(lp);
             mHomeButton.setLayoutParams(lp);
             mRecentButton.setLayoutParams(lp);
+            mBrightnessButton.setLayoutParams(lp);
         }
 
         if (mNavigationArea != null && newMenuNavIconWidth != mMenuNavIconWidth) {
@@ -542,6 +565,7 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         mBatteryController = new BatteryController(mContext);
         mBatteryController.addIconView((ImageView)sb.findViewById(R.id.battery));
+        mBatteryController.addIconView((ImageView)sb.findViewById(R.id.batteryRight));
         mBluetoothController = new BluetoothController(mContext);
         mBluetoothController.addIconView((ImageView)sb.findViewById(R.id.bluetooth));
 
@@ -549,6 +573,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         final SignalClusterView signalCluster =
                 (SignalClusterView)sb.findViewById(R.id.signal_cluster);
         mNetworkController.addSignalCluster(signalCluster);
+        mNetworkController.addWifiIconView((ImageView)sb.findViewById(R.id.wifiRight));
 
         // The navigation buttons
         mBackButton = (ImageView)sb.findViewById(R.id.back);
@@ -559,6 +584,8 @@ public class TabletStatusBar extends BaseStatusBar implements
         mVolumeUpButton = mNavigationArea.findViewById(R.id.add);
         mRecentButton = mNavigationArea.findViewById(R.id.recent_apps);
         mRecentButton.setOnClickListener(mOnClickListener);
+        mBrightnessButton = mNavigationArea.findViewById(R.id.brightness);
+        mBrightnessButton.setOnClickListener(mOnClickListener);
         mScreenShotButton = mNavigationArea.findViewById(R.id.screenshot);
 
         boolean show = (Settings.System.getInt(mContext.getContentResolver(),
@@ -743,19 +770,23 @@ public class TabletStatusBar extends BaseStatusBar implements
     @Override
     public void showSearchPanel() {
         super.showSearchPanel();
+      if (1 == SystemProperties.getInt("persist.boeye.statusbar", 1)) {
         WindowManager.LayoutParams lp =
             (android.view.WindowManager.LayoutParams) mStatusBarView.getLayoutParams();
         lp.flags &= ~WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
         mWindowManager.updateViewLayout(mStatusBarView, lp);
+      }
     }
 
     @Override
     public void hideSearchPanel() {
         super.hideSearchPanel();
+      if (1 == SystemProperties.getInt("persist.boeye.statusbar", 1)) {
         WindowManager.LayoutParams lp =
             (android.view.WindowManager.LayoutParams) mStatusBarView.getLayoutParams();
         lp.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
         mWindowManager.updateViewLayout(mStatusBarView, lp);
+      }
     }
 
     public int getStatusBarHeight() {
@@ -769,6 +800,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     }
 
     public void onBarHeightChanged(int height) {
+      if (1 == SystemProperties.getInt("persist.boeye.statusbar", 1)) {
         final WindowManager.LayoutParams lp
                 = (WindowManager.LayoutParams)mStatusBarView.getLayoutParams();
         if (lp == null) {
@@ -779,6 +811,7 @@ public class TabletStatusBar extends BaseStatusBar implements
             lp.height = height;
             mWindowManager.updateViewLayout(mStatusBarView, lp);
         }
+      }
     }
 
     @Override
@@ -868,6 +901,7 @@ public class TabletStatusBar extends BaseStatusBar implements
                 case MSG_OPEN_NOTIFICATION_PANEL:
                     if (DEBUG) Slog.d(TAG, "opening notifications panel");
                     if (!mNotificationPanel.isShowing()) {
+                        mNotificationPanel.setSettingsEnabled(true);
                         mNotificationPanel.show(true, true);
                         mNotificationArea.setVisibility(View.INVISIBLE);
                         mTicker.halt();
@@ -877,7 +911,6 @@ public class TabletStatusBar extends BaseStatusBar implements
                     if (DEBUG) Slog.d(TAG, "closing notifications panel");
                     if (mNotificationPanel.isShowing()) {
                         mNotificationPanel.show(false, true);
-                        mNotificationArea.setVisibility(View.VISIBLE);
                     }
                     break;
                 case MSG_OPEN_INPUT_METHODS_PANEL:
@@ -1041,7 +1074,8 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         mBackButton.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         mHomeButton.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
-        mRecentButton.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+        mRecentButton.setVisibility(View.GONE);
+
         if ("true".equals(isEnableShowVoiceIcon) &&
                mContext.getResources().getConfiguration()
                .orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -1150,8 +1184,8 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         mBackButton.setImageResource(
             (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
-                ? R.drawable.ic_sysbar_back_ime
-                : R.drawable.ic_sysbar_back);
+                ? R.drawable.ic_sysbar_back_boeye
+                : R.drawable.ic_sysbar_back_boeye);
     }
 
     private void notifyUiVisibilityChanged() {
@@ -1203,9 +1237,6 @@ public class TabletStatusBar extends BaseStatusBar implements
             Slog.d(TAG, (showMenu?"showing":"hiding") + " the MENU button");
         }
         mMenuButton.setVisibility(showMenu ? View.VISIBLE : View.GONE);
-
-        // See above re: lights-out policy for legacy apps.
-        if (showMenu) setLightsOn(true);
 
         mCompatModeButton.refresh();
         if (mCompatModeButton.getVisibility() == View.VISIBLE) {
@@ -1324,6 +1355,13 @@ public class TabletStatusBar extends BaseStatusBar implements
                 onClickInputMethodSwitchButton();
             } else if (v == mCompatModeButton) {
                 onClickCompatModeButton();
+            } else if (v == mBrightnessButton) {
+                Slog.d(TAG, "=============================mBrightnessButton  click=================================");
+                Intent intent = new Intent();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setClassName("com.boeye.brightnessset",
+                    "com.boeye.brightnessset.BrightnessDialogActivity");
+                mContext.startActivity(intent);
             }
         }
     };
@@ -1476,15 +1514,17 @@ public class TabletStatusBar extends BaseStatusBar implements
         }
 
         public boolean onTouch(View v, MotionEvent event) {
-//            Slog.d(TAG, String.format("touch: (%.1f, %.1f) initial: (%.1f, %.1f)",
-//                        event.getX(),
-//                        event.getY(),
-//                        mInitialTouchX,
-//                        mInitialTouchY));
+            Slog.d(TAG, String.format("touch: (%.1f, %.1f) initial: (%.1f, %.1f)",
+                        event.getX(),
+                        event.getY(),
+                        mInitialTouchX,
+                        mInitialTouchY));
 
             if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
                 return true;
             }
+
+            Slog.d("--dela--", "TabletStatusBar.java--onTouch()--");
 
             final int action = event.getAction();
             switch (action) {
@@ -1645,6 +1685,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     }
 
     private void loadNotificationPanel() {
+        Slog.d("--dela--", "--TabletStatusBar.java--loadNotificationPanel()--");
         int N = mNotificationData.size();
 
         ArrayList<View> toShow = new ArrayList<View>();
@@ -1679,7 +1720,6 @@ public class TabletStatusBar extends BaseStatusBar implements
         }
 
         mNotificationPanel.setNotificationCount(toShow.size());
-        mNotificationPanel.setSettingsEnabled(isDeviceProvisioned());
     }
 
     @Override

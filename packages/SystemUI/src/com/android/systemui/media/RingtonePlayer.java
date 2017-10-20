@@ -165,6 +165,9 @@ public class RingtonePlayer extends SystemUI {
         }
     }
 
+    public void onReceive(String action) {
+    }
+
     @Override
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
         pw.println("Clients:");

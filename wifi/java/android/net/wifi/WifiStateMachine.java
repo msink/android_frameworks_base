@@ -2828,30 +2828,6 @@ public class WifiStateMachine extends StateMachine {
                     break;
                 case CMD_STOP_DRIVER:
                     int mode = message.arg1;
-
-                    /* Already doing a delayed stop && not in ecm state */
-                    if (mInDelayedStop && mode != IN_ECM_STATE) {
-                        if (DBG) log("Already in delayed stop");
-                        break;
-                    }
-                    mInDelayedStop = true;
-                    mDelayedStopCounter++;
-                    if (DBG) log("Delayed stop message " + mDelayedStopCounter);
-
-                    if (mode == IN_ECM_STATE) {
-                        /* send a shut down immediately */
-                        sendMessage(obtainMessage(CMD_DELAYED_STOP_DRIVER, mDelayedStopCounter, 0));
-                    } else {
-                        /* send regular delayed shut down */
-                        Intent driverStopIntent = new Intent(ACTION_DELAYED_DRIVER_STOP, null);
-                        driverStopIntent.putExtra(DELAYED_STOP_COUNTER, mDelayedStopCounter);
-                        mDriverStopIntent = PendingIntent.getBroadcast(mContext,
-                                DRIVER_STOP_REQUEST, driverStopIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
-
-                        mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
-                                + mDriverStopDelayMs, mDriverStopIntent);
-                    }
                     break;
                 case CMD_START_DRIVER:
                     if (mInDelayedStop) {

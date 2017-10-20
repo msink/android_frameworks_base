@@ -114,6 +114,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
     private final ResultReceiver mResultReceiver = new ResultReceiver();
     private final PendingIntent mTimeTickSender;
     private final PendingIntent mDateChangeSender;
+    private boolean isScreenOn = true;
+    private BroadcastReceiver mScreenOnOffReceiver;
     private final List<String> packageList = new ArrayList<String>();
     private File  rootDir;
     private File  alarmFilter;
@@ -214,6 +216,21 @@ class AlarmManagerService extends IAlarmManager.Stub {
         } else {
             Slog.w(TAG, "Failed to open alarm driver. Falling back to a handler.");
         }
+
+        mScreenOnOffReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action.equalsIgnoreCase("android.intent.action.SCREEN_OFF")) {
+                    isScreenOn = false;
+                } else if (action.equalsIgnoreCase("android.intent.action.SCREEN_ON")) {
+                    isScreenOn = true;
+                }
+            }
+        };
+        IntentFilter filter = new android.content.IntentFilter();
+        filter.addAction("android.intent.action.SCREEN_OFF");
+        filter.addAction("android.intent.action.SCREEN_ON");
+        mContext.registerReceiver(mScreenOnOffReceiver, filter);
     }
     
     protected void finalize() throws Throwable {
@@ -549,6 +566,26 @@ class AlarmManagerService extends IAlarmManager.Stub {
     {
         if (mDescriptor != -1)
         {
+            if (alarm.operation != null) {
+                Intent intent = alarm.operation.getIntent();
+                if (intent != null) {
+                    String actionStr = intent.getAction();
+                    if (actionStr != null) {
+                        actionStr.trim();
+                        Slog.d("--dela--", "--AlarmManagerService.java--setLocked()--actionStr == " + actionStr
+                                + "--alarm seconds == " + ((alarm.when - System.currentTimeMillis()) / 1000) + "--");
+                        if (!isScreenOn
+                                && !actionStr.equalsIgnoreCase("user_timeout_action")
+                                && (alarm.type == 0 || 2 == alarm.type)
+                                && !actionStr.equalsIgnoreCase("settings_shutdown_action")
+                                && !actionStr.equalsIgnoreCase("com.android.providers.calendar.SCHEDULE_ALARM")
+                                && !actionStr.equalsIgnoreCase("com.google.android.intent.action.SEND_IDLE")) {
+                            alarm.when = System.currentTimeMillis() + 1000*60*60*24*365;
+                        }
+                    }
+                }
+            }
+
             // The kernel never triggers alarms with negative wakeup times
             // so we ensure they are positive.
             long alarmSeconds, alarmNanoseconds;

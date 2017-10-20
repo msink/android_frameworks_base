@@ -54,6 +54,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -1502,8 +1503,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         if (dispatcher != null) {
             dispatcher.handleUpEvent(event);
         }
-        //Log.i(TAG, "Key up: repeat=" + event.getRepeatCount()
-        //        + " flags=0x" + Integer.toHexString(event.getFlags()));
+        Log.i(TAG, "Key up: repeat=" + event.getRepeatCount()
+                + " flags=0x" + Integer.toHexString(event.getFlags()));
         
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
@@ -2689,8 +2690,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
         if (targetPreHoneycomb || (targetPreIcs && targetHcNeedsOptions && noActionBar)) {
             addFlags(WindowManager.LayoutParams.FLAG_NEEDS_MENU_KEY);
-        } else {
-            clearFlags(WindowManager.LayoutParams.FLAG_NEEDS_MENU_KEY);
         }
         
         if (mAlwaysReadCloseOnTouchAttr || getContext().getApplicationInfo().targetSdkVersion
@@ -3659,5 +3658,19 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     void sendCloseSystemWindows(String reason) {
         PhoneWindowManager.sendCloseSystemWindows(getContext(), reason);
+    }
+
+    static void handleRefreshKey() {
+        try {
+            IBinder surfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+            if (surfaceFlinger != null) {
+                Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                data.writeInt(-1);
+                surfaceFlinger.transact(1019, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+        }
     }
 }

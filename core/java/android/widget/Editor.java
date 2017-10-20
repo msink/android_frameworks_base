@@ -106,7 +106,7 @@ import java.util.HashMap;
 public class Editor {
     private static final String TAG = "Editor";
 
-    static final int BLINK = 500;
+    static final int BLINK = 10000000;
     private static final float[] TEMP_POSITION = new float[2];
     private static int DRAG_SHADOW_MAX_TEXT_LENGTH = 20;
 
