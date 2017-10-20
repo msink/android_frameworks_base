@@ -520,4 +520,5 @@
     <string name="sdcard_unmount">internal storage is unmount</string>
     <string name="external_sd_unmount">sd card is unmount</string>
     <string name="usb_storage_unmount">usb storage is unmount</string>
+    <string name="compat_mode_standard_screen_on">Fill standard screen</string>
 </resources>

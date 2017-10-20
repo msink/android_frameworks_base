@@ -17,23 +17,24 @@
 
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="@*android:dimen/ticker_panel_width"
+    android:layout_height="@*android:dimen/ticker_panel_height"
+    android:background="@drawable/system_bar_notification_panel_style"
     >
 
     <View
-        android:layout_height="@*android:dimen/system_bar_height"
-        android:layout_width="match_parent"
+        android:layout_height="@*android:dimen/ticker_panel_height"
+        android:layout_width="@*android:dimen/ticker_panel_width"
         android:background="@drawable/system_bar_ticker_background"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:clickable="false"
         />
 
     <ImageView
         android:id="@+id/large_icon"
-        android:layout_width="@android:dimen/notification_large_icon_height"
-        android:layout_height="@android:dimen/notification_large_icon_width"
+        android:layout_width="@*android:dimen/ticker_panel_height"
+        android:layout_height="@*android:dimen/ticker_panel_width"
         android:scaleType="center"
         android:visibility="gone"
         android:layout_alignParentLeft="true"
@@ -43,7 +44,7 @@
     <FrameLayout
         android:id="@+id/ticker_expanded"
         android:layout_weight="1"
-        android:layout_height="@*android:dimen/system_bar_height"
+        android:layout_height="@*android:dimen/ticker_panel_height"
         android:layout_width="match_parent"
         android:layout_toRightOf="@id/large_icon"
         android:layout_alignParentBottom="true"

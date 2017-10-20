@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <public type="string" name="abbrev_wday_month_day_no_year" id="0x7f0b0002" />
+    <public type="string" name="status_bar_date_formatter" id="0x7f0b0003" />
+    <public type="string" name="toast_rotation_locked" id="0x7f0b00bd" />
+    <public type="string" name="compat_mode_standard_screen_on" id="0x7f0b00be" />
+</resources>

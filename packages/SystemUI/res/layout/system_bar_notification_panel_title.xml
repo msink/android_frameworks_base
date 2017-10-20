@@ -18,7 +18,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:systemui="http://schemas.android.com/apk/res/com.android.systemui"
     android:id="@+id/title_area"
-    android:background="@drawable/system_bar_notification_header_bg"
+    android:background="#ffffffff"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:clickable="true"
@@ -86,12 +86,13 @@
             <TextView
                 android:id="@+id/mobile_text"
                 style="@style/SystemBarNotificationText"
-                android:layout_gravity="left|center_vertical"
+                android:layout_gravity="left|center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingRight="12dp"
                 android:singleLine="true"
                 android:ellipsize="end"
+                android:textColor="@color/notification_panel_solid_background"
                 android:text="@string/status_bar_settings_settings_button"
                 />
 
@@ -122,12 +123,13 @@
             <TextView
                 android:id="@+id/wifi_text"
                 style="@style/SystemBarNotificationText"
-                android:layout_gravity="left|center_vertical"
+                android:layout_gravity="left|center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingRight="12dp"
                 android:singleLine="true"
                 android:ellipsize="end"
+                android:textColor="@color/notification_panel_solid_background"
                 android:text="@string/status_bar_settings_settings_button"
                 />
 
@@ -147,9 +149,10 @@
                 style="@style/SystemBarNotificationText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left|center_vertical"
+                android:layout_gravity="left|center"
                 android:paddingRight="2dp"
                 android:singleLine="true"
+                android:textColor="@color/notification_panel_solid_background"
                 android:text="@string/status_bar_settings_settings_button"
                 />
 
@@ -203,6 +206,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textAppearance="@style/TextAppearance.SystemBar.Expanded.Clock"
+            android:textColor="@color/notification_panel_solid_background"
             />
     
         <com.android.systemui.statusbar.policy.DateView
@@ -212,6 +216,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:textAppearance="@style/TextAppearance.SystemBar.Expanded.Date"
+            android:textColor="@color/notification_panel_solid_background"
             />
 
         <Space

@@ -55,6 +55,7 @@
   <java-symbol type="id" name="by_org_unit" />
   <java-symbol type="id" name="calendar_view" />
   <java-symbol type="id" name="cancel" />
+  <java-symbol type="id" name="centerSpacer" />
   <java-symbol type="id" name="characterPicker" />
   <java-symbol type="id" name="clearDefaultHint" />
   <java-symbol type="id" name="contentPanel" />
@@ -1737,6 +1738,7 @@
   <java-symbol type="string" name="usb_storage_notification_message" />
   <java-symbol type="string" name="usb_storage_notification_title" />
   <java-symbol type="string" name="usb_storage_stop_message" />
+  <java-symbol type="string" name="usb_storage_stop_error_message" />
   <java-symbol type="string" name="usb_storage_stop_notification_message" />
   <java-symbol type="string" name="usb_storage_stop_notification_title" />
   <java-symbol type="string" name="usb_storage_stop_title" />

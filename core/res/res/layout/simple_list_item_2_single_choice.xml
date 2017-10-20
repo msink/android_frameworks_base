@@ -19,6 +19,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
+    android:background="@android:drawable/my_border"
     android:paddingStart="16dip"
     android:paddingEnd="12dip"
     android:minHeight="?android:attr/listPreferredItemHeightSmall">

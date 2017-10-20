@@ -143,7 +143,7 @@
     <string name="silent_mode_vibrate" msgid="7072043388581551395">"Ringer vibrate"</string>
     <string name="silent_mode_ring" msgid="8592241816194074353">"Ringer on"</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Shutting down…"</string>
-    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Your tablet will shut down."</string>
+    <string name="shutdown_confirm" product="tablet" msgid="3385745179555731470">"Your ereader will shut down."</string>
     <string name="shutdown_confirm" product="default" msgid="649792175242821353">"Your phone will shut down."</string>
     <string name="shutdown_confirm_question" msgid="2906544768881136183">"Do you want to shut down?"</string>
     <string name="reboot_safemode_title" msgid="7054509914500140361">"Reboot to safe mode"</string>

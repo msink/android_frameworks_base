@@ -111,6 +111,11 @@
          be an integer for a constant duration. -->
     <fraction name="config_dimBehindFadeDuration">100%</fraction>
 
+    <!--  -->
+    <dimen name="ticker_panel_width">330dp</dimen>
+    <!--  -->
+    <dimen name="ticker_panel_height">63dp</dimen>
+
     <!-- The maximum width we would prefer dialogs to be.  0 if there is no
          maximum (let them grow as large as the screen).  Actual values are
          specified for -large and -xlarge configurations. -->
@@ -319,7 +324,7 @@
     <!-- XXXXXX END OF RESOURCES USING WRONG NAMING CONVENTION -->
 
     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
-    <bool name="config_unplugTurnsOnScreen">false</bool>
+    <bool name="config_unplugTurnsOnScreen">true</bool>
 
     <!-- If this is true, the screen will fade off. -->
     <bool name="config_animateScreenLights">true</bool>
@@ -569,6 +574,14 @@
 
          Must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLevels">
+        <item>10</item>
+        <item>160</item>
+        <item>225</item>
+        <item>320</item>
+        <item>640</item>
+        <item>1280</item>
+        <item>2600</item>
+        <item>10240</item>
     </integer-array>
 
     <!-- Minimum screen brightness setting allowed by the power manager.
@@ -586,7 +599,7 @@
     <!-- Screen brightness used to dim the screen when the user activity
          timeout expires.  May be less than the minimum allowed brightness setting
          that can be set by the user. -->
-    <integer name="config_screenBrightnessDim">10</integer>
+    <integer name="config_screenBrightnessDim">1</integer>
 
     <!-- Array of output values for LCD backlight corresponding to the LUX values
          in the config_autoBrightnessLevels array.  This array should have size one greater
@@ -594,6 +607,14 @@
          The brightness values must be between 0 and 255 and be non-decreasing.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>10</item>
+        <item>45</item>
+        <item>80</item>
+        <item>115</item>
+        <item>150</item>
+        <item>185</item>
+        <item>220</item>
+        <item>255</item>
     </integer-array>
 
     <!-- Array of output values for button backlight corresponding to the LUX values
@@ -873,7 +894,7 @@
 
     <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
          autodetected from the Configuration. -->
-    <bool name="config_showNavigationBar">false</bool>
+    <bool name="config_showNavigationBar">true</bool>
 
     <!-- Whether action menu items should be displayed in ALLCAPS or not.
          Defaults to true. If this is not appropriate for specific locales
